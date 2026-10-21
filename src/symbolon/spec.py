@@ -9,6 +9,11 @@ from __future__ import annotations
 
 import contextlib
 import copy
+import keyword
+import os
+import re
+import subprocess
+import tempfile
 import importlib.util
 import inspect
 import io
@@ -101,6 +106,17 @@ class LoadedContract:
             raise SpecError(f"{path.name} does not define the entrypoint function '{fn_name}'")
         return fn
 
+    def load_any(self, path: Path) -> Callable:
+        """An implementation file (Python), or a directory with symbolon-impl.toml."""
+        path = Path(path).resolve()
+        if not path.is_dir():
+            return self.load_impl(path)
+        from .implementation import load_impl_manifest
+        section = load_impl_manifest(path).implementation
+        if section.language == "command":
+            return CommandImpl(section.command, cwd=path)
+        return self.load_impl(path / section.entrypoint)
+
     def bind(self, fn: Callable) -> "BoundImpl":
         return BoundImpl(fn, self.Input, self.Output)
 
@@ -125,6 +141,85 @@ class BoundImpl:
 
     def __repr__(self) -> str:
         return "impl"
+
+
+_BUILTIN_ERRORS = {
+    e.__name__: e for e in (ValueError, TypeError, KeyError, IndexError, LookupError,
+                            ArithmeticError, ZeroDivisionError, OverflowError, NotImplementedError,
+                            RuntimeError, OSError, UnicodeError)
+}
+
+
+def _exception_for(error: dict) -> Exception:
+    name = str(error.get("type") or "Error")
+    message = str(error.get("message") or "")
+    if name in _BUILTIN_ERRORS:
+        return _BUILTIN_ERRORS[name](message)
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name) or keyword.iskeyword(name):
+        name = "ImplementationError"
+    return type(name, (Exception,), {})(message)
+
+
+class CommandImpl:
+    """An implementation in any language, run as a long-lived child process.
+
+    Protocol, one JSON value per line:
+      request  (stdin):  the input object
+      reply    (stdout): {"output": <output object>}
+                     or  {"error": {"type": "ValueError", "message": "..."}}
+
+    `type` names the error class the contract's examples expect; ValueError
+    is the convention for invalid input. Anything written to stderr is kept
+    for diagnostics. If the process dies it is restarted for the next call.
+    """
+
+    def __init__(self, argv: list[str], cwd: Path):
+        self.argv = list(argv)
+        self.cwd = Path(cwd)
+        self._proc: subprocess.Popen | None = None
+        self._stderr = tempfile.TemporaryFile(mode="w+")
+
+    def _start(self) -> subprocess.Popen:
+        argv = list(self.argv)
+        if (self.cwd / argv[0]).is_file():
+            argv[0] = str(self.cwd / argv[0])
+        return subprocess.Popen(
+            argv, cwd=self.cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=self._stderr, text=True, bufsize=1, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+        )
+
+    def _stderr_tail(self) -> str:
+        self._stderr.seek(0)
+        return "\n".join(self._stderr.read().strip().splitlines()[-5:])
+
+    def __call__(self, data: dict) -> dict:
+        if self._proc is None or self._proc.poll() is not None:
+            self._proc = self._start()
+        try:
+            self._proc.stdin.write(json.dumps(data) + "\n")
+            self._proc.stdin.flush()
+            line = self._proc.stdout.readline()
+        except BrokenPipeError:
+            line = ""
+        if not line:
+            raise RuntimeError(f"implementation process exited: {self._stderr_tail() or 'no output'}")
+        try:
+            reply = json.loads(line)
+        except json.JSONDecodeError:
+            raise RuntimeError(f"implementation wrote a line that is not JSON: {line[:200]!r}") from None
+        if isinstance(reply, dict) and "error" in reply:
+            raise _exception_for(reply["error"] if isinstance(reply["error"], dict) else {"message": reply["error"]})
+        if not isinstance(reply, dict) or "output" not in reply:
+            raise RuntimeError("implementation reply must be {\"output\": ...} or {\"error\": ...}")
+        return reply["output"]
+
+    def close(self) -> None:
+        if self._proc and self._proc.poll() is None:
+            self._proc.stdin.close()
+            try:
+                self._proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self._proc.kill()
 
 
 def load_examples(path: Path) -> list[dict]:

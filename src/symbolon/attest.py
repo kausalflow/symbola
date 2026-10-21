@@ -65,15 +65,15 @@ def run_attestation(contract_dir: Path, impl_dir: Path, sandbox: Sandbox, key) -
                 f"implementation targets {impl_manifest.implementation.contract}, "
                 f"but this contract is {c_digest}"
             )
-        entry = impl_manifest.implementation.entrypoint
-        if not (ws.impl / entry).is_file():
-            raise AttestError(f"entrypoint {entry} not found in the implementation")
+        section = impl_manifest.implementation
+        if section.language == "python" and not (ws.impl / section.entrypoint).is_file():
+            raise AttestError(f"entrypoint {section.entrypoint} not found in the implementation")
 
         network = bool(manifest.requires.network)
         env = sandbox.environment()
         started = _now()
         result = sandbox.run(
-            ws, entry, network=network, lockfile=(ws.impl / "requirements.lock").exists(),
+            ws, network=network, lockfile=(ws.impl / "requirements.lock").exists(),
             limits=Limits(timeout_seconds=manifest.spec.timeout_seconds),
         )
         finished = _now()

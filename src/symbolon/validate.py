@@ -100,7 +100,4 @@ def check_impl(contract_dir: Path, impl_path: Path) -> dict:
     root = Path(contract_dir).resolve()
     manifest = load_manifest(root)
     impl_path = Path(impl_path).resolve()
-    if impl_path.is_dir():
-        from .implementation import load_impl_manifest
-        impl_path = impl_path / load_impl_manifest(impl_path).implementation.entrypoint
     return run_worker("test", root, str(impl_path), timeout=manifest.spec.timeout_seconds)
