@@ -35,6 +35,7 @@ symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
 | `symbolon keygen` | Create this runner's Ed25519 signing key |
 | `symbolon attest <contract> <impl>` | Run the spec in a sandbox; write a signed in-toto attestation |
 | `symbolon verify <attestation>` | Check signature, trust, digests; `--rerun` reproduces it locally |
+| `symbolon pack validate <dir>` | Check a spec pack's brief, assumptions and obligations; report obligations by status |
 
 ## Seed contracts
 
@@ -44,7 +45,7 @@ symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
 | `core/csv-to-records@1` | Parse RFC 4180 CSV with a header into records |
 | `core/unit-convert@1` | Convert length, mass, and temperature with exact factors |
 
-The contract format is specified in [docs/CONTRACT_FORMAT.md](docs/CONTRACT_FORMAT.md), and implementations and attestations in [docs/ATTESTATION.md](docs/ATTESTATION.md).
+The contract format is specified in [docs/CONTRACT_FORMAT.md](docs/CONTRACT_FORMAT.md), implementations and attestations in [docs/ATTESTATION.md](docs/ATTESTATION.md), and spec packs in [docs/PACK_FORMAT.md](docs/PACK_FORMAT.md).
 
 ## Tests
 

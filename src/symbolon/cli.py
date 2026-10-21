@@ -13,6 +13,7 @@ from .attest import AttestError, compare_runs, run_attestation, statement_of, ve
 from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
+from .pack import report_json, summary_line, validate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
 from .validate import WorkerError, check_impl, regenerate_schema, validate
@@ -245,6 +246,29 @@ def verify(
         _line(not diffs, "reproduced: every check has the same outcome" if not diffs else "not reproduced", "\n".join(diffs))
         ok = ok and not diffs
     raise typer.Exit(0 if ok else 1)
+
+
+pack_app = typer.Typer(no_args_is_help=True, help="Work with spec packs.")
+app.add_typer(pack_app, name="pack")
+
+
+@pack_app.command(name="validate")
+def pack_validate(
+    path: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    as_json: bool = typer.Option(False, "--json", help="Print the report as JSON."),
+) -> None:
+    """Check a pack's brief, assumptions and obligations, and that every obligation is checked or open."""
+    report = validate_pack(path)
+    if as_json:
+        typer.echo(report_json(report))
+    else:
+        for c in report.checks:
+            _line(c.ok, c.name, c.detail)
+        if report.ok:
+            typer.echo(f"\n{summary_line(report.summary)}")
+        else:
+            typer.echo(typer.style("\npack is not valid", fg=typer.colors.RED))
+    raise typer.Exit(0 if report.ok else 1)
 
 
 @app.command()
