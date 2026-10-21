@@ -1,0 +1,30 @@
+[contract]
+id = "core/unit-convert"
+version = 1
+title = "Convert a quantity between units of length, mass, or temperature"
+description = """
+Converts a finite number from one unit to another within the same dimension.
+Length: mm, cm, m, km, in, ft, yd, mi. Mass: mg, g, kg, oz, lb.
+Temperature: C, F, K. Conversion factors are the exact international
+definitions (1 in = 0.0254 m, 1 lb = 0.45359237 kg, 0 C = 273.15 K).
+Converting between dimensions raises ValueError. Temperatures below
+absolute zero raise ValueError. Results are compared with a relative
+tolerance of 1e-9.
+"""
+regenerability = "disposable"
+license = "Apache-2.0"
+authors = ["Symbolon seed contracts"]
+
+[entrypoint]
+function = "run"
+
+[requires]
+network = []
+credentials = []
+state = []
+permissions = []
+
+[spec]
+seed = 0
+max_examples = 300
+float_rel_tol = 1e-9

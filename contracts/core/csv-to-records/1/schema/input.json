@@ -1,0 +1,26 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "csv": {
+      "description": "CSV text including the header row.",
+      "title": "Csv",
+      "type": "string"
+    },
+    "delimiter": {
+      "default": ",",
+      "enum": [
+        ",",
+        ";",
+        "\t",
+        "|"
+      ],
+      "title": "Delimiter",
+      "type": "string"
+    }
+  },
+  "required": [
+    "csv"
+  ],
+  "title": "Input",
+  "type": "object"
+}

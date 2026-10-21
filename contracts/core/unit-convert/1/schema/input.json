@@ -1,0 +1,60 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "from_unit": {
+      "enum": [
+        "mm",
+        "cm",
+        "m",
+        "km",
+        "in",
+        "ft",
+        "yd",
+        "mi",
+        "mg",
+        "g",
+        "kg",
+        "oz",
+        "lb",
+        "C",
+        "F",
+        "K"
+      ],
+      "title": "From Unit",
+      "type": "string"
+    },
+    "to_unit": {
+      "enum": [
+        "mm",
+        "cm",
+        "m",
+        "km",
+        "in",
+        "ft",
+        "yd",
+        "mi",
+        "mg",
+        "g",
+        "kg",
+        "oz",
+        "lb",
+        "C",
+        "F",
+        "K"
+      ],
+      "title": "To Unit",
+      "type": "string"
+    },
+    "value": {
+      "title": "Value",
+      "type": "number"
+    }
+  },
+  "required": [
+    "value",
+    "from_unit",
+    "to_unit"
+  ],
+  "title": "Input",
+  "type": "object"
+}

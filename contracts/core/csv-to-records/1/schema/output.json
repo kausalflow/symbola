@@ -1,0 +1,21 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "records": {
+      "description": "One record per data row, in file order.",
+      "items": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "type": "object"
+      },
+      "title": "Records",
+      "type": "array"
+    }
+  },
+  "required": [
+    "records"
+  ],
+  "title": "Output",
+  "type": "object"
+}

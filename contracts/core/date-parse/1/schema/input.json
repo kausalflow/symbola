@@ -1,0 +1,27 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "locale": {
+      "description": "ISO: YYYY-MM-DD. en-US: M/D/YYYY. en-GB: D/M/YYYY. de-DE: D.M.YYYY. Day and month may omit leading zeros, except in ISO.",
+      "enum": [
+        "ISO",
+        "en-US",
+        "en-GB",
+        "de-DE"
+      ],
+      "title": "Locale",
+      "type": "string"
+    },
+    "text": {
+      "description": "The date as written, e.g. '10/21/2026' for en-US.",
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "text",
+    "locale"
+  ],
+  "title": "Input",
+  "type": "object"
+}

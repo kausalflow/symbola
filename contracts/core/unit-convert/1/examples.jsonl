@@ -1,0 +1,15 @@
+{"input": {"value": 1, "from_unit": "in", "to_unit": "m"}, "output": {"value": 0.0254}}
+{"input": {"value": 1, "from_unit": "mi", "to_unit": "m"}, "output": {"value": 1609.344}}
+{"input": {"value": 3, "from_unit": "ft", "to_unit": "yd"}, "output": {"value": 1}}
+{"input": {"value": 2.5, "from_unit": "km", "to_unit": "cm"}, "output": {"value": 250000}}
+{"input": {"value": 1, "from_unit": "lb", "to_unit": "g"}, "output": {"value": 453.59237}}
+{"input": {"value": 16, "from_unit": "oz", "to_unit": "lb"}, "output": {"value": 1}}
+{"input": {"value": 100, "from_unit": "C", "to_unit": "F"}, "output": {"value": 212}}
+{"input": {"value": -40, "from_unit": "F", "to_unit": "C"}, "output": {"value": -40}}
+{"input": {"value": 0, "from_unit": "K", "to_unit": "C"}, "output": {"value": -273.15}}
+{"input": {"value": 98.6, "from_unit": "F", "to_unit": "K"}, "output": {"value": 310.15}}
+{"input": {"value": 5, "from_unit": "kg", "to_unit": "kg"}, "output": {"value": 5}}
+{"input": {"value": 1, "from_unit": "kg", "to_unit": "m"}, "raises": "ValueError", "note": "different dimensions"}
+{"input": {"value": 1, "from_unit": "C", "to_unit": "g"}, "raises": "ValueError", "note": "different dimensions"}
+{"input": {"value": -1, "from_unit": "K", "to_unit": "C"}, "raises": "ValueError", "note": "below absolute zero"}
+{"input": {"value": -500, "from_unit": "F", "to_unit": "F"}, "raises": "ValueError", "note": "below absolute zero, even without conversion"}

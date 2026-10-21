@@ -1,0 +1,27 @@
+[contract]
+id = "core/date-parse"
+version = 1
+title = "Parse a calendar date written in a given locale"
+description = """
+Parses a date string written in one of a fixed set of locale conventions and
+returns it as an ISO 8601 calendar date (YYYY-MM-DD). Day and month may be
+written with or without leading zeros; the year is always four digits.
+Leading and trailing whitespace is ignored. Strings that do not match the
+locale's pattern, or that name a date that does not exist, raise ValueError.
+"""
+regenerability = "disposable"
+license = "Apache-2.0"
+authors = ["Symbolon seed contracts"]
+
+[entrypoint]
+function = "run"
+
+[requires]
+network = []
+credentials = []
+state = []
+permissions = []
+
+[spec]
+seed = 0
+max_examples = 300

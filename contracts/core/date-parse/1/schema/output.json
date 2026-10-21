@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "date": {
+      "description": "ISO 8601 calendar date.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "title": "Date",
+      "type": "string"
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "title": "Output",
+  "type": "object"
+}

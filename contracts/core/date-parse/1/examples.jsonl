@@ -1,0 +1,14 @@
+{"input": {"text": "2026-10-21", "locale": "ISO"}, "output": {"date": "2026-10-21"}}
+{"input": {"text": "10/21/2026", "locale": "en-US"}, "output": {"date": "2026-10-21"}}
+{"input": {"text": "21/10/2026", "locale": "en-GB"}, "output": {"date": "2026-10-21"}}
+{"input": {"text": "21.10.2026", "locale": "de-DE"}, "output": {"date": "2026-10-21"}}
+{"input": {"text": "3/4/2026", "locale": "en-US"}, "output": {"date": "2026-03-04"}, "note": "no leading zeros, month first"}
+{"input": {"text": "3/4/2026", "locale": "en-GB"}, "output": {"date": "2026-04-03"}, "note": "same text, day first"}
+{"input": {"text": "  1.2.1999 ", "locale": "de-DE"}, "output": {"date": "1999-02-01"}, "note": "surrounding whitespace ignored"}
+{"input": {"text": "29/02/2024", "locale": "en-GB"}, "output": {"date": "2024-02-29"}, "note": "leap day"}
+{"input": {"text": "29/02/2025", "locale": "en-GB"}, "raises": "ValueError", "note": "not a leap year"}
+{"input": {"text": "21/10/2026", "locale": "en-US"}, "raises": "ValueError", "note": "month 21 does not exist"}
+{"input": {"text": "2026-1-5", "locale": "ISO"}, "raises": "ValueError", "note": "ISO requires two-digit month and day"}
+{"input": {"text": "21-10-2026", "locale": "de-DE"}, "raises": "ValueError", "note": "wrong separator"}
+{"input": {"text": "10/21/26", "locale": "en-US"}, "raises": "ValueError", "note": "two-digit years are ambiguous"}
+{"input": {"text": "", "locale": "ISO"}, "raises": "ValueError"}

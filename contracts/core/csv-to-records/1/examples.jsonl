@@ -1,0 +1,14 @@
+{"input": {"csv": "name,age\nAda,36\nAlan,41\n"}, "output": {"records": [{"name": "Ada", "age": "36"}, {"name": "Alan", "age": "41"}]}}
+{"input": {"csv": "city;country\nBonn;DE\n", "delimiter": ";"}, "output": {"records": [{"city": "Bonn", "country": "DE"}]}}
+{"input": {"csv": "a,b\r\n1,2\r\n"}, "output": {"records": [{"a": "1", "b": "2"}]}, "note": "CRLF line endings"}
+{"input": {"csv": "q,n\n\"say \"\"hi\"\"\",\"1,000\"\n"}, "output": {"records": [{"q": "say \"hi\"", "n": "1,000"}]}, "note": "quotes and embedded delimiter"}
+{"input": {"csv": "text\n\"line one\nline two\"\n"}, "output": {"records": [{"text": "line one\nline two"}]}, "note": "newline inside quotes"}
+{"input": {"csv": "a,b\n 1 , 2\n"}, "output": {"records": [{"a": " 1 ", "b": " 2"}]}, "note": "whitespace is preserved"}
+{"input": {"csv": "a,b\n\n1,2\n\n"}, "output": {"records": [{"a": "1", "b": "2"}]}, "note": "blank lines skipped"}
+{"input": {"csv": "a,b\n"}, "output": {"records": []}, "note": "header only"}
+{"input": {"csv": "a,b\n1,2"}, "output": {"records": [{"a": "1", "b": "2"}]}, "note": "no trailing newline"}
+{"input": {"csv": "a,b\n1,2,3\n"}, "raises": "ValueError", "note": "too many fields"}
+{"input": {"csv": "a,b\n1\n"}, "raises": "ValueError", "note": "too few fields"}
+{"input": {"csv": "a,a\n1,2\n"}, "raises": "ValueError", "note": "duplicate header"}
+{"input": {"csv": "a,,c\n1,2,3\n"}, "raises": "ValueError", "note": "empty header name"}
+{"input": {"csv": ""}, "raises": "ValueError", "note": "no header"}
