@@ -119,7 +119,7 @@ def test_check_impl_reports_failures(copy_seed, tmp_path):
 def test_check_impl_passes_independent_implementation(copy_seed):
     from .conftest import REPO
     root = copy_seed("core/date-parse")
-    result = check_impl(root, REPO / "examples" / "impls" / "date_parse_strict.py")
+    result = check_impl(root, REPO / "examples" / "impls" / "date-parse-strict" / "impl.py")
     assert result["passed"]
 
 

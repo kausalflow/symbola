@@ -1,6 +1,6 @@
 """Subprocess entry point for everything that executes contract code.
 
-Usage: python -I -m symbolon.worker <mode> <contract_dir> <out.json> [impl.py]
+Usage: python -I -m symbolon.worker <mode> <contract_dir> <out.json> [impl.py] [--deps DIR]
 
 Modes:
   check   structural and behavioral checks for `validate`
@@ -8,13 +8,15 @@ Modes:
   schema  regenerate schema/input.json and schema/output.json
 
 The result is written as JSON to <out.json>, so anything the contract prints
-cannot corrupt it. In step 2 this process moves into a container sandbox.
+cannot corrupt it. `symbolon attest` runs this process inside a sandbox
+(see sandbox.py).
 """
 
 from __future__ import annotations
 
 import json
 import sys
+import time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -146,18 +148,39 @@ def check(root: Path) -> list[CheckResult]:
     return checks
 
 
+def _resources(started: float) -> dict:
+    import resource
+    usage = resource.getrusage(resource.RUSAGE_SELF)
+    return {
+        "wall_seconds": round(time.monotonic() - started, 3),
+        "cpu_seconds": round(usage.ru_utime + usage.ru_stime, 3),
+        "peak_rss_kb": usage.ru_maxrss,
+    }
+
+
 def main(argv: list[str]) -> int:
-    mode, root, out = argv[0], Path(argv[1]).resolve(), Path(argv[2])
+    started = time.monotonic()
+    args = list(argv)
+    deps = None
+    if "--deps" in args:
+        i = args.index("--deps")
+        deps = args[i + 1]
+        del args[i:i + 2]
+    if deps:
+        # Implementation dependencies, installed by the sandbox before this run.
+        sys.path.insert(0, deps)
+    mode, root, out = args[0], Path(args[1]).resolve(), Path(args[2])
     if mode == "check":
         payload = {"checks": [asdict(c) for c in check(root)]}
     elif mode == "test":
         contract = LoadedContract.load(root, load_manifest(root))
         try:
-            fn = contract.load_impl(Path(argv[3]))
+            fn = contract.load_impl(Path(args[3]))
         except Exception as e:
             payload = {"error": f"{type(e).__name__}: {e}"}
         else:
             payload = run_spec(contract, fn).to_dict()
+        payload["resources"] = _resources(started)
     elif mode == "schema":
         contract = LoadedContract.load(root, load_manifest(root))
         payload = {"written": write_schemas(contract)}

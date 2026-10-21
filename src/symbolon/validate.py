@@ -96,6 +96,11 @@ def regenerate_schema(contract_dir: Path) -> list[str]:
 
 
 def check_impl(contract_dir: Path, impl_path: Path) -> dict:
+    """Run the spec against an implementation file, or a directory with symbolon-impl.toml."""
     root = Path(contract_dir).resolve()
     manifest = load_manifest(root)
-    return run_worker("test", root, str(Path(impl_path).resolve()), timeout=manifest.spec.timeout_seconds)
+    impl_path = Path(impl_path).resolve()
+    if impl_path.is_dir():
+        from .implementation import load_impl_manifest
+        impl_path = impl_path / load_impl_manifest(impl_path).implementation.entrypoint
+    return run_worker("test", root, str(impl_path), timeout=manifest.spec.timeout_seconds)
