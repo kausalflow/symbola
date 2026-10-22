@@ -720,10 +720,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#corecsv-to-records1" class="md-nav__link">
+  <a href="#corecsv-to-records1-and-2" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>core/csv-to-records@1</code>
+        <code>core/csv-to-records@1</code> and <code>@2</code>
       </span>
     </span>
   </a>
@@ -863,10 +863,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#corecsv-to-records1" class="md-nav__link">
+  <a href="#corecsv-to-records1-and-2" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>core/csv-to-records@1</code>
+        <code>core/csv-to-records@1</code> and <code>@2</code>
       </span>
     </span>
   </a>
@@ -993,6 +993,12 @@
 <td>5</td>
 </tr>
 <tr>
+<td><code>core/csv-to-records@2</code></td>
+<td>As version 1, and malformed quoting raises <code>ValueError</code></td>
+<td>17</td>
+<td>5</td>
+</tr>
+<tr>
 <td><code>core/unit-convert@1</code></td>
 <td>Convert length, mass and temperature with the exact international factors</td>
 <td>15</td>
@@ -1000,11 +1006,18 @@
 </tr>
 </tbody>
 </table>
+<p>Each has six mutants in <code>mutants/</code>. date-parse kills all six. csv-to-records@1 kills
+five; the survivor accepts malformed quoting such as <code>"x"y</code>, which version 1's
+description never rules on. Version 2 settles it: text after a closing quote, or
+a quote never closed, raises <code>ValueError</code>, and all six mutants are killed.
+unit-convert kills five; the survivor uses binary floats, which the 1e-9 tolerance
+allows. <code>symbolon mutants contracts/core/&lt;name&gt;/1</code> shows the full matrix.</p>
 <h2 id="coredate-parse1"><code>core/date-parse@1</code><a class="headerlink" href="#coredate-parse1" title="Permanent link">&para;</a></h2>
 <p>Day and month may omit leading zeros, except in ISO. The year is always four digits. Leading and trailing whitespace is ignored. Strings that don't match the locale's pattern, or that name a date that doesn't exist, raise <code>ValueError</code>.</p>
 <p>Two implementations in <code>examples/impls/</code> show what the properties are for. <code>date-parse-strptime</code> is the plausible one-shot version built on <code>datetime.strptime</code>. It passes most examples but accepts <code>2000-1-1</code> as ISO, which <code>test_iso_requires_two_digit_month_and_day</code> finds. <code>date-parse-strict</code> checks the string's shape with a regular expression first, and passes.</p>
-<h2 id="corecsv-to-records1"><code>core/csv-to-records@1</code><a class="headerlink" href="#corecsv-to-records1" title="Permanent link">&para;</a></h2>
+<h2 id="corecsv-to-records1-and-2"><code>core/csv-to-records@1</code> and <code>@2</code><a class="headerlink" href="#corecsv-to-records1-and-2" title="Permanent link">&para;</a></h2>
 <p>Quoted fields may contain the delimiter, newlines and doubled quotes. Rows end with LF or CRLF, and blank lines are skipped. Values are returned exactly as written, with no trimming or type conversion. A missing header, empty or duplicate header names, or a row with the wrong number of fields raise <code>ValueError</code>.</p>
+<p>Version 2 adds one rule. Text after a field's closing quote (<code>"x"y</code>) or a quote that is never closed raises <code>ValueError</code>; a quote inside an unquoted field (<code>x"y</code>) is an ordinary character.</p>
 <h2 id="coreunit-convert1"><code>core/unit-convert@1</code><a class="headerlink" href="#coreunit-convert1" title="Permanent link">&para;</a></h2>
 <p>Length: mm, cm, m, km, in, ft, yd, mi. Mass: mg, g, kg, oz, lb. Temperature: C, F, K. Converting between dimensions, or a temperature below absolute zero, raises <code>ValueError</code>. Results are compared with a relative tolerance of 1e-9.</p>
 
