@@ -377,7 +377,9 @@ def run_properties(contract: LoadedContract, impl: BoundImpl, props: list[tuple[
         try:
             with contextlib.redirect_stdout(buf):
                 test(impl)
-        except Exception as e:
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except BaseException as e:  # pytest.raises signals failure with a BaseException
             detail = _describe(e)
             printed = buf.getvalue().strip()
             # Hypothesis attaches the failing case as exception notes; older
