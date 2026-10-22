@@ -79,7 +79,8 @@ def test_fixtures_are_part_of_the_digest(contract):
 
 def test_lightkone_search_examples_share_one_library():
     examples = load_examples(SEARCH / "examples.jsonl")
-    assert all(len(e["input"]["papers"]) == 10 for e in examples)
+    sizes = [len(e["input"]["papers"]) for e in examples]
+    assert sizes.count(10) >= 70 and set(sizes) <= {10, 27}  # library.json, or titles.json for title sort
     assert '"$fixture": "library.json"' in (SEARCH / "examples.jsonl").read_text()
 
 
