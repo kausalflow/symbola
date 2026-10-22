@@ -1,0 +1,6 @@
+[implementation]
+contract = "sha256:bc7af9a2ff7bb7fd1ea79d53888f77229fbeed318be3613c17927d435b7b3ac9"
+entrypoint = "impl.py"
+language = "python"
+license = "Apache-2.0"
+authors = ["Symbolon examples"]

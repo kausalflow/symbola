@@ -8,8 +8,12 @@ from pathlib import Path
 
 import typer
 
+from . import keys
+from .attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
 from .digest import contract_digest
-from .manifest import ID_RE
+from .implementation import IMPL_MANIFEST_FILE
+from .manifest import ID_RE, load_manifest
+from .sandbox import SandboxError, select
 from .scaffold import scaffold
 from .validate import WorkerError, check_impl, regenerate_schema, validate
 
@@ -85,7 +89,7 @@ def schema(path: Path = typer.Argument(..., help="Contract directory.")) -> None
 @app.command()
 def test(
     path: Path = typer.Argument(..., help="Contract directory."),
-    impl: Path = typer.Argument(..., help="Implementation file (Python)."),
+    impl: Path = typer.Argument(..., help="Implementation directory, or a single Python file."),
     as_json: bool = typer.Option(False, "--json", help="Print the result as JSON."),
 ) -> None:
     """Run a contract's spec against an implementation."""
@@ -109,6 +113,138 @@ def test(
     else:
         typer.echo(typer.style(f"\nFAIL  {failed} of {total} checks failed", fg=typer.colors.RED, bold=True))
     raise typer.Exit(0 if result["passed"] else 1)
+
+
+@app.command()
+def keygen(
+    out: Path = typer.Option(keys.DEFAULT_KEY, help="Where to write the private key; the .pub goes next to it."),
+) -> None:
+    """Create this runner's Ed25519 signing key."""
+    try:
+        path = keys.generate(out)
+    except FileExistsError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    public = keys.load_public(keys.public_path(path))
+    _line(True, f"private key {path}")
+    _line(True, f"public key  {keys.public_path(path)}")
+    typer.echo(f"\nkeyid {keys.keyid(public)}")
+
+
+@app.command(name="impl-init")
+def impl_init(
+    impl_dir: Path = typer.Argument(..., help="Implementation directory (created if missing)."),
+    contract: Path = typer.Option(..., help="Contract directory this implementation targets."),
+    entrypoint: str = typer.Option("impl.py", help="Python file defining the entrypoint function."),
+    author: str = typer.Option("you@example.com", help="Author recorded in the manifest."),
+    license: str = typer.Option("Apache-2.0", help="License of the implementation."),
+) -> None:
+    """Write symbolon-impl.toml, pinned to the contract's current digest."""
+    manifest_path = impl_dir / IMPL_MANIFEST_FILE
+    if manifest_path.exists():
+        _line(False, f"{manifest_path} already exists")
+        raise typer.Exit(1)
+    digest = contract_digest(contract)
+    impl_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(
+        "[implementation]\n"
+        f'contract = "{digest}"\n'
+        f'entrypoint = "{entrypoint}"\n'
+        'language = "python"\n'
+        f'license = "{license}"\n'
+        f'authors = ["{author}"]\n'
+    )
+    entry = impl_dir / entrypoint
+    if not entry.exists():
+        fn = load_manifest(contract).entrypoint.function
+        entry.write_text(f"def {fn}(input: dict) -> dict:\n    raise NotImplementedError\n")
+    _line(True, f"wrote {manifest_path}", f"targets {load_manifest(contract).alias} {digest[:19]}…")
+
+
+def _summarize(statement: dict) -> None:
+    p = statement["predicate"]
+    s = p["symbolon"]
+    cfg = {c["name"].split(":", 1)[0]: c for c in p["configuration"]}
+    ok = p["result"] == "PASSED"
+    total = len(p["passedTests"]) + len(p["failedTests"])
+    typer.echo(f"{OK if ok else FAIL} {p['result']}  {len(p['passedTests'])}/{total} checks passed")
+    for name in p["failedTests"]:
+        _line(False, name, s["failures"].get(name, ""))
+    typer.echo(f"  contract        {cfg['contract']['name'].split(':', 1)[1]}  sha256:{cfg['contract']['digest']['sha256'][:16]}…")
+    typer.echo(f"  implementation  sha256:{statement['subject'][0]['digest']['sha256'][:16]}…")
+    typer.echo(f"  environment     sha256:{cfg['environment']['digest']['sha256'][:16]}…  ({s['sandbox']['environment']['sandbox']} sandbox, network {s['sandbox']['network']})")
+    r = s.get("resources", {})
+    if r:
+        typer.echo(f"  resources       {r.get('wall_seconds')}s wall, {r.get('cpu_seconds')}s cpu, {r.get('peak_rss_kb', 0) // 1024} MB peak")
+    typer.echo(f"  evidence        {s['evidence']}")
+    typer.echo(f"  runner          {s['runner']['keyid'][:23]}…")
+
+
+@app.command()
+def attest(
+    contract: Path = typer.Argument(..., help="Contract directory."),
+    impl: Path = typer.Argument(..., help="Implementation directory with symbolon-impl.toml."),
+    out: Path = typer.Option(Path("attestation.json"), "-o", "--out", help="Where to write the signed attestation."),
+    key: Path = typer.Option(keys.DEFAULT_KEY, help="Runner signing key."),
+    sandbox: str = typer.Option("auto", help="auto, container or process."),
+) -> None:
+    """Run the spec against an implementation in a sandbox and write a signed attestation."""
+    try:
+        signing_key = keys.load_private(key)
+        box = select(sandbox)
+        envelope = run_attestation(contract, impl, box, signing_key)
+    except (AttestError, SandboxError, FileNotFoundError, ValueError) as e:
+        _line(False, "attestation failed", str(e))
+        raise typer.Exit(1)
+    out.write_text(json.dumps(envelope, indent=2) + "\n")
+    statement = statement_of(envelope)
+    _summarize(statement)
+    typer.echo(f"\nwrote {out}")
+    raise typer.Exit(0 if statement["predicate"]["result"] == "PASSED" else 1)
+
+
+@app.command()
+def verify(
+    attestation: Path = typer.Argument(..., help="Attestation JSON (DSSE envelope)."),
+    trust: list[Path] = typer.Option([], help="Trusted runner public key (.pub). Repeat for several."),
+    contract: Path | None = typer.Option(None, help="Check the contract digest against this directory."),
+    impl: Path | None = typer.Option(None, help="Check the implementation digest against this directory."),
+    rerun: bool = typer.Option(False, help="Re-run the spec here and compare results (needs --contract and --impl)."),
+    key: Path = typer.Option(keys.DEFAULT_KEY, help="Signing key for the rerun's own attestation."),
+    sandbox: str = typer.Option("auto", help="Sandbox for --rerun: auto, container or process."),
+) -> None:
+    """Check an attestation's signature, trust, digests, and optionally reproduce it."""
+    try:
+        v = verify_attestation(json.loads(attestation.read_text()), trusted_keys=trust,
+                               contract_dir=contract, impl_dir=impl)
+    except (AttestError, ValueError, KeyError) as e:
+        _line(False, "invalid attestation", str(e))
+        raise typer.Exit(1)
+    _line(True, "signature valid", v.keyid[:23] + "…")
+    if v.trusted is None:
+        typer.echo(typer.style("  runner trust not checked (pass --trust)", dim=True))
+    else:
+        _line(v.trusted, "runner is in the trust set" if v.trusted else "runner is not in the trust set")
+    if contract is not None or impl is not None:
+        _line(not v.problems, "digests match local copies" if not v.problems else "digests checked", "\n".join(v.problems))
+    elif v.problems:
+        for p in v.problems:
+            _line(False, p)
+    _summarize(v.statement)
+    ok = v.ok
+    if rerun:
+        if contract is None or impl is None:
+            _line(False, "--rerun needs --contract and --impl")
+            raise typer.Exit(1)
+        try:
+            again = statement_of(run_attestation(contract, impl, select(sandbox), keys.load_private(key)))
+        except (AttestError, SandboxError, FileNotFoundError, ValueError) as e:
+            _line(False, "rerun failed", str(e))
+            raise typer.Exit(1)
+        diffs = compare_runs(v.statement, again)
+        _line(not diffs, "reproduced: every check has the same outcome" if not diffs else "not reproduced", "\n".join(diffs))
+        ok = ok and not diffs
+    raise typer.Exit(0 if ok else 1)
 
 
 @app.command()

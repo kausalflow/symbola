@@ -59,6 +59,8 @@ Unknown keys are errors, so a typo cannot silently change a contract's meaning.
 
 An implementation is a Python file that defines the entrypoint function. It receives the input as plain JSON values (a dict matching `schema/input.json`) and returns plain JSON values matching `schema/output.json`. It reports invalid input by raising an exception, normally `ValueError`. Because implementations exchange only JSON values, any tool or model can produce one without importing Symbolon.
 
+`symbolon test` accepts a single file. `symbolon attest` needs an implementation directory with a manifest and optional lockfile; see [ATTESTATION.md](ATTESTATION.md).
+
 ## Examples: `examples.jsonl`
 
 One JSON object per line:
@@ -89,7 +91,7 @@ Every function named `test_*` is a property. Its first parameter must be `impl`.
 8. **Vacuity:** the properties alone fail against an implementation that always raises, and against one that always returns the first example's output. A spec that cannot tell those apart from a real implementation is not a spec.
 9. If all checks pass, it prints the digest.
 
-Steps 3 to 8 execute contract code. They run in a separate Python process (`python -I -m symbolon.worker`). In MVP step 2 this process moves into a container sandbox.
+Steps 3 to 8 execute contract code. They run in a separate Python process (`python -I -m symbolon.worker`). `symbolon attest` runs that same worker inside a sandbox (see ATTESTATION.md).
 
 ## Digest
 
