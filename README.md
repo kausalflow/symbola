@@ -45,7 +45,7 @@ symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
 | Contract | Capability |
 | --- | --- |
 | `core/date-parse@1` | Parse a date written in ISO, en-US, en-GB, or de-DE conventions |
-| `core/csv-to-records@1` | Parse RFC 4180 CSV with a header into records |
+| `core/csv-to-records@1`, `@2` | Parse RFC 4180 CSV with a header into records (v2 also rejects malformed quoting) |
 | `core/unit-convert@1` | Convert length, mass, and temperature with exact factors |
 
 The contract format is specified in [docs/CONTRACT_FORMAT.md](docs/CONTRACT_FORMAT.md), implementations and attestations in [docs/ATTESTATION.md](docs/ATTESTATION.md), and spec packs in [docs/PACK_FORMAT.md](docs/PACK_FORMAT.md).
