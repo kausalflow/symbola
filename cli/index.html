@@ -14,7 +14,7 @@
       
       
       
-        <link rel="prev" href="../guides/writing-a-contract/">
+        <link rel="prev" href="../guides/measuring-ambiguity/">
       
       
         <link rel="next" href="../CONTRACT_FORMAT/">
@@ -328,6 +328,8 @@
       
         
       
+        
+      
     
     
     
@@ -387,6 +389,33 @@
     
   
   Writing a contract
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/measuring-ambiguity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Measuring ambiguity
 
     
   </span>
@@ -628,6 +657,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code>verify</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>diff</code>
       </span>
     </span>
   </a>
@@ -1072,6 +1112,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>diff</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pack-validate" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1261,6 +1312,10 @@
 <td>Check an attestation's signature, trust and digests; optionally reproduce it</td>
 </tr>
 <tr>
+<td><a href="#diff"><code>diff</code></a></td>
+<td>Run several builds on one input pool and measure where they disagree</td>
+</tr>
+<tr>
 <td><a href="#pack-validate"><code>pack validate</code></a></td>
 <td>Check a spec pack's brief, assumptions and obligations</td>
 </tr>
@@ -1343,19 +1398,64 @@
 </tr>
 </tbody>
 </table>
+<h2 id="diff"><code>diff</code><a class="headerlink" href="#diff" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>symbolon diff CONTRACT IMPL IMPL... [--reference NAME] [--pool FILE ...] [--realistic FILE]
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>              [--mutations 500] [--property-cases 50] [--search 300] [--seed 0]
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>              [--weight NAME=W ...] [--severity TIER=W ...] [--max-ambiguity X]
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>              [--top 5] [-o report.json] [--json]
+</span></code></pre></div>
+<p>Runs every implementation on the same inputs: the contract's examples, inputs
+recorded from its property generators, mutated copies of both, any <code>--pool</code> files,
+and further mutations near each disagreement. It reports pairwise distances, the
+ambiguity of the ensemble with a 95% interval, behaviour classes, and the ways the
+builds split, largest first, each with a shrunk witness input and the obligations
+it traces to. Each <code>IMPL</code> is <code>PATH</code> or <code>NAME=PATH</code>; the name defaults to the build
+directory (<code>rebuilds/go-1/search-query</code> is <code>go-1</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--reference</code></td>
+<td>Compare this implementation (the original product) with every build, but leave it out of the ensemble</td>
+</tr>
+<tr>
+<td><code>--realistic</code></td>
+<td>A pool drawn to look like real use, reported as a separate estimate</td>
+</tr>
+<tr>
+<td><code>--weight</code></td>
+<td>Ensemble weight of a build, default 1</td>
+</tr>
+<tr>
+<td><code>--severity</code></td>
+<td>Cost of each disagreement tier: <code>crash</code>, <code>value</code>, <code>format</code> (default 1, 1, 0.1)</td>
+</tr>
+<tr>
+<td><code>--max-ambiguity</code></td>
+<td>Exit 1 when the estimate is above this, for CI</td>
+</tr>
+</tbody>
+</table>
+<p>Like <code>test</code>, it runs implementations in this process's environment, not a sandbox.
+See <a href="../guides/measuring-ambiguity/">Measuring ambiguity</a>.</p>
 <h2 id="pack-validate"><code>pack validate</code><a class="headerlink" href="#pack-validate" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>symbolon pack validate PATH [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbolon pack validate PATH [--json]
 </span></code></pre></div>
 <p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections, assumptions and obligations, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbolon pack validate</code> checks</a>.</p>
 <h2 id="mutants"><code>mutants</code><a class="headerlink" href="#mutants" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbolon mutants PATH [--mutants DIR] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbolon mutants PATH [--mutants DIR] [--json]
 </span></code></pre></div>
 <p>Runs the spec against each mutant in <code>PATH/mutants/</code>, or in <code>DIR</code> (useful for
 measuring a contract without changing its digest), and lists the checks that
 kill each one. Ends with the checks that kill no mutant and the kill rate. Exits 1
 if a mutant survives without <code>SURVIVES</code>. See <a href="../CONTRACT_FORMAT/#mutants-mutantspy">Mutants</a>.</p>
 <h2 id="canary-plant"><code>canary plant</code><a class="headerlink" href="#canary-plant" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbolon canary plant PATH OUT [--seed N] [--record FILE]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbolon canary plant PATH OUT [--seed N] [--record FILE]
 </span></code></pre></div>
 <p>Copies the contract to <code>OUT</code> without <code>reference/</code> and <code>mutants/</code>, and changes one
 example's expected output (chosen by <code>--seed</code>) to a value that still matches the
@@ -1363,7 +1463,7 @@ output schema but contradicts the spec. Writes a private record, by default
 <code>OUT.canary.json</code>, next to the copy. Give the copy to a builder and keep the record.
 An honest build fails exactly that example.</p>
 <h2 id="canary-check"><code>canary check</code><a class="headerlink" href="#canary-check" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbolon canary check RECORD IMPL [--contract PATH] [--flags FILE] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbolon canary check RECORD IMPL [--contract PATH] [--flags FILE] [--json]
 </span></code></pre></div>
 <p>Runs the finished build on the canary input. The outcome is <code>gamed</code> if it returns
 the planted output (the build was fitted to the examples), <code>honest</code> if it returns
@@ -1371,7 +1471,7 @@ what the spec requires, and <code>other</code> otherwise. Also reports whether t
 flagged the canary example in <code>symbolon-flags.jsonl</code> next to the build. Exits 1 only
 for <code>gamed</code>. In a replication, drop gamed builds from the convergence evidence.</p>
 <h2 id="flag"><code>flag</code><a class="headerlink" href="#flag" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbolon flag REF REASON [--dir BUILD_DIR]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>symbolon flag REF REASON [--dir BUILD_DIR]
 </span></code></pre></div>
 <p>Appends <code>{"ref", "reason", "flagged_at"}</code> to <code>BUILD_DIR/symbolon-flags.jsonl</code>.
 <code>REF</code> is an obligation id, a check in pack form (<code>search-query#example:40</code>,
@@ -1418,7 +1518,7 @@ the implementation's digest.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../guides/writing-a-contract/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Writing a contract">
+          <a href="../guides/measuring-ambiguity/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Measuring ambiguity">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
@@ -1428,7 +1528,7 @@ the implementation's digest.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Writing a contract
+                Measuring ambiguity
               </div>
             </div>
           </a>

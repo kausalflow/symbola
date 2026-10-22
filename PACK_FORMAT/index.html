@@ -328,6 +328,8 @@
       
         
       
+        
+      
     
     
     
@@ -387,6 +389,33 @@
     
   
   Writing a contract
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/measuring-ambiguity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Measuring ambiguity
 
     
   </span>
@@ -658,6 +687,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="obligations.toml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#exact-and-statistical-obligations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Exact and statistical obligations
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -915,6 +961,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="obligations.toml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#exact-and-statistical-obligations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Exact and statistical obligations
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1058,8 +1121,9 @@ a build that passes the pack is correct under these assumptions.</p>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"behaviour"</span><span class="w">                     </span><span class="c1"># behaviour | constraint | security | audit (default behaviour)</span>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"replication"</span><span class="w">                 </span><span class="c1"># extract | oracle | replication | counterexample | publisher</span>
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">reason</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"..."</span><span class="w">                         </span><span class="c1"># required when kind = "constraint"</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">assumes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"K-..."</span><span class="p">]</span><span class="w">                    </span><span class="c1"># optional</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">checks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"search-query#test_only_the_last_year_filter_counts"</span><span class="p">,</span><span class="w"> </span><span class="s2">"search-query#example:40"</span><span class="p">]</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">exactness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"exact"</span><span class="w">                    </span><span class="c1"># exact | statistical (default exact)</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">assumes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"K-..."</span><span class="p">]</span><span class="w">                    </span><span class="c1"># optional</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">checks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"search-query#test_only_the_last_year_filter_counts"</span><span class="p">,</span><span class="w"> </span><span class="s2">"search-query#example:40"</span><span class="p">]</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -1091,9 +1155,37 @@ a build that passes the pack is correct under these assumptions.</p>
 <code>examples.jsonl</code>) or <code>&lt;component&gt;#&lt;test function&gt;</code> (a property in its
 <code>properties.py</code>). Obligation ids are the single id scheme for tracing checks to
 requirements; a standalone contract can adopt the same <code>[[obligation]]</code> table later.</p>
-<p><code>source</code> records where an obligation came from. The share that came from
-<code>replication</code> (builders disagreed) rather than <code>extract</code> is a measure of how much
-a pack needed to say beyond the obvious.</p>
+<p><code>source</code> records where the obligation's current binding came from. The share that
+came from <code>replication</code> (builders disagreed) rather than <code>extract</code> is a measure of
+how much a pack needed to say beyond the obvious, so an obligation that extraction
+left open and replication then decided counts as <code>replication</code>.</p>
+<h3 id="exact-and-statistical-obligations">Exact and statistical obligations<a class="headerlink" href="#exact-and-statistical-obligations" title="Permanent link">&para;</a></h3>
+<p><code>exactness</code> says how an obligation constrains outputs, independently of its status:</p>
+<table>
+<thead>
+<tr>
+<th>Exactness</th>
+<th>Meaning</th>
+<th>Extra fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>exact</code></td>
+<td>Every output must satisfy it; one violating output fails it</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>statistical</code></td>
+<td>The output distribution must satisfy it, for software that is random by design, such as a summarizer that calls a model</td>
+<td><code>samples</code> (runs per check), <code>alpha</code> (accepted false-alarm rate), <code>tolerance</code> (its share of the disagreement budget)</td>
+</tr>
+</tbody>
+</table>
+<p>An <code>open</code> obligation is the free case: it constrains nothing, so it takes no
+exactness. The terms follow the kit paper (<em>The Probabilistic Minimal Reproduction
+Kit</em>, section 5.4). The runner does not yet repeat statistical checks; until it
+does, the fields record what a check must do.</p>
 <h2 id="what-symbolon-pack-validate-checks">What <code>symbolon pack validate</code> checks<a class="headerlink" href="#what-symbolon-pack-validate-checks" title="Permanent link">&para;</a></h2>
 <ol>
 <li><code>symbolon-pack.toml</code>, <code>BRIEF.md</code> and <code>obligations.toml</code> exist.</li>
@@ -1103,8 +1195,10 @@ a pack needed to say beyond the obvious.</p>
 <li>Every obligation is well-formed, with a unique id.</li>
 <li>Every <code>decided</code> or <code>default</code> obligation has checks, every <code>open</code> one has none,
    every constraint has a reason, every check exists, and every assumption it names exists.</li>
+<li>A <code>statistical</code> obligation is not <code>open</code> and gives <code>samples</code>, <code>alpha</code> and
+   <code>tolerance</code>; an exact one gives none of them.</li>
 </ol>
-<p>It then reports obligations by status and source, assumptions and how many are
+<p>It then reports obligations by status, source and exactness, assumptions and how many are
 monitored, and how many of the components' checks trace to an obligation. It does
 not run contract code; use <code>symbolon validate</code> on each component for that.</p>
 
