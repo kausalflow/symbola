@@ -23,7 +23,7 @@ The first spec pack built from a real product: lightkone, a static web app for k
 | `lightkone/tidy@1` | Finding duplicate papers and how to merge each group |
 | `lightkone/library-file@1` | Reading `library.json` and writing it back, with `library.bib`, byte for byte |
 
-`symbolon pack validate packs/kausalflow/lightkone/1` reports 63 obligations (53 decided, 9 default, 1 open) and 4 assumptions, and every one of the components' 317 checks traces to an obligation.
+`symbolon pack validate packs/kausalflow/lightkone/1` reports 63 obligations (54 decided, 8 default, 1 open) and 4 assumptions, and every one of the components' 318 checks traces to an obligation.
 
 ## Results (milestone 2)
 
@@ -32,7 +32,7 @@ Five more contracts: `citation-key`, `pdf-filing`, `library-merge`, `tidy`, and 
 | Contract | Checks | lightkone | Go rebuild | Holdout (Go) | Second runner |
 | --- | --- | --- | --- | --- | --- |
 | `lightkone/search-query@1` | 81 examples + 11 properties | PASSED | PASSED | 101/101 | reproduced both |
-| `lightkone/bibtex-import@1` | 36 examples + 13 properties | PASSED | PASSED | 55/55 | reproduced both |
+| `lightkone/bibtex-import@1` | 37 examples + 13 properties | PASSED | PASSED | 56/56 | reproduced both |
 | `lightkone/bibtex-export@1` | 19 examples + 6 properties | PASSED | PASSED | 28/28 | reproduced both |
 | `lightkone/citation-key@1` | 19 examples + 6 properties | PASSED | PASSED | 28/28 | reproduced both |
 | `lightkone/pdf-filing@1` | 19 examples + 6 properties | PASSED | PASSED | 28/28 | reproduced both |
@@ -52,7 +52,7 @@ How it went:
 3. **Tightened and rebuilt.** The contracts now state each rule, with 18 new examples recorded from lightkone. The Go builder revised from the new text alone (adding `golang.org/x/text` for collation) and passes. The differential test then found no disagreement on search-query within scope, and 11 in 2,000 heavily mutated BibTeX files, all deliberately broken input (unbalanced braces, a value starting with `#`); those are left for a later version.
 4. **Evidence.** Runner A attested lightkone and the Go build on all eight contracts; runner B re-ran all sixteen in fresh containers with identical outcomes. The Python build's milestone 1 attestations are kept: they are for the earlier digests of search-query and bibtex-import.
 
-The pack now has 63 obligations: 53 decided, 9 defaults (lightkone's current behaviour, pinned until kausalflow decides), 1 open. Defaults that look like lightkone bugs: trashed papers are still written to `library.bib`, a user folder named in capitals (`ML`, `2019`) is taken for a Paperpile author folder, unknown top-level keys of `library.json` are dropped on save, whitespace-only DOIs match each other in tidy, and fields after a malformed BibTeX field are lost when the skip reaches a `}`.
+The pack now has 63 obligations: 54 decided, 8 defaults (lightkone's current behaviour, pinned until kausalflow decides), 1 open. Defaults that look like lightkone bugs: trashed papers are still written to `library.bib`, a user folder named in capitals (`ML`, `2019`) is taken for a Paperpile author folder, unknown top-level keys of `library.json` are dropped on save, and whitespace-only DOIs match each other in tidy.
 
 Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split into two lines, and the container sandbox removed the execute bit, so no compiled implementation could run.
 
@@ -83,4 +83,4 @@ symbolon verify attestations/search-query.go-1.json --trust attestations/runner-
   --contract 1/components/search-query/1 --impl rebuilds/go-1/search-query --rerun
 ```
 
-The pack's own `README.md` has the full notes, including lightkone quirks the contracts pin rather than fix.
+The pack's own `README.md` has the full notes, including the three importer bugs the contracts found, now fixed in lightkone#50.
