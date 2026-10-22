@@ -1069,6 +1069,7 @@
 <li><strong>Replication.</strong> An AI builder got only <code>1/</code>, with lightkone's source and the oracle moved off the machine. It passed all three contracts, then passed the holdout: a different property seed, 5× the generated cases, and 18 examples it never saw.</li>
 <li><strong>Divergence found.</strong> Comparing the two builds on the builder's listed ambiguities found one real gap in how repeated <code>year:</code> filters combine. The contract now states the rule, with a property and two examples for it, and both builds pass it.</li>
 <li><strong>Reproduction.</strong> A second runner key re-ran all six attestations in a fresh container, and every check had the same outcome.</li>
+<li><strong>Kill rate.</strong> Plausible wrong versions of the rebuild live in <code>examples/mutants/lightkone/</code>, outside the pack so the component digests stay put. search-query rejects 8 of 9; the one survivor ignores a malformed <code>year:</code> term, which is exactly what the <code>open</code> obligation <code>search.year-malformed</code> leaves to the builder. bibtex-export rejects 7 of 7. bibtex-import has no mutants yet.</li>
 </ol>
 <h2 id="re-running-the-evidence">Re-running the evidence<a class="headerlink" href="#re-running-the-evidence" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>packs/kausalflow/lightkone

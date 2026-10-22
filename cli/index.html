@@ -645,6 +645,50 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#mutants" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>mutants</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canary-plant" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>canary plant</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canary-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>canary check</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>flag</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1038,6 +1082,50 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#mutants" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>mutants</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canary-plant" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>canary plant</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canary-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>canary check</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>flag</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1142,7 +1230,7 @@
 </tr>
 <tr>
 <td><a href="#validate"><code>validate</code></a></td>
-<td>Check a contract's structure, schema drift, examples, reference, and spec vacuity; print the digest</td>
+<td>Check a contract's structure, schema drift, examples, reference, spec vacuity and mutants; print the digest</td>
 </tr>
 <tr>
 <td><a href="#schema"><code>schema</code></a></td>
@@ -1175,6 +1263,22 @@
 <tr>
 <td><a href="#pack-validate"><code>pack validate</code></a></td>
 <td>Check a spec pack's brief, assumptions and obligations</td>
+</tr>
+<tr>
+<td><a href="#mutants"><code>mutants</code></a></td>
+<td>Show which checks kill which mutants, and the kill rate</td>
+</tr>
+<tr>
+<td><a href="#canary-plant"><code>canary plant</code></a></td>
+<td>Copy a contract for a builder with one example changed to contradict the spec</td>
+</tr>
+<tr>
+<td><a href="#canary-check"><code>canary check</code></a></td>
+<td>Tell whether a build followed the spec or was fitted to the planted example</td>
+</tr>
+<tr>
+<td><a href="#flag"><code>flag</code></a></td>
+<td>Report a part of the spec that contradicts itself, instead of coding around it</td>
 </tr>
 </tbody>
 </table>
@@ -1243,6 +1347,38 @@
 <div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>symbolon pack validate PATH [--json]
 </span></code></pre></div>
 <p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections, assumptions and obligations, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbolon pack validate</code> checks</a>.</p>
+<h2 id="mutants"><code>mutants</code><a class="headerlink" href="#mutants" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbolon mutants PATH [--mutants DIR] [--json]
+</span></code></pre></div>
+<p>Runs the spec against each mutant in <code>PATH/mutants/</code>, or in <code>DIR</code> (useful for
+measuring a contract without changing its digest), and lists the checks that
+kill each one. Ends with the checks that kill no mutant and the kill rate. Exits 1
+if a mutant survives without <code>SURVIVES</code>. See <a href="../CONTRACT_FORMAT/#mutants-mutantspy">Mutants</a>.</p>
+<h2 id="canary-plant"><code>canary plant</code><a class="headerlink" href="#canary-plant" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbolon canary plant PATH OUT [--seed N] [--record FILE]
+</span></code></pre></div>
+<p>Copies the contract to <code>OUT</code> without <code>reference/</code> and <code>mutants/</code>, and changes one
+example's expected output (chosen by <code>--seed</code>) to a value that still matches the
+output schema but contradicts the spec. Writes a private record, by default
+<code>OUT.canary.json</code>, next to the copy. Give the copy to a builder and keep the record.
+An honest build fails exactly that example.</p>
+<h2 id="canary-check"><code>canary check</code><a class="headerlink" href="#canary-check" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbolon canary check RECORD IMPL [--contract PATH] [--flags FILE] [--json]
+</span></code></pre></div>
+<p>Runs the finished build on the canary input. The outcome is <code>gamed</code> if it returns
+the planted output (the build was fitted to the examples), <code>honest</code> if it returns
+what the spec requires, and <code>other</code> otherwise. Also reports whether the builder
+flagged the canary example in <code>symbolon-flags.jsonl</code> next to the build. Exits 1 only
+for <code>gamed</code>. In a replication, drop gamed builds from the convergence evidence.</p>
+<h2 id="flag"><code>flag</code><a class="headerlink" href="#flag" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbolon flag REF REASON [--dir BUILD_DIR]
+</span></code></pre></div>
+<p>Appends <code>{"ref", "reason", "flagged_at"}</code> to <code>BUILD_DIR/symbolon-flags.jsonl</code>.
+<code>REF</code> is an obligation id, a check in pack form (<code>search-query#example:40</code>,
+<code>search-query#test_name</code>), or a bare <code>example:&lt;line&gt;</code>. Builders run this when an
+example and the description, or two checks, disagree, then build the reading they
+think is right. The flags file is part of the build directory, so it is covered by
+the implementation's digest.</p>
 
 
 

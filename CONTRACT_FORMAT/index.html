@@ -629,6 +629,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mutants-mutantspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Mutants: <code>mutants/*.py</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-symbolon-validate-checks" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -973,6 +984,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mutants-mutantspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Mutants: <code>mutants/*.py</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-symbolon-validate-checks" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1093,6 +1115,7 @@
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  examples.jsonl       example cases (required)
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  properties.py        property-based tests (required)
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  reference/impl.py    reference implementation, used only as an oracle (optional)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  mutants/*.py         plausible wrong implementations the spec must reject (optional)
 </span></code></pre></div>
 <p>Any other files in the directory, such as a README, are part of the contract and part of its digest.</p>
 <h2 id="manifest-symbolontoml">Manifest: <code>symbolon.toml</code><a class="headerlink" href="#manifest-symbolontoml" title="Permanent link">&para;</a></h2>
@@ -1143,6 +1166,34 @@
 </ul>
 <h2 id="properties-propertiespy">Properties: <code>properties.py</code><a class="headerlink" href="#properties-propertiespy" title="Permanent link">&para;</a></h2>
 <p>Every function named <code>test_*</code> is a property. Its first parameter must be <code>impl</code>. <code>impl</code> takes an <code>Input</code> (or a dict) and returns a validated <code>Output</code>, so an implementation that returns the wrong shape fails every property. Use hypothesis <code>@given</code> freely. Do not use <code>@settings</code>, because seed and budget come from the manifest so runs are reproducible.</p>
+<h2 id="mutants-mutantspy">Mutants: <code>mutants/*.py</code><a class="headerlink" href="#mutants-mutantspy" title="Permanent link">&para;</a></h2>
+<p>A mutant is a plausible wrong implementation: the bug a careless builder, or an
+AI fitting the examples, would most likely write. Each file defines the
+entrypoint function and starts with a docstring naming the concern it models.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="sd">"""every fourth year is a leap year, centuries included"""</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="o">...</span>
+</span></code></pre></div>
+<p><code>validate</code> runs the whole spec (examples and properties) against every mutant
+and fails if any mutant passes. A survivor means one of two things:</p>
+<ul>
+<li><strong>The spec has a gap.</strong> Add an example or property that rejects the mutant.</li>
+<li><strong>The difference is acceptable.</strong> The mutant is equivalent under the contract,
+  or the behaviour is deliberately left open. Say so in the mutant:
+  <code>SURVIVES = "Equivalent: float drift stays within float_rel_tol"</code>. When a pack
+  leaves the behaviour open, name the <code>open</code> obligation.</li>
+</ul>
+<p><code>validate</code> also fails if a mutant is marked <code>SURVIVES</code> but is killed, if it has no
+docstring, or if it is the same program as the reference or another mutant once
+comments and docstrings are removed. Its report line reads like
+<code>mutants: spec rejects every mutant  5/6 killed, 1 documented survivor</code>, which is
+the contract's <strong>kill rate</strong>. <code>symbolon mutants</code> shows which checks kill which
+mutant, and which checks kill none.</p>
+<p>Mutants are part of the contract and its digest, so anyone can reproduce the kill
+rate. They are kept out of the copy given to builders by <code>symbolon canary plant</code>.
+An LLM can draft mutants from the reference and a list of concerns; keep the ones
+that load, differ from the reference, and model a mistake someone would make.</p>
 <h2 id="what-symbolon-validate-checks">What <code>symbolon validate</code> checks<a class="headerlink" href="#what-symbolon-validate-checks" title="Permanent link">&para;</a></h2>
 <ol>
 <li>The required files are present.</li>
@@ -1153,13 +1204,14 @@
 <li><code>properties.py</code> defines at least one property, and each property takes <code>impl</code>.</li>
 <li>The spec (examples and properties) passes against <code>reference/impl.py</code>, if present.</li>
 <li><strong>Vacuity:</strong> the properties alone fail against an implementation that always raises, and against one that always returns the first example's output. A spec that cannot tell those apart from a real implementation is not a spec.</li>
+<li><strong>Mutants:</strong> if <code>mutants/</code> exists, every mutant fails the spec or explains with <code>SURVIVES</code> why it may pass (see above).</li>
 <li>If all checks pass, it prints the digest.</li>
 </ol>
-<p>Steps 3 to 8 execute contract code. They run in a separate Python process (<code>python -I -m symbolon.worker</code>). <code>symbolon attest</code> runs that same worker inside a sandbox (see ATTESTATION.md).</p>
+<p>Steps 3 to 9 execute contract code. They run in a separate Python process (<code>python -I -m symbolon.worker</code>). <code>symbolon attest</code> runs that same worker inside a sandbox (see ATTESTATION.md).</p>
 <h2 id="digest">Digest<a class="headerlink" href="#digest" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sha256( "symbolon-contract-v1\n"
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>        + for each file, sorted by POSIX relative path:
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>            path + "\n" + byte_length + "\n" + content + "\n" )
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sha256( "symbolon-contract-v1\n"
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>        + for each file, sorted by POSIX relative path:
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>            path + "\n" + byte_length + "\n" + content + "\n" )
 </span></code></pre></div>
 <ul>
 <li><code>content</code> has CRLF replaced with LF.</li>
