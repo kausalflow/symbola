@@ -6,6 +6,9 @@ Modes:
   check   structural and behavioral checks for `validate`
   test    run the spec against an implementation
   schema  regenerate schema/input.json and schema/output.json
+  mutants run the spec against each mutant; optional [mutants_dir]
+  plant   choose a canary example (see mutation.py); optional [seed]
+  canary  run an implementation on a canary record's input and compare
 
 The result is written as JSON to <out.json>, so anything the contract prints
 cannot corrupt it. `symbolon attest` runs this process inside a sandbox
@@ -21,6 +24,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .manifest import load_manifest
+from .mutation import MUTANTS_DIR, canary_outcome, plant_canary, run_mutants, summarize
 from .spec import (
     CheckResult,
     LoadedContract,
@@ -145,6 +149,24 @@ def check(root: Path) -> list[CheckResult]:
             return fail(name, "every property passed against a trivial stub; the spec does not constrain behavior")
         checks.append(CheckResult(name, True))
 
+    # Mutants: plausible wrong implementations the whole spec must reject.
+    if (root / MUTANTS_DIR).is_dir():
+        name = "mutants: spec rejects every mutant"
+        try:
+            summary = summarize(run_mutants(contract, root / MUTANTS_DIR))
+        except Exception as e:
+            return fail(name, f"{type(e).__name__}: {e}")
+        problems = [f"{f}: {why}" for f, why in summary["problems"].items()]
+        problems += [f"{f} survives: no check rejects it. Add a check, or explain with SURVIVES = \"...\""
+                     for f in summary["undocumented_survivors"]]
+        problems += [f"{f} is marked SURVIVES but is killed; remove the marker" for f in summary["stale_markers"]]
+        if problems:
+            return fail(name, "\n".join(problems))
+        detail = f"{summary['killed']}/{summary['total']} killed"
+        if summary["documented_survivors"]:
+            detail += f", {summary['documented_survivors']} documented survivor" + ("s" if summary["documented_survivors"] != 1 else "")
+        checks.append(CheckResult(name, True, detail))
+
     return checks
 
 
@@ -187,6 +209,32 @@ def main(argv: list[str]) -> int:
                 if hasattr(fn, "close"):
                     fn.close()
         payload["resources"] = _resources(started)
+    elif mode == "mutants":
+        contract = LoadedContract.load(root, load_manifest(root))
+        mutants_dir = Path(args[3]).resolve() if len(args) > 3 else root / MUTANTS_DIR
+        results = run_mutants(contract, mutants_dir)
+        payload = {"mutants": [{**asdict(r), "killed": r.killed} for r in results],
+                   "checks": [f"example:{ex['_line']}" for ex in contract.examples()]
+                             + [n for n, _ in contract.properties()],
+                   "summary": summarize(results)}
+    elif mode == "plant":
+        contract = LoadedContract.load(root, load_manifest(root))
+        try:
+            payload = plant_canary(contract, int(args[3]) if len(args) > 3 else 0)
+        except ValueError as e:
+            payload = {"error": str(e)}
+    elif mode == "canary":
+        contract = LoadedContract.load(root, load_manifest(root))
+        try:
+            fn = contract.load_any(Path(args[3]))
+        except Exception as e:
+            payload = {"load_error": f"{type(e).__name__}: {e}"}
+        else:
+            try:
+                payload = canary_outcome(contract, fn, json.loads(Path(args[4]).read_text()))
+            finally:
+                if hasattr(fn, "close"):
+                    fn.close()
     elif mode == "schema":
         contract = LoadedContract.load(root, load_manifest(root))
         payload = {"written": write_schemas(contract)}

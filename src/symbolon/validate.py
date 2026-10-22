@@ -78,7 +78,7 @@ def validate(contract_dir: Path) -> Report:
     report.checks.append(CheckResult("symbolon.toml is valid", True, manifest.alias))
 
     try:
-        result = run_worker("check", root, timeout=manifest.spec.timeout_seconds)
+        result = run_worker("check", root, timeout=manifest.spec.timeout_seconds * (1 + _mutant_count(root / "mutants")))
     except WorkerError as e:
         report.checks.append(CheckResult("contract code runs", False, str(e)))
         return report
@@ -87,6 +87,21 @@ def validate(contract_dir: Path) -> Report:
     if report.ok:
         report.digest = contract_digest(root)
     return report
+
+
+def _mutant_count(mutants_dir: Path) -> int:
+    return len(list(mutants_dir.glob("*.py"))) if mutants_dir.is_dir() else 0
+
+
+def mutants_report(contract_dir: Path, mutants_dir: Path | None = None) -> dict:
+    """Which checks kill which mutants. Defaults to the contract's own mutants/."""
+    root = Path(contract_dir).resolve()
+    manifest = load_manifest(root)
+    mdir = Path(mutants_dir).resolve() if mutants_dir else root / "mutants"
+    if not mdir.is_dir():
+        raise WorkerError(f"no mutants folder at {mdir}")
+    extra = [str(mdir)] if mutants_dir else []
+    return run_worker("mutants", root, *extra, timeout=manifest.spec.timeout_seconds * (1 + _mutant_count(mdir)))
 
 
 def regenerate_schema(contract_dir: Path) -> list[str]:

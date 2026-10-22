@@ -8,7 +8,7 @@ from pathlib import Path
 
 import typer
 
-from . import keys
+from . import canary as canary_mod, keys
 from .attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
 from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
@@ -16,7 +16,7 @@ from .manifest import ID_RE, load_manifest
 from .pack import report_json, summary_line, validate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
-from .validate import WorkerError, check_impl, regenerate_schema, validate
+from .validate import WorkerError, check_impl, mutants_report, regenerate_schema, validate
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="Trustable contracts between agents.")
 
@@ -269,6 +269,101 @@ def pack_validate(
         else:
             typer.echo(typer.style("\npack is not valid", fg=typer.colors.RED))
     raise typer.Exit(0 if report.ok else 1)
+
+
+@app.command()
+def mutants(
+    path: Path = typer.Argument(..., help="Contract directory."),
+    mutants_dir: Path | None = typer.Option(None, "--mutants", help="Mutants folder; defaults to the contract's mutants/."),
+    as_json: bool = typer.Option(False, "--json", help="Print the report as JSON."),
+) -> None:
+    """Show which checks kill which mutants, and the contract's kill rate."""
+    try:
+        report = mutants_report(path, mutants_dir)
+    except (WorkerError, FileNotFoundError) as e:
+        _line(False, "mutant run failed", str(e))
+        raise typer.Exit(1)
+    s = report["summary"]
+    ok = not s["undocumented_survivors"] and not s["problems"]
+    if as_json:
+        typer.echo(json.dumps(report, indent=2))
+        raise typer.Exit(0 if ok else 1)
+    for m in report["mutants"]:
+        if m["problem"]:
+            _line(False, m["file"], m["problem"])
+        elif m["killed"]:
+            shown = ", ".join(m["killed_by"][:4]) + (f" +{len(m['killed_by']) - 4}" if len(m["killed_by"]) > 4 else "")
+            _line(True, f"{m['file']}  {m['concern']}", f"killed by {len(m['killed_by'])}: {shown}")
+        else:
+            _line(m["survives"] is not None, f"{m['file']}  {m['concern']}",
+                  f"survives: {m['survives']}" if m["survives"] else "survives: no check rejects it")
+    kills = {c: 0 for c in report["checks"]}
+    for m in report["mutants"]:
+        for c in m["killed_by"]:
+            kills[c] = kills.get(c, 0) + 1
+    idle = [c for c, n in kills.items() if n == 0]
+    if idle:
+        typer.echo(typer.style(f"\nchecks that kill no mutant ({len(idle)}): " + ", ".join(idle), dim=True))
+    typer.echo(f"\n{s['killed']}/{s['total']} mutants killed"
+               + (f", {s['documented_survivors']} documented survivors" if s["documented_survivors"] else "")
+               + (f", {len(s['undocumented_survivors'])} undocumented survivors" if s["undocumented_survivors"] else ""))
+    raise typer.Exit(0 if ok else 1)
+
+
+canary_app = typer.Typer(no_args_is_help=True, help="Plant and check canaries that catch builds fitted to the examples.")
+app.add_typer(canary_app, name="canary")
+
+
+@canary_app.command(name="plant")
+def canary_plant(
+    path: Path = typer.Argument(..., help="Contract directory."),
+    out: Path = typer.Argument(..., help="Where to write the builder's copy (must not exist)."),
+    seed: int = typer.Option(0, help="Chooses which example becomes the canary."),
+    record: Path | None = typer.Option(None, help="Private record of the canary; defaults to <out>.canary.json."),
+) -> None:
+    """Copy a contract for a builder, with one example changed to contradict the spec."""
+    try:
+        rec = canary_mod.plant(path, out, seed=seed, record=record)
+    except (WorkerError, FileExistsError, ValueError) as e:
+        _line(False, "could not plant a canary", str(e))
+        raise typer.Exit(1)
+    _line(True, f"builder copy {out}", "without reference/ and mutants/")
+    _line(True, f"canary at examples.jsonl line {rec['line']}", f"{rec['original']} -> {rec['canary']}")
+    _line(True, f"private record {rec['record']}")
+    typer.echo("\nGive the copy to the builder and keep the record. Then run `symbolon canary check`.")
+
+
+@canary_app.command(name="check")
+def canary_check(
+    record: Path = typer.Argument(..., help="The canary record written by `canary plant`."),
+    impl: Path = typer.Argument(..., help="The finished build: an implementation directory or Python file."),
+    contract: Path | None = typer.Option(None, help="Contract directory; defaults to the planted copy."),
+    flags: Path | None = typer.Option(None, help=f"Flags file; defaults to {canary_mod.FLAGS_FILE} next to the build."),
+    as_json: bool = typer.Option(False, "--json", help="Print the verdict as JSON."),
+) -> None:
+    """Tell whether a build followed the spec or was fitted to the planted example."""
+    try:
+        v = canary_mod.check(record, impl, contract_dir=contract, flags_file=flags)
+    except (WorkerError, FileNotFoundError, KeyError) as e:
+        _line(False, "canary check failed", str(e))
+        raise typer.Exit(1)
+    if as_json:
+        typer.echo(json.dumps({"outcome": v.outcome, "flagged": v.flagged, "got": v.got, "flags": v.flags}, indent=2))
+    else:
+        _line(v.ok, f"{v.outcome}: {v.describe()}", "" if v.ok else f"got {v.got}")
+        typer.echo(typer.style(f"  {len(v.flags)} flag(s) raised by the builder", dim=True))
+    raise typer.Exit(0 if v.ok else 1)
+
+
+@app.command()
+def flag(
+    ref: str = typer.Argument(..., help="What looks wrong: an obligation id, 'example:<line>', or a property name."),
+    reason: str = typer.Argument(..., help="Why it contradicts the spec, and the reading you chose."),
+    directory: Path = typer.Option(Path("."), "--dir", help=f"Build directory that holds {canary_mod.FLAGS_FILE}."),
+) -> None:
+    """Report a part of the spec that contradicts itself, instead of coding around it."""
+    path = canary_mod.add_flag(ref, reason, directory)
+    _line(True, f"flagged {ref}", str(path))
 
 
 @app.command()
