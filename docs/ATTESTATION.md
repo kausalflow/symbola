@@ -29,6 +29,26 @@ prompt_digest = "sha256:..."
 
 `symbolon impl-init <dir> --contract <contract-dir>` writes this manifest, pinned to the contract's current digest.
 
+### Implementations in other languages
+
+Set `language = "command"` and give the program to run:
+
+```toml
+[implementation]
+contract = "sha256:..."
+language = "command"
+command = ["node", "impl.mjs"]   # the first element may be a file inside the directory
+license = "MIT"
+authors = ["..."]
+```
+
+The program is started once per run and speaks a line protocol: one JSON value per line.
+
+- **Request** (stdin): the input object, exactly as `schema/input.json` describes it.
+- **Reply** (stdout): `{"output": <output object>}`, or `{"error": {"type": "ValueError", "message": "..."}}`.
+
+`type` names the error class that the contract's examples expect. `ValueError` is the convention for invalid input. Anything written to stderr is kept for diagnostics. If the process exits, the failure is reported with the tail of its stderr, and the process is restarted for the next call. The container image includes Node.js (pinned through PyPI's `nodejs-wheel-binaries`), so JavaScript and TypeScript implementations run there unchanged. Any other runtime needs a statically linked binary for now.
+
 - **Identity.** The implementation digest is the same framing as the contract digest (see CONTRACT_FORMAT.md), with the header `symbolon-implementation-v1`. It covers the source, the manifest, and the lockfile. So the same code with different dependency pins is a different implementation.
 - **Dependencies.** Every line of `requirements.lock` must be pinned with `==`, and `--hash` lines are allowed. Packages are installed with `--no-deps`, so the lockfile must list the full dependency set. Installation is the only step that has network access.
 - **Contract binding.** `attest` refuses to run if the manifest's `contract` digest is not the digest of the contract it is given.
@@ -50,7 +70,7 @@ symbolon attest <contract-dir> <impl-dir> -o att.json  # exit code 0 = PASSED
 | Filesystem | read-only root and inputs; 64 MB `/tmp` | **not isolated** |
 | User | 65534, all capabilities dropped, `no-new-privileges` | separate user namespace |
 | Limits | 1 GB memory, 1 CPU, 256 processes, contract timeout | 1 GB address space, CPU time = contract timeout |
-| Image | `python:3.13-slim` pinned by digest, plus pinned pydantic and hypothesis | the host Python |
+| Image | `python:3.13-slim` pinned by digest, plus pinned pydantic, hypothesis and Node.js | the host Python and Node.js |
 
 Choose one with `--sandbox container|process`. Each attestation records which sandbox ran it and how it isolated the run. When a contract declares network hosts, the sandbox allows network access and the attestation's evidence strength is `observed` instead of `reproducible`.
 

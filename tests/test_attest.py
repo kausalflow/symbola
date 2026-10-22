@@ -227,3 +227,13 @@ def test_lockfile_dependencies_are_installed(sandbox, key, contract, tmp_path):
             pytest.skip(f"package index not reachable: {e}")
         raise
     assert statement_of(env)["predicate"]["result"] == "PASSED"
+
+
+def test_command_implementation_attests(sandbox, key, tmp_path):
+    from .test_command_impl import JS_LOOP, command_impl
+    if sandbox.kind == "process" and shutil.which("node") is None:
+        pytest.skip("node not installed on this machine")
+    impl = command_impl(tmp_path, "js", JS_LOOP, ["node", "impl.mjs"])
+    p = statement_of(run_attestation(DATE_PARSE, impl, sandbox, key))["predicate"]
+    assert p["result"] == "PASSED", p["symbolon"]["failures"]
+    assert p["symbolon"]["implementation"]["implementation"]["language"] == "command"

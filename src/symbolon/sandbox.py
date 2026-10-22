@@ -38,6 +38,9 @@ import symbolon
 # Pinned by digest so every runner builds the same environment.
 BASE_IMAGE = "python:3.13-slim@sha256:cf50a4f6ac4f026458b08d5222023d700ac806410dff5e9ca8728fa44f2b850f"
 RUNTIME_PACKAGES = ["pydantic", "pydantic-core", "hypothesis"]
+# Node.js for `language = "command"` implementations in JavaScript or TypeScript,
+# installed from PyPI so the whole image is pinned through one package index.
+NODE_WHEEL = "nodejs-wheel-binaries==24.19.0"
 
 
 class SandboxError(Exception):
@@ -83,6 +86,13 @@ def package_versions() -> dict[str, str]:
     return {name: importlib.metadata.version(name) for name in RUNTIME_PACKAGES}
 
 
+def node_version() -> str:
+    node = shutil.which("node")
+    if node is None:
+        return ""
+    return subprocess.run([node, "--version"], capture_output=True, text=True).stdout.strip()
+
+
 def environment_digest(descriptor: dict) -> str:
     """Digest of the inputs that determine behavior, not of machine-specific ids."""
     stable = {k: v for k, v in descriptor.items() if k not in {"image_id", "isolation"}}
@@ -101,7 +111,7 @@ class Sandbox:
     def environment(self) -> dict:
         raise NotImplementedError
 
-    def run(self, ws: Workspace, entrypoint: str, *, network: bool, lockfile: bool, limits: Limits) -> dict:
+    def run(self, ws: Workspace, *, network: bool, lockfile: bool, limits: Limits) -> dict:
         raise NotImplementedError
 
     def isolation(self, network: bool) -> dict:
@@ -125,6 +135,7 @@ class ProcessSandbox(Sandbox):
             "implementation": platform.python_implementation(),
             "os": platform.system().lower(),
             "arch": platform.machine(),
+            "node": node_version(),
             "packages": package_versions(),
             "symbolon": symbolon.__version__,
         }
@@ -136,7 +147,7 @@ class ProcessSandbox(Sandbox):
             "user": "separate user namespace",
         }
 
-    def run(self, ws: Workspace, entrypoint: str, *, network: bool, lockfile: bool, limits: Limits) -> dict:
+    def run(self, ws: Workspace, *, network: bool, lockfile: bool, limits: Limits) -> dict:
         if lockfile:
             proc = subprocess.run(
                 [sys.executable, "-m", "pip", "install", "--quiet", "--no-deps", "--no-cache-dir",
@@ -148,7 +159,7 @@ class ProcessSandbox(Sandbox):
 
         out = ws.out / "result.json"
         cmd = [sys.executable, "-I", "-m", "symbolon.worker", "test",
-               str(ws.contract), str(out), str(ws.impl / entrypoint)]
+               str(ws.contract), str(out), str(ws.impl)]
         if lockfile:
             cmd += ["--deps", str(ws.deps)]
         if not network:
@@ -190,8 +201,9 @@ class ContainerSandbox(Sandbox):
             f"FROM {BASE_IMAGE}\n"
             "ENV PYTHONDONTWRITEBYTECODE=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1\n"
             + ("COPY build-ca.pem /tmp/build-ca.pem\n" if cert else "")
-            + f"RUN {cert}pip install {pins}\n"
+            + f"RUN {cert}pip install {pins} {NODE_WHEEL}\n"
             + ("RUN rm /tmp/build-ca.pem\n" if cert else "") +
+            "RUN ln -s \"$(python -c 'import nodejs_wheel, os; print(os.path.dirname(nodejs_wheel.__file__))')/bin/node\" /usr/local/bin/node\n"
             "COPY symbolon /opt/symbolon/symbolon\n"
             # A .pth file keeps symbolon importable under `python -I`.
             "RUN echo /opt/symbolon > \"$(python -c 'import site; print(site.getsitepackages()[0])')/symbolon.pth\"\n"
@@ -228,9 +240,10 @@ class ContainerSandbox(Sandbox):
         return tag
 
     def _container_info(self, image: str) -> dict:
-        probe = ("import json, platform, importlib.metadata as m; print(json.dumps({"
+        probe = ("import json, platform, subprocess; print(json.dumps({"
                  "'python': platform.python_version(), 'implementation': platform.python_implementation(), "
-                 "'os': platform.system().lower(), 'arch': platform.machine()}))")
+                 "'os': platform.system().lower(), 'arch': platform.machine(), "
+                 "'node': subprocess.run(['node', '--version'], capture_output=True, text=True).stdout.strip()}))")
         proc = subprocess.run([self.docker, "run", "--rm", "--network", "none", image, "python", "-c", probe],
                               capture_output=True, text=True, timeout=120)
         if proc.returncode != 0:
@@ -264,7 +277,7 @@ class ContainerSandbox(Sandbox):
             subprocess.run([self.docker, "kill", name], capture_output=True)
             raise SandboxError(f"timed out after {timeout}s") from None
 
-    def run(self, ws: Workspace, entrypoint: str, *, network: bool, lockfile: bool, limits: Limits) -> dict:
+    def run(self, ws: Workspace, *, network: bool, lockfile: bool, limits: Limits) -> dict:
         image = self.image()
         for path in (ws.root, ws.contract, ws.impl):
             path.chmod(0o755)
@@ -297,7 +310,7 @@ class ContainerSandbox(Sandbox):
             "-v", f"{ws.out}:/work/out",
         ]
         worker = ["python", "-I", "-m", "symbolon.worker", "test",
-                  "/work/contract", "/work/out/result.json", f"/work/impl/{entrypoint}"]
+                  "/work/contract", "/work/out/result.json", "/work/impl"]
         if lockfile:
             cmd += ["-v", f"{ws.deps}:/work/deps:ro"]
             worker += ["--deps", "/work/deps"]

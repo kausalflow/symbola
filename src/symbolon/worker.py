@@ -1,6 +1,6 @@
 """Subprocess entry point for everything that executes contract code.
 
-Usage: python -I -m symbolon.worker <mode> <contract_dir> <out.json> [impl.py] [--deps DIR]
+Usage: python -I -m symbolon.worker <mode> <contract_dir> <out.json> [impl] [--deps DIR]
 
 Modes:
   check   structural and behavioral checks for `validate`
@@ -150,11 +150,13 @@ def check(root: Path) -> list[CheckResult]:
 
 def _resources(started: float) -> dict:
     import resource
-    usage = resource.getrusage(resource.RUSAGE_SELF)
+    me = resource.getrusage(resource.RUSAGE_SELF)
+    # Children: a `language = "command"` implementation runs as a child process.
+    kids = resource.getrusage(resource.RUSAGE_CHILDREN)
     return {
         "wall_seconds": round(time.monotonic() - started, 3),
-        "cpu_seconds": round(usage.ru_utime + usage.ru_stime, 3),
-        "peak_rss_kb": usage.ru_maxrss,
+        "cpu_seconds": round(me.ru_utime + me.ru_stime + kids.ru_utime + kids.ru_stime, 3),
+        "peak_rss_kb": max(me.ru_maxrss, kids.ru_maxrss),
     }
 
 
@@ -175,11 +177,15 @@ def main(argv: list[str]) -> int:
     elif mode == "test":
         contract = LoadedContract.load(root, load_manifest(root))
         try:
-            fn = contract.load_impl(Path(args[3]))
+            fn = contract.load_any(Path(args[3]))
         except Exception as e:
             payload = {"error": f"{type(e).__name__}: {e}"}
         else:
-            payload = run_spec(contract, fn).to_dict()
+            try:
+                payload = run_spec(contract, fn).to_dict()
+            finally:
+                if hasattr(fn, "close"):
+                    fn.close()
         payload["resources"] = _resources(started)
     elif mode == "schema":
         contract = LoadedContract.load(root, load_manifest(root))
