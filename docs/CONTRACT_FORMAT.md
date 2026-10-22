@@ -11,6 +11,7 @@ contracts/<namespace>/<name>/<version>/
   schema/input.json    JSON Schema generated from schema.py (required)
   schema/output.json   JSON Schema generated from schema.py (required)
   examples.jsonl       example cases (required)
+  fixtures/*.json      sample data the examples share (optional)
   properties.py        property-based tests (required)
   reference/impl.py    reference implementation, used only as an oracle (optional)
 ```
@@ -74,6 +75,20 @@ One JSON object per line:
 - `raises` matches the exception's class or any of its base classes, by name.
 - Numbers in outputs are compared with `float_rel_tol`; everything else must match exactly.
 - There must be at least two examples with different outputs.
+
+### Fixtures: `fixtures/`
+
+When many examples need the same sample data, such as a library of papers, put it in `fixtures/<name>.json` once. Anywhere in an example, an object whose only key is `$fixture` is replaced by that file's contents before the example runs:
+
+```json
+{"input": {"papers": {"$fixture": "library.json"}, "query": "tag:ml"}, "output": {"ids": ["a", "b"]}}
+```
+
+- The name must be a relative path to a `.json` file inside `fixtures/`.
+- Each example gets its own copy, so an implementation that changes its input cannot affect the next example.
+- Fixtures are part of the contract directory, so they are part of its digest. Everyone tests against exactly the same data.
+- Properties can read fixtures too: `Path(__file__).parent / "fixtures" / "library.json"`.
+- Fixtures are synthetic. Never put real customer data or credentials in a contract.
 
 ## Properties: `properties.py`
 

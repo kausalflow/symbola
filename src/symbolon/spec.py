@@ -22,7 +22,7 @@ import math
 import sys
 import traceback
 from dataclasses import asdict, dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from types import ModuleType
 from typing import Any, Callable
 
@@ -222,7 +222,37 @@ class CommandImpl:
                 self._proc.kill()
 
 
+FIXTURES_DIR = "fixtures"
+
+
+def resolve_fixtures(value: Any, fixtures: Path, cache: dict[str, Any] | None = None) -> Any:
+    """Replace every {"$fixture": "name.json"} in value with that file from fixtures/."""
+    cache = {} if cache is None else cache
+    if isinstance(value, list):
+        return [resolve_fixtures(v, fixtures, cache) for v in value]
+    if not isinstance(value, dict):
+        return value
+    if set(value) != {"$fixture"}:
+        return {k: resolve_fixtures(v, fixtures, cache) for k, v in value.items()}
+    name = value["$fixture"]
+    rel = PurePosixPath(name) if isinstance(name, str) else None
+    if rel is None or rel.is_absolute() or ".." in rel.parts or rel.suffix != ".json":
+        raise SpecError(f"$fixture must name a .json file inside {FIXTURES_DIR}/, got {name!r}")
+    if name not in cache:
+        path = fixtures / rel
+        if not path.is_file():
+            raise SpecError(f"$fixture {name!r}: no such file {FIXTURES_DIR}/{name}")
+        try:
+            cache[name] = json.loads(path.read_text())
+        except json.JSONDecodeError as e:
+            raise SpecError(f"$fixture {name!r}: invalid JSON ({e.msg})") from None
+    return copy.deepcopy(cache[name])
+
+
 def load_examples(path: Path) -> list[dict]:
+    """Read examples.jsonl, with $fixture references replaced by the fixture's contents."""
+    path = Path(path)
+    fixtures, cache = path.parent / FIXTURES_DIR, {}
     examples = []
     for lineno, line in enumerate(Path(path).read_text().splitlines(), 1):
         if not line.strip():
@@ -238,6 +268,10 @@ def load_examples(path: Path) -> list[dict]:
         extra = set(ex) - {"input", "output", "raises", "note"}
         if extra:
             raise SpecError(f"examples.jsonl line {lineno}: unknown keys {sorted(extra)}")
+        try:
+            ex = resolve_fixtures(ex, fixtures, cache)
+        except SpecError as e:
+            raise SpecError(f"examples.jsonl line {lineno}: {e}") from None
         ex["_line"] = lineno
         examples.append(ex)
     return examples
