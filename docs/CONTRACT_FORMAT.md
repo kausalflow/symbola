@@ -14,6 +14,7 @@ contracts/<namespace>/<name>/<version>/
   fixtures/*.json      sample data the examples share (optional)
   properties.py        property-based tests (required)
   reference/impl.py    reference implementation, used only as an oracle (optional)
+  mutants/*.py         plausible wrong implementations the spec must reject (optional)
 ```
 
 Any other files in the directory, such as a README, are part of the contract and part of its digest.
@@ -100,6 +101,40 @@ When many examples need the same sample data, such as a library of papers, put i
 
 Every function named `test_*` is a property. Its first parameter must be `impl`. `impl` takes an `Input` (or a dict) and returns a validated `Output`, so an implementation that returns the wrong shape fails every property. Use hypothesis `@given` freely. Do not use `@settings`, because seed and budget come from the manifest so runs are reproducible.
 
+## Mutants: `mutants/*.py`
+
+A mutant is a plausible wrong implementation: the bug a careless builder, or an
+AI fitting the examples, would most likely write. Each file defines the
+entrypoint function and starts with a docstring naming the concern it models.
+
+```python
+"""every fourth year is a leap year, centuries included"""
+
+import datetime as dt
+...
+```
+
+`validate` runs the whole spec (examples and properties) against every mutant
+and fails if any mutant passes. A survivor means one of two things:
+
+- **The spec has a gap.** Add an example or property that rejects the mutant.
+- **The difference is acceptable.** The mutant is equivalent under the contract,
+  or the behaviour is deliberately left open. Say so in the mutant:
+  `SURVIVES = "Equivalent: float drift stays within float_rel_tol"`. When a pack
+  leaves the behaviour open, name the `open` obligation.
+
+`validate` also fails if a mutant is marked `SURVIVES` but is killed, if it has no
+docstring, or if it is the same program as the reference or another mutant once
+comments and docstrings are removed. Its report line reads like
+`mutants: spec rejects every mutant  5/6 killed, 1 documented survivor`, which is
+the contract's **kill rate**. `symbolon mutants` shows which checks kill which
+mutant, and which checks kill none.
+
+Mutants are part of the contract and its digest, so anyone can reproduce the kill
+rate. They are kept out of the copy given to builders by `symbolon canary plant`.
+An LLM can draft mutants from the reference and a list of concerns; keep the ones
+that load, differ from the reference, and model a mistake someone would make.
+
 ## What `symbolon validate` checks
 
 1. The required files are present.
@@ -110,9 +145,10 @@ Every function named `test_*` is a property. Its first parameter must be `impl`.
 6. `properties.py` defines at least one property, and each property takes `impl`.
 7. The spec (examples and properties) passes against `reference/impl.py`, if present.
 8. **Vacuity:** the properties alone fail against an implementation that always raises, and against one that always returns the first example's output. A spec that cannot tell those apart from a real implementation is not a spec.
-9. If all checks pass, it prints the digest.
+9. **Mutants:** if `mutants/` exists, every mutant fails the spec or explains with `SURVIVES` why it may pass (see above).
+10. If all checks pass, it prints the digest.
 
-Steps 3 to 8 execute contract code. They run in a separate Python process (`python -I -m symbolon.worker`). `symbolon attest` runs that same worker inside a sandbox (see ATTESTATION.md).
+Steps 3 to 9 execute contract code. They run in a separate Python process (`python -I -m symbolon.worker`). `symbolon attest` runs that same worker inside a sandbox (see ATTESTATION.md).
 
 ## Digest
 
