@@ -1071,7 +1071,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>symbolon pack validate packs/kausalflow/lightkone/1</code> reports 63 obligations (53 decided, 9 default, 1 open) and 4 assumptions, and every one of the components' 317 checks traces to an obligation.</p>
+<p><code>symbolon pack validate packs/kausalflow/lightkone/1</code> reports 63 obligations (54 decided, 8 default, 1 open) and 4 assumptions, and every one of the components' 318 checks traces to an obligation.</p>
 <h2 id="results-milestone-2">Results (milestone 2)<a class="headerlink" href="#results-milestone-2" title="Permanent link">&para;</a></h2>
 <p>Five more contracts: <code>citation-key</code>, <code>pdf-filing</code>, <code>library-merge</code>, <code>tidy</code>, and <code>library-file</code>, the data contract for <code>library.json</code> itself (how lightkone reads it and writes it back, byte for byte, with <code>library.bib</code>). Contracts can now share sample data in <code>fixtures/</code>, including raw text files with <code>{"$text": ...}</code>; <code>library-file</code> ships three sample libraries.</p>
 <table>
@@ -1096,10 +1096,10 @@
 </tr>
 <tr>
 <td><code>lightkone/bibtex-import@1</code></td>
-<td>36 examples + 13 properties</td>
+<td>37 examples + 13 properties</td>
 <td>PASSED</td>
 <td>PASSED</td>
-<td>55/55</td>
+<td>56/56</td>
 <td>reproduced both</td>
 </tr>
 <tr>
@@ -1164,7 +1164,7 @@
 <li><strong>Tightened and rebuilt.</strong> The contracts now state each rule, with 18 new examples recorded from lightkone. The Go builder revised from the new text alone (adding <code>golang.org/x/text</code> for collation) and passes. The differential test then found no disagreement on search-query within scope, and 11 in 2,000 heavily mutated BibTeX files, all deliberately broken input (unbalanced braces, a value starting with <code>#</code>); those are left for a later version.</li>
 <li><strong>Evidence.</strong> Runner A attested lightkone and the Go build on all eight contracts; runner B re-ran all sixteen in fresh containers with identical outcomes. The Python build's milestone 1 attestations are kept: they are for the earlier digests of search-query and bibtex-import.</li>
 </ol>
-<p>The pack now has 63 obligations: 53 decided, 9 defaults (lightkone's current behaviour, pinned until kausalflow decides), 1 open. Defaults that look like lightkone bugs: trashed papers are still written to <code>library.bib</code>, a user folder named in capitals (<code>ML</code>, <code>2019</code>) is taken for a Paperpile author folder, unknown top-level keys of <code>library.json</code> are dropped on save, whitespace-only DOIs match each other in tidy, and fields after a malformed BibTeX field are lost when the skip reaches a <code>}</code>.</p>
+<p>The pack now has 63 obligations: 54 decided, 8 defaults (lightkone's current behaviour, pinned until kausalflow decides), 1 open. Defaults that look like lightkone bugs: trashed papers are still written to <code>library.bib</code>, a user folder named in capitals (<code>ML</code>, <code>2019</code>) is taken for a Paperpile author folder, unknown top-level keys of <code>library.json</code> are dropped on save, and whitespace-only DOIs match each other in tidy.</p>
 <p>Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split into two lines, and the container sandbox removed the execute bit, so no compiled implementation could run.</p>
 <h2 id="results-milestone-1">Results (milestone 1)<a class="headerlink" href="#results-milestone-1" title="Permanent link">&para;</a></h2>
 <table>
@@ -1218,7 +1218,7 @@
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>symbolon<span class="w"> </span>verify<span class="w"> </span>attestations/search-query.go-1.json<span class="w"> </span>--trust<span class="w"> </span>attestations/runner-a.pub<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--contract<span class="w"> </span><span class="m">1</span>/components/search-query/1<span class="w"> </span>--impl<span class="w"> </span>rebuilds/go-1/search-query<span class="w"> </span>--rerun
 </span></code></pre></div>
-<p>The pack's own <code>README.md</code> has the full notes, including lightkone quirks the contracts pin rather than fix.</p>
+<p>The pack's own <code>README.md</code> has the full notes, including the three importer bugs the contracts found, now fixed in lightkone#50.</p>
 
 
 
