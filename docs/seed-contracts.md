@@ -8,6 +8,12 @@ Three small contracts ship in `contracts/core/`. They are worked examples of the
 | `core/csv-to-records@1` | Parse RFC 4180 CSV with a header row into records keyed by header | 14 | 5 |
 | `core/unit-convert@1` | Convert length, mass and temperature with the exact international factors | 15 | 8 |
 
+Each has six mutants in `mutants/`. date-parse kills all six. csv-to-records kills
+five; the survivor accepts malformed quoting such as `"x"y`, which the description
+never rules on, so it is documented as an open question for version 2.
+unit-convert kills five; the survivor uses binary floats, which the 1e-9 tolerance
+allows. `symbolon mutants contracts/core/<name>/1` shows the full matrix.
+
 ## `core/date-parse@1`
 
 Day and month may omit leading zeros, except in ISO. The year is always four digits. Leading and trailing whitespace is ignored. Strings that don't match the locale's pattern, or that name a date that doesn't exist, raise `ValueError`.

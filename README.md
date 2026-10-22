@@ -27,7 +27,7 @@ symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
 | Command | What it does |
 | --- | --- |
 | `symbolon init <namespace/name>` | Scaffold a contract that passes `validate` out of the box |
-| `symbolon validate <dir>` | Check structure, schema drift, examples, reference, and spec vacuity; print the digest |
+| `symbolon validate <dir>` | Check structure, schema drift, examples, reference, spec vacuity and mutants; print the digest |
 | `symbolon schema <dir>` | Regenerate `schema/*.json` from `schema.py` |
 | `symbolon test <dir> <impl.py>` | Run the contract's examples and properties against an implementation |
 | `symbolon digest <dir>` | Print the contract's content digest |
@@ -36,6 +36,9 @@ symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
 | `symbolon attest <contract> <impl>` | Run the spec in a sandbox; write a signed in-toto attestation |
 | `symbolon verify <attestation>` | Check signature, trust, digests; `--rerun` reproduces it locally |
 | `symbolon pack validate <dir>` | Check a spec pack's brief, assumptions and obligations; report obligations by status |
+| `symbolon mutants <dir>` | Show which checks kill which mutants, and the contract's kill rate |
+| `symbolon canary plant <dir> <out>` / `canary check` | Give a builder a copy with one contradictory example; catch builds fitted to the examples |
+| `symbolon flag <ref> <reason>` | Report a contradiction in the spec instead of coding around it |
 
 ## Seed contracts
 
