@@ -18,6 +18,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+docs = ["zensical>=0.0.71"]
 
 [project.scripts]
 symbolon = "symbolon.cli:app"
