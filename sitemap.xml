@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/ATTESTATION/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/CONTRACT_FORMAT/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/PACK_FORMAT/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/cli/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/concepts/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/design-v0.3/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/getting-started/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/guides/writing-a-contract/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/lightkone-pilot/</loc>
+      </url>
+      <url>
+        <loc>https://kausalflow.github.io/symbolon/seed-contracts/</loc>
+      </url>
+</urlset>
