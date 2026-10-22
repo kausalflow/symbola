@@ -1,0 +1,31 @@
+[contract]
+id = "core/csv-to-records"
+version = 2
+title = "Parse CSV text into a list of records"
+description = """
+Parses RFC 4180 style CSV with a header row into one record per data row,
+keyed by header. Fields may be quoted with double quotes; quoted fields may
+contain the delimiter, newlines, and doubled quotes. Rows end with LF or
+CRLF. Blank lines are skipped. Values are returned as strings, exactly as
+written (no trimming or type conversion). Raises ValueError when there is
+no header, the header has empty or duplicate names, a row has a
+different number of fields than the header, or the quoting is malformed:
+text after a field's closing quote, or a quote that is never closed.
+A quote inside an unquoted field is kept as an ordinary character.
+"""
+regenerability = "disposable"
+license = "Apache-2.0"
+authors = ["Symbolon seed contracts"]
+
+[entrypoint]
+function = "run"
+
+[requires]
+network = []
+credentials = []
+state = []
+permissions = []
+
+[spec]
+seed = 0
+max_examples = 300
