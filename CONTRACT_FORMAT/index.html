@@ -615,6 +615,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Examples: examples.jsonl">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixtures-fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Fixtures: <code>fixtures/</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -970,6 +987,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Examples: examples.jsonl">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixtures-fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Fixtures: <code>fixtures/</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1113,9 +1147,10 @@
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  schema/input.json    JSON Schema generated from schema.py (required)
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  schema/output.json   JSON Schema generated from schema.py (required)
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  examples.jsonl       example cases (required)
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  properties.py        property-based tests (required)
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  reference/impl.py    reference implementation, used only as an oracle (optional)
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  mutants/*.py         plausible wrong implementations the spec must reject (optional)
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  fixtures/*.json      sample data the examples share (optional)
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  properties.py        property-based tests (required)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  reference/impl.py    reference implementation, used only as an oracle (optional)
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  mutants/*.py         plausible wrong implementations the spec must reject (optional)
 </span></code></pre></div>
 <p>Any other files in the directory, such as a README, are part of the contract and part of its digest.</p>
 <h2 id="manifest-symbolontoml">Manifest: <code>symbolon.toml</code><a class="headerlink" href="#manifest-symbolontoml" title="Permanent link">&para;</a></h2>
@@ -1164,16 +1199,32 @@
 <li>Numbers in outputs are compared with <code>float_rel_tol</code>; everything else must match exactly.</li>
 <li>There must be at least two examples with different outputs.</li>
 </ul>
+<h3 id="fixtures-fixtures">Fixtures: <code>fixtures/</code><a class="headerlink" href="#fixtures-fixtures" title="Permanent link">&para;</a></h3>
+<p>When many examples need the same sample data, such as a library of papers, put it in <code>fixtures/&lt;name&gt;.json</code> once. Anywhere in an example, an object whose only key is <code>$fixture</code> is replaced by that file's contents before the example runs:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"papers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"$fixture"</span><span class="p">:</span><span class="w"> </span><span class="s2">"library.json"</span><span class="p">},</span><span class="w"> </span><span class="nt">"query"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tag:ml"</span><span class="p">},</span><span class="w"> </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"ids"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"a"</span><span class="p">,</span><span class="w"> </span><span class="s2">"b"</span><span class="p">]}}</span>
+</span></code></pre></div>
+<ul>
+<li>The name must be a relative path to a <code>.json</code> file inside <code>fixtures/</code>.</li>
+<li>Each example gets its own copy, so an implementation that changes its input cannot affect the next example.</li>
+<li><code>{"$text": "name"}</code> inserts a fixture file's text instead of parsing it, for contracts whose input is a file's raw text (any extension; CRLF becomes LF, as in the digest):</li>
+</ul>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"$text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paperpile-import.json"</span><span class="p">}},</span><span class="w"> </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"written"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}}</span>
+</span></code></pre></div>
+<ul>
+<li>Fixtures are part of the contract directory, so they are part of its digest. Everyone tests against exactly the same data.</li>
+<li>Properties can read fixtures too: <code>Path(__file__).parent / "fixtures" / "library.json"</code>.</li>
+<li>Fixtures are synthetic. Never put real customer data or credentials in a contract.</li>
+</ul>
 <h2 id="properties-propertiespy">Properties: <code>properties.py</code><a class="headerlink" href="#properties-propertiespy" title="Permanent link">&para;</a></h2>
 <p>Every function named <code>test_*</code> is a property. Its first parameter must be <code>impl</code>. <code>impl</code> takes an <code>Input</code> (or a dict) and returns a validated <code>Output</code>, so an implementation that returns the wrong shape fails every property. Use hypothesis <code>@given</code> freely. Do not use <code>@settings</code>, because seed and budget come from the manifest so runs are reproducible.</p>
 <h2 id="mutants-mutantspy">Mutants: <code>mutants/*.py</code><a class="headerlink" href="#mutants-mutantspy" title="Permanent link">&para;</a></h2>
 <p>A mutant is a plausible wrong implementation: the bug a careless builder, or an
 AI fitting the examples, would most likely write. Each file defines the
 entrypoint function and starts with a docstring naming the concern it models.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="sd">"""every fourth year is a leap year, centuries included"""</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="o">...</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="sd">"""every fourth year is a leap year, centuries included"""</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="o">...</span>
 </span></code></pre></div>
 <p><code>validate</code> runs the whole spec (examples and properties) against every mutant
 and fails if any mutant passes. A survivor means one of two things:</p>
@@ -1209,9 +1260,9 @@ that load, differ from the reference, and model a mistake someone would make.</p
 </ol>
 <p>Steps 3 to 9 execute contract code. They run in a separate Python process (<code>python -I -m symbolon.worker</code>). <code>symbolon attest</code> runs that same worker inside a sandbox (see ATTESTATION.md).</p>
 <h2 id="digest">Digest<a class="headerlink" href="#digest" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sha256( "symbolon-contract-v1\n"
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>        + for each file, sorted by POSIX relative path:
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>            path + "\n" + byte_length + "\n" + content + "\n" )
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sha256( "symbolon-contract-v1\n"
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>        + for each file, sorted by POSIX relative path:
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>            path + "\n" + byte_length + "\n" + content + "\n" )
 </span></code></pre></div>
 <ul>
 <li><code>content</code> has CRLF replaced with LF.</li>
