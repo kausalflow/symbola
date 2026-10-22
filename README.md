@@ -47,6 +47,15 @@ symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
 
 The contract format is specified in [docs/CONTRACT_FORMAT.md](docs/CONTRACT_FORMAT.md), implementations and attestations in [docs/ATTESTATION.md](docs/ATTESTATION.md), and spec packs in [docs/PACK_FORMAT.md](docs/PACK_FORMAT.md).
 
+## Documentation
+
+The docs site is built with [Zensical](https://zensical.org) from `docs/` and published to GitHub Pages on every push to `main`. Each pull request gets a preview at `pr-preview/pr-<number>/`, linked in a comment on the PR.
+
+```bash
+pip install -e ".[docs]"
+zensical serve      # http://localhost:8000
+```
+
 ## Tests
 
 ```bash
