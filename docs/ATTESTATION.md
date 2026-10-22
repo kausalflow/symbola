@@ -24,6 +24,8 @@ authors = ["..."]
 
 [generator]                 # optional, for generated implementations
 model = "..."
+family = "..."              # optional: model family, for the ensemble in `symbolon diff`
+language = "go"             # optional: source language, when language = "command"
 prompt_digest = "sha256:..."
 ```
 

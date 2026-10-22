@@ -13,6 +13,7 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 | [`keygen`](#keygen) | Create this runner's Ed25519 signing key |
 | [`attest`](#attest) | Run the spec in a sandbox and write a signed attestation |
 | [`verify`](#verify) | Check an attestation's signature, trust and digests; optionally reproduce it |
+| [`diff`](#diff) | Run several builds on one input pool and measure where they disagree |
 | [`pack validate`](#pack-validate) | Check a spec pack's brief, assumptions and obligations |
 
 ## `init`
@@ -91,6 +92,34 @@ symbolon verify ATTESTATION [--trust KEY.pub ...] [--contract DIR] [--impl DIR] 
 | `--trust` | The signer is one of these keys. Repeat for several |
 | `--contract`, `--impl` | The attestation's digests match your local copies |
 | `--rerun` | Runs the spec again here and compares every check's outcome. Needs `--contract` and `--impl` |
+
+## `diff`
+
+```
+symbolon diff CONTRACT IMPL IMPL... [--reference NAME] [--pool FILE ...] [--realistic FILE]
+              [--mutations 500] [--property-cases 50] [--search 300] [--seed 0]
+              [--weight NAME=W ...] [--severity TIER=W ...] [--max-ambiguity X]
+              [--top 5] [-o report.json] [--json]
+```
+
+Runs every implementation on the same inputs: the contract's examples, inputs
+recorded from its property generators, mutated copies of both, any `--pool` files,
+and further mutations near each disagreement. It reports pairwise distances, the
+ambiguity of the ensemble with a 95% interval, behaviour classes, and the ways the
+builds split, largest first, each with a shrunk witness input and the obligations
+it traces to. Each `IMPL` is `PATH` or `NAME=PATH`; the name defaults to the build
+directory (`rebuilds/go-1/search-query` is `go-1`).
+
+| Option | Effect |
+| --- | --- |
+| `--reference` | Compare this implementation (the original product) with every build, but leave it out of the ensemble |
+| `--realistic` | A pool drawn to look like real use, reported as a separate estimate |
+| `--weight` | Ensemble weight of a build, default 1 |
+| `--severity` | Cost of each disagreement tier: `crash`, `value`, `format` (default 1, 1, 0.1) |
+| `--max-ambiguity` | Exit 1 when the estimate is above this, for CI |
+
+Like `test`, it runs implementations in this process's environment, not a sandbox.
+See [Measuring ambiguity](guides/measuring-ambiguity.md).
 
 ## `pack validate`
 

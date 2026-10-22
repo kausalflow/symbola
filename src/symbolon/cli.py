@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 from dataclasses import asdict
 from pathlib import Path
 
@@ -10,13 +11,14 @@ import typer
 
 from . import keys
 from .attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
+from .diff import TIERS, analyse, load_member, member_name
 from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .pack import report_json, summary_line, validate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
-from .validate import WorkerError, check_impl, regenerate_schema, validate
+from .validate import WorkerError, check_impl, regenerate_schema, run_worker, validate
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="Trustable contracts between agents.")
 
@@ -246,6 +248,160 @@ def verify(
         _line(not diffs, "reproduced: every check has the same outcome" if not diffs else "not reproduced", "\n".join(diffs))
         ok = ok and not diffs
     raise typer.Exit(0 if ok else 1)
+
+
+def _pairs(values: list[str], what: str) -> dict[str, str]:
+    out = {}
+    for v in values:
+        key, sep, val = v.partition("=")
+        if not sep or not key:
+            raise typer.BadParameter(f"{v!r}: expected NAME=VALUE", param_hint=what)
+        out[key] = val
+    return out
+
+
+def _short(value, limit: int = 160) -> str:
+    text = json.dumps(value, ensure_ascii=False)
+    return text if len(text) <= limit else text[:limit - 1] + "…"
+
+
+def _print_diff(r: dict, realistic: dict | None, top: int) -> None:
+    pool = r["pool"]
+    how = ", ".join(f"{v} {k}" for k, v in pool["by_how"].items())
+    typer.echo(f"pool       {pool['inputs']} inputs ({how}), {pool['disagreeing']} with a disagreement")
+    for m in r["ensemble"]:
+        who = " · ".join(x for x in (m["model"], m["family"], m["language"]) if x) or "no [generator] recorded"
+        stale = "  (built for another contract digest)" if m["pinned"] and m["pinned"] != r["digest"] else ""
+        typer.echo(f"ensemble   {m['name']}  weight {m['weight']:g}  {who}{stale}")
+    if r["reference"]:
+        typer.echo(f"reference  {r['reference']}  (compared, not in the ensemble)")
+    for pair, d in r["distances"].items():
+        typer.echo(f"distance   {pair}  {d:.4f}")
+    est = r["rao"]
+    if est["estimate"] is None:
+        typer.echo(typer.style("ambiguity  needs two builds in the ensemble", dim=True))
+    else:
+        lo, hi = est["interval95"]
+        typer.echo(f"ambiguity  {est['estimate']:.4f}  (95% {lo:.4f}–{hi:.4f}; expected error ≥ {est['floor_on_error']:.4f})")
+        if realistic and realistic["rao"]["estimate"] is not None:
+            rl, rh = realistic["rao"]["interval95"]
+            typer.echo(f"           {realistic['rao']['estimate']:.4f} on the realistic pool "
+                       f"({realistic['pool']['inputs']} inputs; 95% {rl:.4f}–{rh:.4f})")
+    b = r["behaviours"]
+    typer.echo(f"behaviours {b['observed']} observed among {b['builds']} builds, Chao estimate {b['chao']:.1f}, "
+               f"{b['shannon_bits']:.2f} bits")
+    if b["builds"] < 5 or b["singletons"] == b["builds"]:
+        typer.echo(typer.style("           too few builds for the Chao and entropy estimates to mean much", dim=True))
+    if r["to_reference"]:
+        for name, d in r["to_reference"].items():
+            typer.echo(f"error      {name} vs {r['reference']}  {d:.4f}")
+
+    if r["splits"]:
+        typer.echo(f"\nsplits, largest first ({len(r['splits'])}):")
+    for i, s in enumerate(r["splits"][:top], 1):
+        share = f"{s['share_of_ambiguity']:.0%} of ambiguity, " if s["share_of_ambiguity"] is not None else ""
+        groups = " | ".join(", ".join(g) for g in s["groups"])
+        tiers = ", ".join(s["tiers"])
+        typer.echo(f"{i}. {groups}   {share}{s['inputs']} inputs, {tiers}")
+        traced = ", ".join(s["obligations"]) or "no obligation: a gap in the pack"
+        typer.echo(f"   traces to  {traced}")
+        typer.echo(f"   witness    {_short(s['witness']['input'])}")
+        for who, out in s["witness"]["outcomes"].items():
+            typer.echo(f"     {who:<10} {_short(out)}")
+    if len(r["splits"]) > top:
+        typer.echo(typer.style(f"   … {len(r['splits']) - top} more in the JSON report", dim=True))
+
+    rd = r["readings"]
+    if rd["points"]:
+        typer.echo(f"\nreadings   {rd['points']} points recorded, {rd['shared']} by two or more builds, "
+                   f"{len(rd['splits'])} chosen differently")
+        for s in rd["splits"]:
+            typer.echo(f"   {s['point']}: " + "; ".join(f"{n}: {c}" for n, c in s["chosen"].items()))
+
+
+@app.command(name="diff")
+def diff_cmd(
+    contract: Path = typer.Argument(..., help="Contract directory."),
+    impls: list[str] = typer.Argument(..., help="Implementations, as PATH or NAME=PATH. Two or more."),
+    reference: str | None = typer.Option(None, help="Name of the original product: compared with every build, not part of the ensemble."),
+    pool: list[Path] = typer.Option([], help="Extra inputs, one JSON input (or {\"input\": ...}) per line. Repeat for several."),
+    realistic: Path | None = typer.Option(None, help="Inputs drawn to look like real use; reported as a separate, unbiased estimate."),
+    mutations: int = typer.Option(500, help="Mutated copies of example and property inputs to add."),
+    property_cases: int = typer.Option(50, help="Inputs to record from each property's generator."),
+    search: int = typer.Option(300, help="Budget of extra inputs mutated from disagreements."),
+    seed: int = typer.Option(0, help="Seed for the pool and the bootstrap."),
+    weight: list[str] = typer.Option([], help="Ensemble weight, NAME=W. Default 1 for every build."),
+    severity: list[str] = typer.Option([], help="Cost of a disagreement tier, TIER=W (crash, value, format; default 1, 1, 0.1)."),
+    max_ambiguity: float | None = typer.Option(None, help="Exit 1 if the ambiguity estimate is above this."),
+    top: int = typer.Option(5, help="Splits to print."),
+    out: Path | None = typer.Option(None, "-o", "--out", help="Write the full report as JSON."),
+    as_json: bool = typer.Option(False, "--json", help="Print the report as JSON."),
+    timeout: int = typer.Option(900, help="Seconds before the run is stopped."),
+) -> None:
+    """Run several builds on one input pool and measure where they disagree."""
+    component = Path(contract).resolve().parent.name
+    named: list[tuple[str, Path]] = []
+    for spec in impls:
+        name, sep, path = spec.partition("=")
+        p = Path(path if sep else spec)
+        named.append((name if sep else member_name(p, component), p.resolve()))
+    names = [n for n, _ in named]
+    dupes = sorted({n for n in names if names.count(n) > 1})
+    if dupes:
+        raise typer.BadParameter(f"two implementations are named {', '.join(dupes)}; use NAME=PATH", param_hint="IMPLS")
+    if len(named) < 2:
+        raise typer.BadParameter("give at least two implementations", param_hint="IMPLS")
+    if reference is not None and reference not in names:
+        raise typer.BadParameter(f"{reference!r} is not one of {', '.join(names)}", param_hint="--reference")
+    weights = {k: float(v) for k, v in _pairs(weight, "--weight").items()}
+    costs = {k: float(v) for k, v in _pairs(severity, "--severity").items()}
+    unknown = sorted(set(weights) - set(names)) + sorted(set(costs) - set(TIERS))
+    if unknown:
+        raise typer.BadParameter(f"unknown {', '.join(unknown)}", param_hint="--weight/--severity")
+    try:
+        members = [load_member(n, p, component, weights.get(n, 1.0)) for n, p in named]
+    except Exception as e:
+        _line(False, "could not read an implementation's manifest or readings.toml", str(e))
+        raise typer.Exit(1)
+
+    def run(config: dict) -> list[dict]:
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = Path(tmp) / "diff.json"
+            cfg.write_text(json.dumps({"impls": [[n, str(p)] for n, p in named], "seed": seed, **config}))
+            result = run_worker("diff", Path(contract).resolve(), str(cfg), timeout=timeout)
+        if "error" in result:
+            raise WorkerError(result["error"])
+        return result
+
+    tol = load_manifest(contract).spec.float_rel_tol
+    try:
+        result = run({"mutations": mutations, "property_cases": property_cases, "search": search,
+                      "pools": [str(p.resolve()) for p in pool]})
+        report = analyse(result["cases"], members, contract, reference=reference, severity=costs, rel_tol=tol,
+                         seed=seed, witnesses=result["witnesses"]).report
+        real = None
+        if realistic is not None:
+            real_cases = run({"examples": False, "pools": [str(realistic.resolve())], "witnesses": 0})["cases"]
+            real = analyse(real_cases, members, contract, reference=reference, severity=costs,
+                           rel_tol=tol, seed=seed).report
+            report["realistic"] = {k: real[k] for k in ("pool", "distances", "rao", "to_reference")}
+    except WorkerError as e:
+        _line(False, "diff run failed", str(e))
+        raise typer.Exit(1)
+    report = {"digest": contract_digest(contract), **report}
+    if out is not None:
+        out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
+    if as_json:
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+    else:
+        _print_diff(report, real, top)
+        if out is not None:
+            typer.echo(f"\nwrote {out}")
+    estimate = report["rao"]["estimate"]
+    if max_ambiguity is not None and estimate is not None and estimate > max_ambiguity:
+        if not as_json:
+            typer.echo(typer.style(f"\nambiguity {estimate:.4f} is above --max-ambiguity {max_ambiguity:g}", fg=typer.colors.RED))
+        raise typer.Exit(1)
 
 
 pack_app = typer.Typer(no_args_is_help=True, help="Work with spec packs.")

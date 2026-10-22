@@ -69,6 +69,10 @@ Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split
 3. **Divergence found.** Comparing the two builds on the builder's listed ambiguities found one real gap in how repeated `year:` filters combine. The contract now states the rule, with a property and two examples for it, and both builds pass it.
 4. **Reproduction.** A second runner key re-ran all six attestations in a fresh container, and every check had the same outcome.
 
+## Measuring the remaining ambiguity
+
+`symbolon diff` turns the milestone 2 differential test into a command that works on any number of builds (see [Measuring ambiguity](guides/measuring-ambiguity.md)). Run on `search-query` with lightkone as the reference and both rebuilds, it puts the Go build at distance 0 from lightkone. It finds the two rules milestone 2 tightened, `search.year-malformed` and `search.title-sort-other`, as the splits between the milestone 1 Python build and the other two. On `bibtex-import`, the only split is on broken input, the case left for a later version.
+
 ## Re-running the evidence
 
 ```bash

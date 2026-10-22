@@ -122,3 +122,28 @@ def test_cli(pack):
     add(pack, id="search.extra", statement="x", status="decided")
     result = runner.invoke(app, ["pack", "validate", str(pack)])
     assert result.exit_code == 1 and "pack is not valid" in result.output
+
+
+def test_statistical_obligation_needs_its_test(pack):
+    add(pack, id="search.extra", statement="x", status="decided", exactness="statistical",
+        checks=["search-query#example:1"], samples=200)
+    assert "needs alpha, tolerance" in failed(validate_pack(pack))["every obligation is checked, open, or explained"]
+
+
+def test_statistical_obligation(pack):
+    add(pack, id="search.extra", statement="x", status="default", exactness="statistical",
+        checks=["search-query#example:1"], samples=200, alpha=0.01, tolerance=0.02)
+    report = validate_pack(pack)
+    assert report.ok, failed(report)
+    assert report.summary["by_exactness"]["statistical"] == 1
+
+
+def test_open_obligation_is_free_not_statistical(pack):
+    add(pack, id="search.extra", statement="x", status="open", exactness="statistical",
+        samples=200, alpha=0.01, tolerance=0.02)
+    assert "cannot also be statistical" in failed(validate_pack(pack))["every obligation is checked, open, or explained"]
+
+
+def test_exact_obligation_takes_no_sample_size(pack):
+    add(pack, id="search.extra", statement="x", status="decided", checks=["search-query#example:1"], samples=10)
+    assert "only apply to exactness" in failed(validate_pack(pack))["every obligation is checked, open, or explained"]

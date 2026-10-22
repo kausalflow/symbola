@@ -53,6 +53,7 @@ status = "decided"                     # decided | default | open
 kind = "behaviour"                     # behaviour | constraint | security | audit (default behaviour)
 source = "replication"                 # extract | oracle | replication | counterexample | publisher
 reason = "..."                         # required when kind = "constraint"
+exactness = "exact"                    # exact | statistical (default exact)
 assumes = ["K-..."]                    # optional
 checks = ["search-query#test_only_the_last_year_filter_counts", "search-query#example:40"]
 ```
@@ -68,9 +69,24 @@ A check is `<component>#example:<line>` (a 1-based line of that component's
 `properties.py`). Obligation ids are the single id scheme for tracing checks to
 requirements; a standalone contract can adopt the same `[[obligation]]` table later.
 
-`source` records where an obligation came from. The share that came from
-`replication` (builders disagreed) rather than `extract` is a measure of how much
-a pack needed to say beyond the obvious.
+`source` records where the obligation's current binding came from. The share that
+came from `replication` (builders disagreed) rather than `extract` is a measure of
+how much a pack needed to say beyond the obvious, so an obligation that extraction
+left open and replication then decided counts as `replication`.
+
+### Exact and statistical obligations
+
+`exactness` says how an obligation constrains outputs, independently of its status:
+
+| Exactness | Meaning | Extra fields |
+| --- | --- | --- |
+| `exact` | Every output must satisfy it; one violating output fails it | None |
+| `statistical` | The output distribution must satisfy it, for software that is random by design, such as a summarizer that calls a model | `samples` (runs per check), `alpha` (accepted false-alarm rate), `tolerance` (its share of the disagreement budget) |
+
+An `open` obligation is the free case: it constrains nothing, so it takes no
+exactness. The terms follow the kit paper (*The Probabilistic Minimal Reproduction
+Kit*, section 5.4). The runner does not yet repeat statistical checks; until it
+does, the fields record what a check must do.
 
 ## What `symbolon pack validate` checks
 
@@ -81,7 +97,9 @@ a pack needed to say beyond the obvious.
 5. Every obligation is well-formed, with a unique id.
 6. Every `decided` or `default` obligation has checks, every `open` one has none,
    every constraint has a reason, every check exists, and every assumption it names exists.
+7. A `statistical` obligation is not `open` and gives `samples`, `alpha` and
+   `tolerance`; an exact one gives none of them.
 
-It then reports obligations by status and source, assumptions and how many are
+It then reports obligations by status, source and exactness, assumptions and how many are
 monitored, and how many of the components' checks trace to an obligation. It does
 not run contract code; use `symbolon validate` on each component for that.
