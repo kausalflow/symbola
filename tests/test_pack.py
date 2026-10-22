@@ -40,7 +40,7 @@ def test_lightkone_pack_is_valid():
     report = validate_pack(LIGHTKONE)
     assert report.ok, failed(report)
     s = report.summary
-    assert s["components"] == 3 and s["assumptions"] >= 1
+    assert s["components"] == 8 and s["assumptions"] >= 1
     assert s["by_status"]["open"] >= 1
     assert s["checks_tracing_to_an_obligation"] == s["checks"]
 

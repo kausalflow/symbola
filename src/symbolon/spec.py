@@ -22,7 +22,7 @@ import math
 import sys
 import traceback
 from dataclasses import asdict, dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from types import ModuleType
 from typing import Any, Callable
 
@@ -222,9 +222,42 @@ class CommandImpl:
                 self._proc.kill()
 
 
+FIXTURES_DIR = "fixtures"
+
+
+def resolve_fixtures(value: Any, fixtures: Path, cache: dict[str, Any] | None = None) -> Any:
+    """Replace every {"$fixture": "name.json"} in value with that file from fixtures/,
+    parsed, and every {"$text": "name"} with that file's text."""
+    cache = {} if cache is None else cache
+    if isinstance(value, list):
+        return [resolve_fixtures(v, fixtures, cache) for v in value]
+    if not isinstance(value, dict):
+        return value
+    if set(value) not in ({"$fixture"}, {"$text"}):
+        return {k: resolve_fixtures(v, fixtures, cache) for k, v in value.items()}
+    (marker, name), = value.items()
+    rel = PurePosixPath(name) if isinstance(name, str) else None
+    if rel is None or rel.is_absolute() or ".." in rel.parts or (marker == "$fixture" and rel.suffix != ".json"):
+        what = "a .json file" if marker == "$fixture" else "a file"
+        raise SpecError(f"{marker} must name {what} inside {FIXTURES_DIR}/, got {name!r}")
+    if (marker, name) not in cache:
+        path = fixtures / rel
+        if not path.is_file():
+            raise SpecError(f"{marker} {name!r}: no such file {FIXTURES_DIR}/{name}")
+        text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
+        try:
+            cache[marker, name] = json.loads(text) if marker == "$fixture" else text
+        except json.JSONDecodeError as e:
+            raise SpecError(f"$fixture {name!r}: invalid JSON ({e.msg})") from None
+    return copy.deepcopy(cache[marker, name])
+
+
 def load_examples(path: Path) -> list[dict]:
+    """Read examples.jsonl, with $fixture references replaced by the fixture's contents."""
+    path = Path(path)
+    fixtures, cache = path.parent / FIXTURES_DIR, {}
     examples = []
-    for lineno, line in enumerate(Path(path).read_text().splitlines(), 1):
+    for lineno, line in enumerate(Path(path).read_text().split("\n"), 1):
         if not line.strip():
             continue
         try:
@@ -238,6 +271,10 @@ def load_examples(path: Path) -> list[dict]:
         extra = set(ex) - {"input", "output", "raises", "note"}
         if extra:
             raise SpecError(f"examples.jsonl line {lineno}: unknown keys {sorted(extra)}")
+        try:
+            ex = resolve_fixtures(ex, fixtures, cache)
+        except SpecError as e:
+            raise SpecError(f"examples.jsonl line {lineno}: {e}") from None
         ex["_line"] = lineno
         examples.append(ex)
     return examples
@@ -340,7 +377,9 @@ def run_properties(contract: LoadedContract, impl: BoundImpl, props: list[tuple[
         try:
             with contextlib.redirect_stdout(buf):
                 test(impl)
-        except Exception as e:
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except BaseException as e:  # pytest.raises signals failure with a BaseException
             detail = _describe(e)
             printed = buf.getvalue().strip()
             # Hypothesis attaches the failing case as exception notes; older

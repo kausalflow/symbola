@@ -282,7 +282,10 @@ class ContainerSandbox(Sandbox):
         for path in (ws.root, ws.contract, ws.impl):
             path.chmod(0o755)
         for path in ws.root.rglob("*"):
-            path.chmod(0o755 if path.is_dir() else 0o644)
+            # Readable by the sandbox user; files keep their execute bit, so a
+            # command implementation can be a binary in the directory.
+            executable = path.is_dir() or path.stat().st_mode & 0o100
+            path.chmod(0o755 if executable else 0o644)
         ws.out.chmod(0o777)
         ws.deps.chmod(0o777)
         common = [

@@ -237,3 +237,12 @@ def test_command_implementation_attests(sandbox, key, tmp_path):
     p = statement_of(run_attestation(DATE_PARSE, impl, sandbox, key))["predicate"]
     assert p["result"] == "PASSED", p["symbolon"]["failures"]
     assert p["symbolon"]["implementation"]["implementation"]["language"] == "command"
+
+
+def test_executable_command_implementation_attests(sandbox, key, tmp_path):
+    # A compiled build ships as an executable in the directory; the sandbox must keep its execute bit.
+    from .test_command_impl import PY_LOOP, command_impl
+    impl = command_impl(tmp_path, "exe", "#!/usr/bin/env python3\n" + PY_LOOP, ["./impl"])
+    (impl / "impl").chmod(0o755)
+    p = statement_of(run_attestation(DATE_PARSE, impl, sandbox, key))["predicate"]
+    assert p["result"] == "PASSED", p["symbolon"]["failures"]

@@ -94,6 +94,21 @@ def test_vacuous_spec_rejected(contract):
     assert bad[0].name == "vacuity: properties reject an implementation that returns a constant"
 
 
+def test_pytest_raises_in_properties_counts_as_a_failed_check(contract):
+    # pytest.raises fails with a BaseException; against the constant stub that
+    # must fail the check, not crash validate.
+    path = contract / "properties.py"
+    path.write_text(path.read_text() + (
+        "\n\nimport pytest\n\n"
+        "def test_upper_cases_ab(impl):\n"
+        "    with pytest.raises(ZeroDivisionError):\n"
+        "        if impl(Input(text='ab')).text == 'AB':\n"
+        "            1 / 0\n"
+    ))
+    report = validate(contract)
+    assert report.ok, failed(report)
+
+
 def test_contract_code_runs_out_of_process(contract):
     # A contract that kills its interpreter must not take the CLI down with it.
     (contract / "schema.py").write_text("import os\nos._exit(3)\n")
