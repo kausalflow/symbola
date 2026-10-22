@@ -50,6 +50,20 @@ def test_bad_fixture_references_are_rejected(contract, name, problem):
         load_examples(contract / "examples.jsonl")
 
 
+def test_text_fixtures_are_inserted_as_text(contract):
+    (contract / "fixtures").mkdir()
+    (contract / "fixtures" / "notes.txt").write_text("{not json}\r\nline 2\n")
+    write_examples(contract, {"input": {"text": {"$text": "notes.txt"}}, "output": {}})
+    assert load_examples(contract / "examples.jsonl")[0]["input"]["text"] == "{not json}\nline 2\n"
+
+
+@pytest.mark.parametrize("name, problem", [("missing.txt", "no such file"), ("../x", "inside fixtures/"), (None, "inside fixtures/")])
+def test_bad_text_references_are_rejected(contract, name, problem):
+    write_examples(contract, {"input": {"text": {"$text": name}}, "output": {}})
+    with pytest.raises(SpecError, match=problem):
+        load_examples(contract / "examples.jsonl")
+
+
 def test_objects_with_other_keys_are_left_alone(contract):
     write_examples(contract, {"input": {"text": {"$fixture": "x.json", "other": 1}}, "output": {}})
     assert load_examples(contract / "examples.jsonl")[0]["input"]["text"] == {"$fixture": "x.json", "other": 1}
@@ -67,3 +81,9 @@ def test_lightkone_search_examples_share_one_library():
     examples = load_examples(SEARCH / "examples.jsonl")
     assert all(len(e["input"]["papers"]) == 10 for e in examples)
     assert '"$fixture": "library.json"' in (SEARCH / "examples.jsonl").read_text()
+
+
+def test_examples_may_hold_unicode_line_separators(contract):
+    # JSON allows U+2028 raw inside strings; only "\n" ends an example.
+    (contract / "examples.jsonl").write_text(json.dumps({"input": {"text": "a\u2028b"}, "output": {}}, ensure_ascii=False) + "\n")
+    assert load_examples(contract / "examples.jsonl")[0]["input"]["text"] == "a\u2028b"

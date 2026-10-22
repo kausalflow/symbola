@@ -113,7 +113,7 @@ def _available_checks(contract_dir: Path) -> set[str]:
     """Every check a contract defines, as 'example:N' and property function names."""
     name = contract_dir.parent.name
     out = set()
-    lines = (contract_dir / "examples.jsonl").read_text().splitlines()
+    lines = (contract_dir / "examples.jsonl").read_text().split("\n")
     out |= {f"{name}#example:{i}" for i, line in enumerate(lines, 1) if line.strip()}
     tree = ast.parse((contract_dir / "properties.py").read_text())
     out |= {f"{name}#{n.name}" for n in tree.body

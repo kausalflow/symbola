@@ -226,27 +226,30 @@ FIXTURES_DIR = "fixtures"
 
 
 def resolve_fixtures(value: Any, fixtures: Path, cache: dict[str, Any] | None = None) -> Any:
-    """Replace every {"$fixture": "name.json"} in value with that file from fixtures/."""
+    """Replace every {"$fixture": "name.json"} in value with that file from fixtures/,
+    parsed, and every {"$text": "name"} with that file's text."""
     cache = {} if cache is None else cache
     if isinstance(value, list):
         return [resolve_fixtures(v, fixtures, cache) for v in value]
     if not isinstance(value, dict):
         return value
-    if set(value) != {"$fixture"}:
+    if set(value) not in ({"$fixture"}, {"$text"}):
         return {k: resolve_fixtures(v, fixtures, cache) for k, v in value.items()}
-    name = value["$fixture"]
+    (marker, name), = value.items()
     rel = PurePosixPath(name) if isinstance(name, str) else None
-    if rel is None or rel.is_absolute() or ".." in rel.parts or rel.suffix != ".json":
-        raise SpecError(f"$fixture must name a .json file inside {FIXTURES_DIR}/, got {name!r}")
-    if name not in cache:
+    if rel is None or rel.is_absolute() or ".." in rel.parts or (marker == "$fixture" and rel.suffix != ".json"):
+        what = "a .json file" if marker == "$fixture" else "a file"
+        raise SpecError(f"{marker} must name {what} inside {FIXTURES_DIR}/, got {name!r}")
+    if (marker, name) not in cache:
         path = fixtures / rel
         if not path.is_file():
-            raise SpecError(f"$fixture {name!r}: no such file {FIXTURES_DIR}/{name}")
+            raise SpecError(f"{marker} {name!r}: no such file {FIXTURES_DIR}/{name}")
+        text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
         try:
-            cache[name] = json.loads(path.read_text())
+            cache[marker, name] = json.loads(text) if marker == "$fixture" else text
         except json.JSONDecodeError as e:
             raise SpecError(f"$fixture {name!r}: invalid JSON ({e.msg})") from None
-    return copy.deepcopy(cache[name])
+    return copy.deepcopy(cache[marker, name])
 
 
 def load_examples(path: Path) -> list[dict]:
@@ -254,7 +257,7 @@ def load_examples(path: Path) -> list[dict]:
     path = Path(path)
     fixtures, cache = path.parent / FIXTURES_DIR, {}
     examples = []
-    for lineno, line in enumerate(Path(path).read_text().splitlines(), 1):
+    for lineno, line in enumerate(Path(path).read_text().split("\n"), 1):
         if not line.strip():
             continue
         try:

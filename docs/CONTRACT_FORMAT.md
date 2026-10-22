@@ -86,6 +86,12 @@ When many examples need the same sample data, such as a library of papers, put i
 
 - The name must be a relative path to a `.json` file inside `fixtures/`.
 - Each example gets its own copy, so an implementation that changes its input cannot affect the next example.
+- `{"$text": "name"}` inserts a fixture file's text instead of parsing it, for contracts whose input is a file's raw text (any extension; CRLF becomes LF, as in the digest):
+
+  ```json
+  {"input": {"text": {"$text": "paperpile-import.json"}}, "output": {"written": true}}
+  ```
+
 - Fixtures are part of the contract directory, so they are part of its digest. Everyone tests against exactly the same data.
 - Properties can read fixtures too: `Path(__file__).parent / "fixtures" / "library.json"`.
 - Fixtures are synthetic. Never put real customer data or credentials in a contract.
