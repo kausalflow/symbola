@@ -106,16 +106,16 @@ class LoadedContract:
             raise SpecError(f"{path.name} does not define the entrypoint function '{fn_name}'")
         return fn
 
-    def load_any(self, path: Path) -> Callable:
+    def load_any(self, path: Path, module_name: str = "symbolon_impl") -> Callable:
         """An implementation file (Python), or a directory with symbolon-impl.toml."""
         path = Path(path).resolve()
         if not path.is_dir():
-            return self.load_impl(path)
+            return self.load_impl(path, module_name)
         from .implementation import load_impl_manifest
         section = load_impl_manifest(path).implementation
         if section.language == "command":
             return CommandImpl(section.command, cwd=path)
-        return self.load_impl(path / section.entrypoint)
+        return self.load_impl(path / section.entrypoint, module_name)
 
     def bind(self, fn: Callable) -> "BoundImpl":
         return BoundImpl(fn, self.Input, self.Output)

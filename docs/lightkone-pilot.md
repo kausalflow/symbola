@@ -70,6 +70,10 @@ Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split
 4. **Reproduction.** A second runner key re-ran all six attestations in a fresh container, and every check had the same outcome.
 5. **Kill rate.** Plausible wrong versions of the rebuild live in `examples/mutants/lightkone/`, outside the pack so the component digests stay put. search-query rejects 8 of 9; the one survivor ignores a malformed `year:` term, which is exactly what the `open` obligation `search.year-malformed` leaves to the builder. bibtex-export rejects 7 of 7. bibtex-import rejects 7 of 8; the survivor reads a two-digit year like `99` as a number, which the description rules out but no check covers, so it is a gap for the next pack version.
 
+## Measuring the remaining ambiguity
+
+`symbolon diff` turns the milestone 2 differential test into a command that works on any number of builds (see [Measuring ambiguity](guides/measuring-ambiguity.md)). Run on `search-query` with lightkone as the reference and both rebuilds, it puts the Go build at distance 0 from lightkone. It finds the two rules milestone 2 tightened, `search.year-malformed` and `search.title-sort-other`, as the splits between the milestone 1 Python build and the other two. On `bibtex-import`, after the importer fix in kausalflow/lightkone#50, it finds no disagreement between lightkone and the Go build.
+
 ## Re-running the evidence
 
 ```bash

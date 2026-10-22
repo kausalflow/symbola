@@ -15,6 +15,7 @@ nav = [
   { "Concepts" = "concepts.md" },
   { "Guides" = [
     { "Writing a contract" = "guides/writing-a-contract.md" },
+    { "Measuring ambiguity" = "guides/measuring-ambiguity.md" },
   ] },
   { "Reference" = [
     { "CLI" = "cli.md" },

@@ -66,6 +66,8 @@ class Generator(_Strict):
     """How a generated implementation was produced. Absent for hand-written code."""
 
     model: str
+    family: str | None = None      # model family, for declaring a replication ensemble
+    language: str | None = None    # source language, e.g. "go"; `language = "command"` does not say
     prompt_digest: str | None = None
 
 

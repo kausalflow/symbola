@@ -6,6 +6,7 @@ Modes:
   check   structural and behavioral checks for `validate`
   test    run the spec against an implementation
   schema  regenerate schema/input.json and schema/output.json
+  diff    run several implementations on one input pool (impl is a JSON config)
   mutants run the spec against each mutant; optional [mutants_dir]
   plant   choose a canary example (see mutation.py); optional [seed]
   canary  run an implementation on a canary record's input and compare
@@ -209,6 +210,21 @@ def main(argv: list[str]) -> int:
                 if hasattr(fn, "close"):
                     fn.close()
         payload["resources"] = _resources(started)
+    elif mode == "diff":
+        from .pool import run_diff
+        contract = LoadedContract.load(root, load_manifest(root))
+        config = json.loads(Path(args[3]).read_text())
+        impls = {}
+        try:
+            for i, (name, path) in enumerate(config["impls"]):
+                impls[name] = contract.load_any(Path(path), f"symbolon_impl_{i}")
+            payload = run_diff(contract, impls, config)
+        except Exception as e:
+            payload = {"error": f"{type(e).__name__}: {e}"}
+        finally:
+            for fn in impls.values():
+                if hasattr(fn, "close"):
+                    fn.close()
     elif mode == "mutants":
         contract = LoadedContract.load(root, load_manifest(root))
         mutants_dir = Path(args[3]).resolve() if len(args) > 3 else root / MUTANTS_DIR
