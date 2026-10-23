@@ -1170,7 +1170,7 @@
 <h1 id="symbolon-contract-format-v1">Symbolon contract format, v1<a class="headerlink" href="#symbolon-contract-format-v1" title="Permanent link">&para;</a></h1>
 <p>This is the format for <strong>capability contracts</strong>, the first contract kind. A contract is a directory. Its identity is the digest of that directory's contents, and nothing else.</p>
 <h2 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>contracts/&lt;namespace&gt;/&lt;name&gt;/&lt;version&gt;/
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>contracts/&lt;namespace&gt;/&lt;name&gt;/versions/&lt;version&gt;/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  symbolon.toml        manifest (required)
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  schema.py            pydantic Input and Output models (required)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  schema/input.json    JSON Schema generated from schema.py (required)
@@ -1181,7 +1181,7 @@
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  reference/impl.py    reference implementation, used only as an oracle (optional)
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  mutants/*.py         plausible wrong implementations the spec must reject (optional)
 </span></code></pre></div>
-<p>Any other files in the directory, such as a README, are part of the contract and part of its digest.</p>
+<p>Each version of a contract sits in its own folder under <code>versions/</code>, so <code>contracts/core/csv-to-records/versions/1/</code> and <code>versions/2/</code> sit side by side. The folder name is the manifest's <code>version</code>. Any other files in the directory, such as a README, are part of the contract and part of its digest.</p>
 <h2 id="manifest-symbolontoml">Manifest: <code>symbolon.toml</code><a class="headerlink" href="#manifest-symbolontoml" title="Permanent link">&para;</a></h2>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[contract]</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"core/date-parse"</span><span class="w">          </span><span class="c1"># namespace/name, lowercase letters, digits, hyphens</span>

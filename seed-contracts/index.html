@@ -1040,7 +1040,7 @@ five; the survivor accepts malformed quoting such as <code>"x"y</code>, which ve
 description never rules on. Version 2 settles it: text after a closing quote, or
 a quote never closed, raises <code>ValueError</code>, and all six mutants are killed.
 unit-convert kills five; the survivor uses binary floats, which the 1e-9 tolerance
-allows. <code>symbolon mutants contracts/core/&lt;name&gt;/1</code> shows the full matrix.</p>
+allows. <code>symbolon mutants contracts/core/&lt;name&gt;/versions/1</code> shows the full matrix.</p>
 <h2 id="coredate-parse1"><code>core/date-parse@1</code><a class="headerlink" href="#coredate-parse1" title="Permanent link">&para;</a></h2>
 <p>Day and month may omit leading zeros, except in ISO. The year is always four digits. Leading and trailing whitespace is ignored. Strings that don't match the locale's pattern, or that name a date that doesn't exist, raise <code>ValueError</code>.</p>
 <p>Two implementations in <code>examples/impls/</code> show what the properties are for. <code>date-parse-strptime</code> is the plausible one-shot version built on <code>datetime.strptime</code>. It passes most examples but accepts <code>2000-1-1</code> as ISO, which <code>test_iso_requires_two_digit_month_and_day</code> finds. <code>date-parse-strict</code> checks the string's shape with a regular expression first, and passes.</p>

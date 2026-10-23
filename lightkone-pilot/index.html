@@ -1053,8 +1053,8 @@
 </thead>
 <tbody>
 <tr>
-<td><code>1/</code></td>
-<td>The pack: BRIEF, AGENTS, assumptions, obligations, and eight component contracts</td>
+<td><code>versions/1/</code></td>
+<td>The pack, version 1: BRIEF, AGENTS, assumptions, obligations, and eight component contracts</td>
 <td>yes</td>
 </tr>
 <tr>
@@ -1122,7 +1122,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>symbolon pack validate packs/kausalflow/lightkone/1</code> reports 63 obligations (58 decided, 4 default, 1 open) and 4 assumptions, and every one of the components' 330 checks traces to an obligation.</p>
+<p><code>symbolon pack validate packs/kausalflow/lightkone/versions/1</code> reports 63 obligations (58 decided, 4 default, 1 open) and 4 assumptions, and every one of the components' 330 checks traces to an obligation.</p>
 <h2 id="results-milestone-2">Results (milestone 2)<a class="headerlink" href="#results-milestone-2" title="Permanent link">&para;</a></h2>
 <p>Five more contracts: <code>citation-key</code>, <code>pdf-filing</code>, <code>library-merge</code>, <code>tidy</code>, and <code>library-file</code>, the data contract for <code>library.json</code> itself (how lightkone reads it and writes it back, byte for byte, with <code>library.bib</code>). Contracts can now share sample data in <code>fixtures/</code>, including raw text files with <code>{"$text": ...}</code>; <code>library-file</code> ships three sample libraries.</p>
 <table>
@@ -1205,7 +1205,7 @@
 </table>
 <p>How it went:</p>
 <ol>
-<li><strong>Second builder, second language.</strong> A different AI model got only <code>1/</code> and built all eight components in Go (standard library only), with lightkone, the oracle and the Python rebuild moved off the machine. It passed all eight contracts and all eight holdouts.</li>
+<li><strong>Second builder, second language.</strong> A different AI model got only <code>versions/1/</code> and built all eight components in Go (standard library only), with lightkone, the oracle and the Python rebuild moved off the machine. It passed all eight contracts and all eight holdouts.</li>
 <li><strong>Passing is not agreeing.</strong> <code>oracle/differential.py</code> sends the same generated inputs to lightkone and the Go build and reports every disagreement on inputs the contract accepts. On about 5,000 inputs, six contracts agreed completely. <code>bibtex-import</code> and <code>search-query</code> showed five real gaps that both the spec and the holdout had missed:</li>
 <li>a malformed BibTeX field skipped to a <code>}</code> ends the entry, but one skipped to a comma does not (the contract said the rest was always lost);</li>
 <li>"whitespace" means JavaScript's <code>\s</code>, including no-break space and U+2028;</li>
@@ -1258,7 +1258,7 @@
 </table>
 <ol>
 <li><strong>Oracle check.</strong> Examples were recorded by running lightkone's own code through the command protocol. The properties were written from the description, and lightkone passed all of them.</li>
-<li><strong>Replication.</strong> An AI builder got only <code>1/</code>, with lightkone's source and the oracle moved off the machine. It passed all three contracts, then passed the holdout: a different property seed, 5× the generated cases, and 18 examples it never saw.</li>
+<li><strong>Replication.</strong> An AI builder got only <code>versions/1/</code>, with lightkone's source and the oracle moved off the machine. It passed all three contracts, then passed the holdout: a different property seed, 5× the generated cases, and 18 examples it never saw.</li>
 <li><strong>Divergence found.</strong> Comparing the two builds on the builder's listed ambiguities found one real gap in how repeated <code>year:</code> filters combine. The contract now states the rule, with a property and two examples for it, and both builds pass it.</li>
 <li><strong>Reproduction.</strong> A second runner key re-ran all six attestations in a fresh container, and every check had the same outcome.</li>
 <li><strong>Kill rate.</strong> Plausible wrong versions of the rebuild live in <code>examples/mutants/lightkone/</code>, outside the pack so the component digests stay put. search-query rejects 8 of 9; the one survivor ignores a malformed <code>year:</code> term, which is exactly what the <code>open</code> obligation <code>search.year-malformed</code> leaves to the builder. bibtex-export rejects 7 of 7. bibtex-import rejects 7 of 8; the survivor reads a two-digit year like <code>99</code> as a number, which the description rules out but no check covers, so it is a gap for the next pack version.</li>
@@ -1269,7 +1269,7 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>packs/kausalflow/lightkone
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>symbolon<span class="w"> </span>pack<span class="w"> </span>validate<span class="w"> </span><span class="m">1</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>symbolon<span class="w"> </span>verify<span class="w"> </span>attestations/search-query.go-1.json<span class="w"> </span>--trust<span class="w"> </span>attestations/runner-a.pub<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--contract<span class="w"> </span><span class="m">1</span>/components/search-query/1<span class="w"> </span>--impl<span class="w"> </span>rebuilds/go-1/search-query<span class="w"> </span>--rerun
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--contract<span class="w"> </span>versions/1/components/search-query/versions/1<span class="w"> </span>--impl<span class="w"> </span>rebuilds/go-1/search-query<span class="w"> </span>--rerun
 </span></code></pre></div>
 <p>The pack's own <code>README.md</code> has the full notes, including the three importer bugs the contracts found, now fixed in lightkone#50.</p>
 
