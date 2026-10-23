@@ -14,12 +14,12 @@ section 4.
 ## Layout
 
 ```
-packs/<namespace>/<product>/<version>/
+packs/<namespace>/<product>/versions/<version>/
   symbolon-pack.toml    manifest: pack id, version, license, component digests (required)
   BRIEF.md              purpose, non-goals, priorities, who resolves gaps (required)
   obligations.toml      the decisions a build must keep (required)
   assumptions/*.toml    what must hold about the world, one file each
-  components/<name>/<version>/   capability contracts
+  components/<name>/versions/<version>/   capability contracts
   AGENTS.md             short guide for coding agents
 ```
 

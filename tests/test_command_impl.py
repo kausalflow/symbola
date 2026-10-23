@@ -11,7 +11,7 @@ from symbolon.validate import check_impl
 
 from .conftest import REPO
 
-DATE_PARSE = REPO / "contracts" / "core" / "date-parse" / "1"
+DATE_PARSE = REPO / "contracts" / "core" / "date-parse" / "versions" / "1"
 
 # A command implementation written in Python, so these tests need no other runtime.
 PY_LOOP = '''\

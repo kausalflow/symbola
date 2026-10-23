@@ -58,7 +58,7 @@ def test_compare_readings():
 @pytest.fixture
 def date_pack(tmp_path, copy_seed):
     """core/date-parse inside a pack, with a reference build and two variants."""
-    contract = tmp_path / "pack" / "components" / "date-parse" / "1"
+    contract = tmp_path / "pack" / "components" / "date-parse" / "versions" / "1"
     contract.parent.mkdir(parents=True)
     shutil.move(copy_seed("core/date-parse"), contract)
     (tmp_path / "pack" / "symbolon-pack.toml").write_text("[components]\n")

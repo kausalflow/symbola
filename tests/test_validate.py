@@ -16,7 +16,7 @@ def test_scaffold_is_valid(contract):
     assert report.digest.startswith("sha256:")
 
 
-@pytest.mark.parametrize("manifest", SEEDS, ids=lambda p: p.parent.parent.name)
+@pytest.mark.parametrize("manifest", SEEDS, ids=lambda p: f"{p.parents[2].name}@{p.parent.name}")
 def test_seed_contracts_are_valid(manifest):
     report = validate(manifest.parent)
     assert report.ok, failed(report)
@@ -143,3 +143,11 @@ def test_check_impl_missing_entrypoint(copy_seed, tmp_path):
     impl = tmp_path / "empty.py"
     impl.write_text("def parse(x):\n    return x\n")
     assert "entrypoint" in check_impl(root, impl)["error"]
+
+
+def test_folder_must_match_the_version(contract):
+    assert contract.parent.name == "versions" and contract.name == "1"
+    moved = contract.rename(contract.parent / "2")
+    report = validate(moved)
+    assert failed(report)[0].name == "folder matches the version"
+    assert "versions/2/ holds version 1" in failed(report)[0].detail

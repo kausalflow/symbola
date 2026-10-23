@@ -15,7 +15,7 @@ from .diff import TIERS, analyse, load_member, member_name
 from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
-from .pack import report_json, summary_line, validate_pack
+from .pack import component_name, report_json, summary_line, validate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
 from .validate import WorkerError, check_impl, mutants_report, regenerate_schema, run_worker, validate
@@ -339,7 +339,7 @@ def diff_cmd(
     timeout: int = typer.Option(900, help="Seconds before the run is stopped."),
 ) -> None:
     """Run several builds on one input pool and measure where they disagree."""
-    component = Path(contract).resolve().parent.name
+    component = component_name(Path(contract))
     named: list[tuple[str, Path]] = []
     for spec in impls:
         name, sep, path = spec.partition("=")

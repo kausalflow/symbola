@@ -4,7 +4,7 @@ The first spec pack built from a real product: lightkone, a static web app for k
 
 | Path | What it is | Ships to buyers |
 | --- | --- | --- |
-| `1/` | The pack: BRIEF, AGENTS, assumptions, obligations, and eight component contracts | yes |
+| `versions/1/` | The pack, version 1: BRIEF, AGENTS, assumptions, obligations, and eight component contracts | yes |
 | `oracle/` | Publisher side: lightkone's own TypeScript bundled as command implementations, fixtures, example recorder, holdout, differential tester | no |
 | `rebuilds/python-1/` | Milestone 1: an AI build in Python of the first three contracts | no |
 | `rebuilds/go-1/` | Milestone 2: a second AI's build in Go of all eight contracts, with its NOTES.md | no |
@@ -23,7 +23,7 @@ The first spec pack built from a real product: lightkone, a static web app for k
 | `lightkone/tidy@1` | Finding duplicate papers and how to merge each group |
 | `lightkone/library-file@1` | Reading `library.json` and writing it back, with `library.bib`, byte for byte |
 
-`symbolon pack validate packs/kausalflow/lightkone/1` reports 63 obligations (58 decided, 4 default, 1 open) and 4 assumptions, and every one of the components' 330 checks traces to an obligation.
+`symbolon pack validate packs/kausalflow/lightkone/versions/1` reports 63 obligations (58 decided, 4 default, 1 open) and 4 assumptions, and every one of the components' 330 checks traces to an obligation.
 
 ## Results (milestone 2)
 
@@ -42,7 +42,7 @@ Five more contracts: `citation-key`, `pdf-filing`, `library-merge`, `tidy`, and 
 
 How it went:
 
-1. **Second builder, second language.** A different AI model got only `1/` and built all eight components in Go (standard library only), with lightkone, the oracle and the Python rebuild moved off the machine. It passed all eight contracts and all eight holdouts.
+1. **Second builder, second language.** A different AI model got only `versions/1/` and built all eight components in Go (standard library only), with lightkone, the oracle and the Python rebuild moved off the machine. It passed all eight contracts and all eight holdouts.
 2. **Passing is not agreeing.** `oracle/differential.py` sends the same generated inputs to lightkone and the Go build and reports every disagreement on inputs the contract accepts. On about 5,000 inputs, six contracts agreed completely. `bibtex-import` and `search-query` showed five real gaps that both the spec and the holdout had missed:
    - a malformed BibTeX field skipped to a `}` ends the entry, but one skipped to a comma does not (the contract said the rest was always lost);
    - "whitespace" means JavaScript's `\s`, including no-break space and U+2028;
@@ -65,7 +65,7 @@ Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split
 | `lightkone/bibtex-export@1` | 19 examples + 6 properties | PASSED | PASSED | 28/28 | reproduced both |
 
 1. **Oracle check.** Examples were recorded by running lightkone's own code through the command protocol. The properties were written from the description, and lightkone passed all of them.
-2. **Replication.** An AI builder got only `1/`, with lightkone's source and the oracle moved off the machine. It passed all three contracts, then passed the holdout: a different property seed, 5× the generated cases, and 18 examples it never saw.
+2. **Replication.** An AI builder got only `versions/1/`, with lightkone's source and the oracle moved off the machine. It passed all three contracts, then passed the holdout: a different property seed, 5× the generated cases, and 18 examples it never saw.
 3. **Divergence found.** Comparing the two builds on the builder's listed ambiguities found one real gap in how repeated `year:` filters combine. The contract now states the rule, with a property and two examples for it, and both builds pass it.
 4. **Reproduction.** A second runner key re-ran all six attestations in a fresh container, and every check had the same outcome.
 5. **Kill rate.** Plausible wrong versions of the rebuild live in `examples/mutants/lightkone/`, outside the pack so the component digests stay put. search-query rejects 8 of 9; the one survivor ignores a malformed `year:` term, which is exactly what the `open` obligation `search.year-malformed` leaves to the builder. bibtex-export rejects 7 of 7. bibtex-import rejects 7 of 8; the survivor reads a two-digit year like `99` as a number, which the description rules out but no check covers, so it is a gap for the next pack version.
@@ -80,7 +80,7 @@ Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split
 cd packs/kausalflow/lightkone
 symbolon pack validate 1
 symbolon verify attestations/search-query.go-1.json --trust attestations/runner-a.pub \
-  --contract 1/components/search-query/1 --impl rebuilds/go-1/search-query --rerun
+  --contract versions/1/components/search-query/versions/1 --impl rebuilds/go-1/search-query --rerun
 ```
 
 The pack's own `README.md` has the full notes, including the three importer bugs the contracts found, now fixed in lightkone#50.

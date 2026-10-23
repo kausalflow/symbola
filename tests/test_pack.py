@@ -5,11 +5,11 @@ import pytest
 from typer.testing import CliRunner
 
 from symbolon.cli import app
-from symbolon.pack import validate_pack
+from symbolon.pack import component_name, validate_pack
 
 from .conftest import REPO
 
-LIGHTKONE = REPO / "packs" / "kausalflow" / "lightkone" / "1"
+LIGHTKONE = REPO / "packs" / "kausalflow" / "lightkone" / "versions" / "1"
 runner = CliRunner()
 
 
@@ -101,7 +101,7 @@ def test_assumption_fields(pack):
 
 
 def test_changed_component_breaks_the_digest(pack):
-    examples = pack / "components" / "search-query" / "1" / "examples.jsonl"
+    examples = pack / "components" / "search-query" / "versions" / "1" / "examples.jsonl"
     examples.write_text(examples.read_text() + "\n")
     assert "lightkone/search-query@1" in failed(validate_pack(pack))["component digests match the pack manifest"]
 
@@ -147,3 +147,8 @@ def test_open_obligation_is_free_not_statistical(pack):
 def test_exact_obligation_takes_no_sample_size(pack):
     add(pack, id="search.extra", statement="x", status="decided", checks=["search-query#example:1"], samples=10)
     assert "only apply to exactness" in failed(validate_pack(pack))["every obligation is checked, open, or explained"]
+
+
+def test_component_name_skips_the_versions_folder(tmp_path):
+    assert component_name(tmp_path / "components" / "tidy" / "versions" / "1") == "tidy"
+    assert component_name(tmp_path / "components" / "tidy" / "1") == "tidy"

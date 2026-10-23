@@ -26,7 +26,7 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 symbolon init CONTRACT_ID [--root contracts] [--author you@example.com]
 ```
 
-Creates `<root>/<namespace>/<name>/1/` with every required file and a reference implementation. `CONTRACT_ID` looks like `namespace/name`: lowercase letters, digits and hyphens. Fails if the directory exists.
+Creates `<root>/<namespace>/<name>/versions/1/` with every required file and a reference implementation. `CONTRACT_ID` looks like `namespace/name`: lowercase letters, digits and hyphens. Fails if the directory exists.
 
 ## `validate`
 

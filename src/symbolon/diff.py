@@ -40,7 +40,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from .implementation import IMPL_MANIFEST_FILE, load_impl_manifest
-from .pack import OBLIGATIONS_FILE, PACK_MANIFEST_FILE, Obligations
+from .pack import OBLIGATIONS_FILE, PACK_MANIFEST_FILE, Obligations, component_name
 from .spec import values_match
 
 TIERS = ("crash", "value", "format")
@@ -215,7 +215,7 @@ def chao_shen_bits(counts: list[int]) -> float:
 def _obligation_index(contract_dir: Path) -> tuple[str, dict[str, list[tuple[str, str]]]]:
     """Component name, and check ref -> [(obligation id, status)] from the enclosing pack."""
     contract_dir = Path(contract_dir).resolve()
-    component = contract_dir.parent.name
+    component = component_name(contract_dir)
     for d in list(contract_dir.parents)[:5]:
         if (d / PACK_MANIFEST_FILE).is_file() and (d / OBLIGATIONS_FILE).is_file():
             with (d / OBLIGATIONS_FILE).open("rb") as f:

@@ -10,16 +10,16 @@ This repository covers **MVP steps 1 and 2**: the contract format with `init`, `
 pip install -e ".[dev]"
 
 symbolon init acme/shout                      # scaffold a contract that already validates
-symbolon validate contracts/acme/shout/1      # check it and print its digest
+symbolon validate contracts/acme/shout/versions/1      # check it and print its digest
 
-symbolon validate contracts/core/date-parse/1
-symbolon test contracts/core/date-parse/1 examples/impls/date-parse-strptime   # fails: too lenient
-symbolon test contracts/core/date-parse/1 examples/impls/date-parse-strict     # passes
+symbolon validate contracts/core/date-parse/versions/1
+symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strptime   # fails: too lenient
+symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strict     # passes
 
 symbolon keygen                                                                 # this runner's signing key
-symbolon attest contracts/core/date-parse/1 examples/impls/date-parse-strict -o att.json
+symbolon attest contracts/core/date-parse/versions/1 examples/impls/date-parse-strict -o att.json
 symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
-  --contract contracts/core/date-parse/1 --impl examples/impls/date-parse-strict --rerun
+  --contract contracts/core/date-parse/versions/1 --impl examples/impls/date-parse-strict --rerun
 ```
 
 ## Commands

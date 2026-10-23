@@ -89,7 +89,7 @@ def test_cli_mutants_exit_code(contract):
     assert json.loads(result.output)["summary"]["undocumented_survivors"] == ["m01.py"]
 
 
-@pytest.mark.parametrize("manifest", SEEDS, ids=lambda p: p.parent.parent.name)
+@pytest.mark.parametrize("manifest", SEEDS, ids=lambda p: f"{p.parents[2].name}@{p.parent.name}")
 def test_seed_contracts_kill_their_mutants(manifest):
     check = mutants_check(validate(manifest.parent))
     assert check.ok, check.detail

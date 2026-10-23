@@ -13,7 +13,7 @@ from symbolon.sandbox import ContainerSandbox, ProcessSandbox, SandboxUnavailabl
 
 from .conftest import REPO
 
-DATE_PARSE = REPO / "contracts" / "core" / "date-parse" / "1"
+DATE_PARSE = REPO / "contracts" / "core" / "date-parse" / "versions" / "1"
 STRICT = REPO / "examples" / "impls" / "date-parse-strict"
 STRPTIME = REPO / "examples" / "impls" / "date-parse-strptime"
 
