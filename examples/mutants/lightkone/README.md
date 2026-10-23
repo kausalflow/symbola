@@ -5,9 +5,9 @@ measure how much the lightkone pack's components reject. They live here,
 outside the pack, so adding them does not change the components' digests.
 
 ```
-symbolon mutants packs/kausalflow/lightkone/1/components/search-query/1 --mutants examples/mutants/lightkone/search-query
-symbolon mutants packs/kausalflow/lightkone/1/components/bibtex-export/1 --mutants examples/mutants/lightkone/bibtex-export
-symbolon mutants packs/kausalflow/lightkone/1/components/bibtex-import/1 --mutants examples/mutants/lightkone/bibtex-import
+symbolon mutants packs/kausalflow/lightkone/versions/1/components/search-query/versions/1 --mutants examples/mutants/lightkone/search-query
+symbolon mutants packs/kausalflow/lightkone/versions/1/components/bibtex-export/versions/1 --mutants examples/mutants/lightkone/bibtex-export
+symbolon mutants packs/kausalflow/lightkone/versions/1/components/bibtex-import/versions/1 --mutants examples/mutants/lightkone/bibtex-import
 ```
 
 Result on 2026-10-22: search-query kills 8 of 9; the survivor (`m02`) is

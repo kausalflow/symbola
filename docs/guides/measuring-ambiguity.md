@@ -11,7 +11,7 @@ and 6.2).
 
 ```bash
 cd packs/kausalflow/lightkone
-symbolon diff 1/components/search-query/1 \
+symbolon diff versions/1/components/search-query/versions/1 \
   oracle/search-query rebuilds/go-1/search-query rebuilds/python-1/search-query \
   --reference oracle -o diff-search-query.json
 ```

@@ -11,7 +11,7 @@ def test_init_then_validate(tmp_path):
     root = tmp_path / "contracts"
     result = runner.invoke(app, ["init", "acme/shout", "--root", str(root)])
     assert result.exit_code == 0, result.output
-    target = root / "acme" / "shout" / "1"
+    target = root / "acme" / "shout" / "versions" / "1"
     assert (target / "schema" / "input.json").exists()
 
     result = runner.invoke(app, ["validate", str(target), "--json"])
@@ -54,7 +54,7 @@ def test_attest_and_verify_round_trip(tmp_path, monkeypatch):
     except SandboxUnavailable:
         pytest.skip("no sandbox available")
     from .conftest import REPO
-    contract = REPO / "contracts" / "core" / "date-parse" / "1"
+    contract = REPO / "contracts" / "core" / "date-parse" / "versions" / "1"
     impl = REPO / "examples" / "impls" / "date-parse-strict"
     key = tmp_path / "runner.key"
     assert runner.invoke(app, ["keygen", "--out", str(key)]).exit_code == 0

@@ -17,6 +17,7 @@ from pydantic import ValidationError
 
 from .digest import contract_digest
 from .manifest import MANIFEST_FILE, Manifest, load_manifest
+from .pack import VERSIONS_DIR
 from .spec import CheckResult
 
 REQUIRED_FILES = [MANIFEST_FILE, "schema.py", "examples.jsonl", "properties.py"]
@@ -76,6 +77,10 @@ def validate(contract_dir: Path) -> Report:
         return report
     report.alias = manifest.alias
     report.checks.append(CheckResult("symbolon.toml is valid", True, manifest.alias))
+    if root.parent.name == VERSIONS_DIR and root.name != str(manifest.contract.version):
+        report.checks.append(CheckResult("folder matches the version", False,
+                                         f"{VERSIONS_DIR}/{root.name}/ holds version {manifest.contract.version}"))
+        return report
 
     try:
         result = run_worker("check", root, timeout=manifest.spec.timeout_seconds * (1 + _mutant_count(root / "mutants")))

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from .pack import VERSIONS_DIR
+
 MANIFEST = '''\
 [contract]
 id = "{id}"
@@ -105,7 +107,7 @@ def run(input: dict) -> dict:
 
 def scaffold(contract_id: str, root: Path, author: str = "you@example.com") -> Path:
     namespace, name = contract_id.split("/", 1)
-    target = Path(root) / namespace / name / "1"
+    target = Path(root) / namespace / name / VERSIONS_DIR / "1"
     if target.exists():
         raise FileExistsError(f"{target} already exists")
     title = name.replace("-", " ").capitalize()

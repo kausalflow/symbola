@@ -45,7 +45,7 @@ Software capabilities are the first vertical. A contract specifies a capability,
 ## The idea in one example
 
 ```console
-$ symbolon test contracts/core/date-parse/1 examples/impls/date-parse-strptime
+$ symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strptime
 ...
 ✗ test_iso_requires_two_digit_month_and_day
     AssertionError
@@ -56,7 +56,7 @@ $ symbolon test contracts/core/date-parse/1 examples/impls/date-parse-strptime
 
 FAIL  2 of 21 checks failed
 
-$ symbolon test contracts/core/date-parse/1 examples/impls/date-parse-strict
+$ symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strict
 PASS  21 checks
 ```
 

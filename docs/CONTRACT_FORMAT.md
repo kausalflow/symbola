@@ -5,7 +5,7 @@ This is the format for **capability contracts**, the first contract kind. A cont
 ## Layout
 
 ```
-contracts/<namespace>/<name>/<version>/
+contracts/<namespace>/<name>/versions/<version>/
   symbolon.toml        manifest (required)
   schema.py            pydantic Input and Output models (required)
   schema/input.json    JSON Schema generated from schema.py (required)
@@ -17,7 +17,7 @@ contracts/<namespace>/<name>/<version>/
   mutants/*.py         plausible wrong implementations the spec must reject (optional)
 ```
 
-Any other files in the directory, such as a README, are part of the contract and part of its digest.
+Each version of a contract sits in its own folder under `versions/`, so `contracts/core/csv-to-records/versions/1/` and `versions/2/` sit side by side. The folder name is the manifest's `version`. Any other files in the directory, such as a README, are part of the contract and part of its digest.
 
 ## Manifest: `symbolon.toml`
 

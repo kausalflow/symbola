@@ -8,7 +8,7 @@ from symbolon.validate import validate
 
 from .conftest import REPO
 
-SEARCH = REPO / "packs" / "kausalflow" / "lightkone" / "1" / "components" / "search-query" / "1"
+SEARCH = REPO / "packs" / "kausalflow" / "lightkone" / "versions" / "1" / "components" / "search-query" / "versions" / "1"
 
 
 def write_examples(contract, *lines):

@@ -28,6 +28,8 @@ OBLIGATIONS_FILE = "obligations.toml"
 BRIEF_FILE = "BRIEF.md"
 ASSUMPTIONS_DIR = "assumptions"
 COMPONENTS_DIR = "components"
+# Each version of a pack or contract lives in versions/<n>/ next to the others.
+VERSIONS_DIR = "versions"
 
 OBLIGATION_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+$")
 ASSUMPTION_ID_RE = re.compile(r"^K-[a-z0-9][a-z0-9-]*$")
@@ -108,17 +110,23 @@ def _error(e: Exception) -> str:
     return f"{type(e).__name__}: {e}"
 
 
+def component_name(contract_dir: Path) -> str:
+    """The name a contract directory is known by: tidy for components/tidy/versions/1."""
+    contract_dir = Path(contract_dir).resolve()
+    return contract_dir.parent.parent.name if contract_dir.parent.name == VERSIONS_DIR else contract_dir.parent.name
+
+
 def _component_dirs(root: Path) -> dict[str, Path]:
-    """Component name -> contract directory, for components/<name>/<version>/symbolon.toml."""
+    """Component name -> contract directory, for components/<name>/versions/<n>/symbolon.toml."""
     found = {}
-    for manifest in sorted((root / COMPONENTS_DIR).glob("*/*/symbolon.toml")):
-        found[manifest.parent.parent.name] = manifest.parent
+    for manifest in sorted((root / COMPONENTS_DIR).glob(f"*/{VERSIONS_DIR}/*/symbolon.toml")):
+        found[component_name(manifest.parent)] = manifest.parent
     return found
 
 
 def _available_checks(contract_dir: Path) -> set[str]:
     """Every check a contract defines, as 'example:N' and property function names."""
-    name = contract_dir.parent.name
+    name = component_name(contract_dir)
     out = set()
     lines = (contract_dir / "examples.jsonl").read_text().split("\n")
     out |= {f"{name}#example:{i}" for i, line in enumerate(lines, 1) if line.strip()}

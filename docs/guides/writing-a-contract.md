@@ -8,7 +8,7 @@ This walks through a contract from `symbolon init` to a valid digest. The full r
 symbolon init acme/shout --author "you@example.com"
 ```
 
-This creates `contracts/acme/shout/1/` with every required file and a reference implementation, and it already passes `validate`. Change one file at a time and re-run `symbolon validate contracts/acme/shout/1` after each.
+This creates `contracts/acme/shout/versions/1/` with every required file and a reference implementation, and it already passes `validate`. Change one file at a time and re-run `symbolon validate contracts/acme/shout/versions/1` after each.
 
 ## 2. Describe the capability
 
@@ -21,7 +21,7 @@ Unknown keys are errors, so a typo cannot silently change a contract's meaning.
 `schema.py` defines pydantic `Input` and `Output` models. Use `ConfigDict(extra="forbid")` and `Field(description=...)` so the generated JSON Schema is strict and self-explaining. Then regenerate the language-neutral schema:
 
 ```bash
-symbolon schema contracts/acme/shout/1
+symbolon schema contracts/acme/shout/versions/1
 ```
 
 `validate` fails if `schema/*.json` drifts from `schema.py`.
@@ -55,7 +55,7 @@ Don't use `@settings`: the seed and the example budget come from `[spec]` in the
 ## 6. Validate
 
 ```bash
-symbolon validate contracts/acme/shout/1
+symbolon validate contracts/acme/shout/versions/1
 ```
 
 The vacuity check is the one most often hit. If your properties only check the output's type, an implementation that returns a constant passes them, and `validate` rejects the contract:
