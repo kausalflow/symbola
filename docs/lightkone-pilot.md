@@ -23,7 +23,7 @@ The first spec pack built from a real product: lightkone, a static web app for k
 | `lightkone/tidy@1` | Finding duplicate papers and how to merge each group |
 | `lightkone/library-file@1` | Reading `library.json` and writing it back, with `library.bib`, byte for byte |
 
-`symbolon pack validate packs/kausalflow/lightkone/versions/1` reports 63 obligations (all decided) and 4 assumptions, and every one of the components' 337 checks traces to an obligation.
+`symbolon pack validate packs/kausalflow/lightkone/versions/1` reports 64 obligations (all decided) and 4 assumptions, and every one of the components' 340 checks traces to an obligation.
 
 ## Results (milestone 3: the first `replicate` runs)
 
@@ -34,7 +34,7 @@ The first spec pack built from a real product: lightkone, a static web app for k
 | 1 | 2/2 on both | 2/2 on both | 0 in 1,113 inputs | Converged, but wrongly: by hand, `author:` with nothing after the colon runs differently, and both builders had written that point down |
 | 2, with probes | 2/2 on both | 2/2 on both | 2, both from probes | `author:` (Opus finds every paper; lightkone and Sonnet find none) and an unknown field with a quoted value, `o:"bar baz"` (Opus splits it into two words; lightkone and Sonnet keep one word) |
 
-So passing every check and the holdout still left two gaps in `search-query`, and only the builders' own probes found them. Builders now attach `probes` to each reading in `readings.toml`, and `diff` runs every build's probes on every build. Neither gap is closed in the pack yet: kausalflow decides the rule, and the examples get recorded from lightkone.
+So passing every check and the holdout still left two gaps in `search-query`, and only the builders' own probes found them. Builders now attach `probes` to each reading in `readings.toml`, and `diff` runs every build's probes on every build. Kausalflow chose lightkone's behaviour for both (2026-10-24). `search-query` now states the rule and has three new examples recorded from lightkone, under a new decided obligation, `search.field-edge-cases`, whose source is `replication`. Lightkone and the Sonnet build pass the new contract. The Opus build fails it, and so does the milestone 2 Go build, on `o:"bar baz"`: the gap was already there in milestone 2, and nothing caught it. Lightkone is re-attested on the new digest by a new runner key, `attestations/runner-c.pub`, in the process sandbox. The Go and Python attestations for `search-query` stay as they are; they are for the earlier digests.
 
 ## Results (milestone 2)
 
