@@ -29,6 +29,7 @@ jobs:
           pip install ".[docs]"
           sed -i "s|^site_url = .*|site_url = \"$PREVIEW_URL\"|" zensical.toml
           zensical build --clean
+          symbolon site build packs --out site/registry --base-url "${PREVIEW_URL}registry"
       # Always available, even where Pages is off: download from the run's summary page.
       - uses: actions/upload-artifact@v4
         if: github.event.action != 'closed'

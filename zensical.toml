@@ -16,6 +16,7 @@ nav = [
   { "Guides" = [
     { "Writing a contract" = "guides/writing-a-contract.md" },
     { "Measuring ambiguity" = "guides/measuring-ambiguity.md" },
+    { "Extracting a pack" = "guides/extracting-a-pack.md" },
     { "Replicating a pack" = "guides/replicating-a-pack.md" },
   ] },
   { "Reference" = [
@@ -23,6 +24,7 @@ nav = [
     { "Contract format" = "CONTRACT_FORMAT.md" },
     { "Implementations and attestations" = "ATTESTATION.md" },
     { "Spec pack format" = "PACK_FORMAT.md" },
+    { "Pack registry" = "REGISTRY.md" },
   ] },
   { "Examples" = [
     { "Seed contracts" = "seed-contracts.md" },

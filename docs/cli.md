@@ -14,8 +14,14 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 | [`attest`](#attest) | Run the spec in a sandbox and write a signed attestation |
 | [`verify`](#verify) | Check an attestation's signature, trust and digests; optionally reproduce it |
 | [`diff`](#diff) | Run several builds on one input pool and measure where they disagree |
+| [`extract`](#extract) | Have a coding agent draft a spec pack from an existing product, then check the draft |
 | [`replicate`](#replicate) | Hand a pack to outside coding agents, then test, attest and diff their builds |
 | [`pack validate`](#pack-validate) | Check a spec pack's brief, assumptions and obligations |
+| [`pack init`](#pack-init) | Scaffold a spec pack that passes `pack validate` out of the box |
+| [`site build`](#site-build) | Write the static registry for the latest version of every pack |
+| [`pull`](#pull) | Download a pack from the registry, check it, and unpack it |
+| [`site check`](#site-check) | The checks a pack submission must pass |
+| [`release`](#release) | Freeze your pack into the registry as its next version, signed |
 | [`mutants`](#mutants) | Show which checks kill which mutants, and the kill rate |
 | [`canary plant`](#canary-plant) | Copy a contract for a builder with one example changed to contradict the spec |
 | [`canary check`](#canary-check) | Tell whether a build followed the spec or was fitted to the planted example |
@@ -126,6 +132,28 @@ directory (`rebuilds/go-1/search-query` is `go-1`).
 Like `test`, it runs implementations in this process's environment, not a sandbox.
 See [Measuring ambiguity](guides/measuring-ambiguity.md).
 
+## `extract`
+
+```
+symbolon extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
+                 [--agent COMMAND] [--hint TEXT] [--rounds 2] [--timeout 3600] [--no-oracle]
+```
+
+Hands `SOURCE` to an external coding agent, which drafts `ROOT/NAMESPACE/PRODUCT/versions/VERSION/`
+plus an oracle adapter per component and a `REVIEW.md`. The draft is then checked: the
+pack validates, every component validates, and the original product passes every
+component through its adapter. Failures go back to the agent for another round, up
+to `--rounds` runs in all. Component digests in `symbolon-pack.toml` are filled in
+for the agent. Symbolon never changes `SOURCE`.
+
+| Option | Effect |
+| --- | --- |
+| `--agent` | The agent command; defaults to `$SYMBOLON_AGENT`, then Claude Code headless |
+| `--hint` | Extra guidance for the agent, such as which parts of the product to cover |
+| `--no-oracle` | Skip the oracle check, for products whose code cannot be called from an adapter |
+
+See [Extracting a pack](guides/extracting-a-pack.md).
+
 ## `replicate`
 
 ```
@@ -212,3 +240,43 @@ Appends `{"ref", "reason", "flagged_at"}` to `BUILD_DIR/symbolon-flags.jsonl`.
 example and the description, or two checks, disagree, then build the reading they
 think is right. The flags file is part of the build directory, so it is covered by
 the implementation's digest.
+
+## `pack init`
+
+```
+symbolon pack init PACK_ID [--dir spec] [--author you@example.com]
+```
+
+Creates a pack folder (by default `spec/`, next to your code) with a manifest, `BRIEF.md`, a placeholder open obligation, a placeholder assumption, `components/` and `AGENTS.md`. Fails if the folder exists and is not empty. See [Pack registry](REGISTRY.md#making-a-pack).
+
+## `site build`
+
+```
+symbolon site build [REGISTRY=packs] [--out site-registry] [--key KEY] [--base-url URL]
+```
+
+Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md`, `llms.txt` and raw files. With `--key`, signs each pack. Fails if any pack is invalid or contains holdout files. See [Pack registry](REGISTRY.md#building-the-site).
+
+## `pull`
+
+```
+symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--trust PUBKEY]
+```
+
+Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, and with `--trust` the publisher's signature, then unpacks it into `DEST` (default `./<name>`). See [Pack registry](REGISTRY.md#pulling-a-pack).
+
+## `site check`
+
+```
+symbolon site check [REGISTRY=packs]
+```
+
+Builds the registry in a temporary folder and checks each latest version's signature against its owner's `publisher.pub`. Prints a warning for owners without a key. See [Pack registry](REGISTRY.md#submission-checks).
+
+## `release`
+
+```
+symbolon release [SPEC=spec] --registry PACKS [--key KEY]
+```
+
+Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next version, and signs it. Does nothing if the content is unchanged since the latest version. See [Pack registry](REGISTRY.md#releasing).

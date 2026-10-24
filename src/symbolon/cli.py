@@ -10,13 +10,15 @@ from pathlib import Path
 import typer
 
 from . import canary as canary_mod, keys
-from .agent import AgentError, parse_agents
+from .agent import AgentError, parse_agents, resolve_agent
 from .attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
 from .diff import TIERS, load_member, measure, member_name
+from .extract import ExtractError, extract as run_extract
 from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .pack import component_name, report_json, summary_line, validate_pack
+from .registry import RegistryError, build_site, check_registry, pull as pull_pack, release as release_pack, scaffold_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
@@ -533,6 +535,152 @@ def pack_validate(
         else:
             typer.echo(typer.style("\npack is not valid", fg=typer.colors.RED))
     raise typer.Exit(0 if report.ok else 1)
+
+
+@pack_app.command(name="init")
+def pack_init(
+    pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk'."),
+    path: Path = typer.Option(Path("spec"), "--dir", help="Folder to create; by default spec/ next to your code."),
+    author: str = typer.Option("you@example.com", help="Author recorded in the manifest and the brief."),
+) -> None:
+    """Scaffold a spec pack that passes `pack validate` out of the box."""
+    try:
+        target = scaffold_pack(pack_id, path, author)
+    except (ValueError, FileExistsError) as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    _line(True, f"created {target}")
+    for rel in ["symbolon-pack.toml", "BRIEF.md", "obligations.toml", "assumptions/replace-me.toml",
+                "components/", "AGENTS.md"]:
+        typer.echo(f"    {rel}")
+    typer.echo(f"\nNext: replace the placeholders, then run `symbolon pack validate {target}`")
+
+
+site_app = typer.Typer(no_args_is_help=True, help="Build the static pack registry.")
+app.add_typer(site_app, name="site")
+
+
+@site_app.command(name="build")
+def site_build(
+    registry: Path = typer.Argument(Path("packs"), help="Folder of packs: <owner>/<name>/versions/<n>/."),
+    out: Path = typer.Option(Path("site-registry"), help="Output folder; replaced on every build."),
+    key: Path | None = typer.Option(None, help="Signing key; writes latest.sig.json for each pack."),
+    base_url: str = typer.Option("", help="Absolute URL the site is served from, used in llms.txt links."),
+) -> None:
+    """Write index.json, llms.txt and each pack's tarball, pack.md and files for the latest versions."""
+    try:
+        built = build_site(registry, out, key, base_url)
+    except RegistryError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    for b in built:
+        _line(True, f"{b.id}  version {b.version}", b.digest)
+    typer.echo(f"\n{len(built)} pack(s) written to {out}")
+
+
+@site_app.command(name="check")
+def site_check(
+    registry: Path = typer.Argument(Path("packs"), help="Folder of packs: <owner>/<name>/versions/<n>/."),
+) -> None:
+    """What CI runs on a submission: every latest version validates and builds, and is signed by its owner."""
+    try:
+        warnings = check_registry(registry)
+    except RegistryError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    for w in warnings:
+        typer.echo(typer.style(f"! {w}", fg=typer.colors.YELLOW))
+    _line(True, "registry is ready to publish")
+
+
+@app.command()
+def release(
+    spec: Path = typer.Argument(Path("spec"), help="Your pack folder, the one `pack init` made."),
+    registry: Path = typer.Option(..., help="The packs/ folder of your clone of the registry repository."),
+    key: Path = typer.Option(keys.DEFAULT_KEY, help="Your publisher signing key (`symbolon keygen`)."),
+) -> None:
+    """Freeze your pack into the registry as its next version and sign it; then open a PR."""
+    try:
+        r = release_pack(spec, registry, key)
+    except (RegistryError, FileNotFoundError) as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    if not r.created:
+        _line(True, f"{r.id} version {r.version} already has this content; nothing to release", r.digest)
+        return
+    _line(True, f"{r.id} version {r.version} written to {r.path}", r.digest)
+    _line(True, "signed with your key")
+    typer.echo("\nNext: run `symbolon site check` in the registry clone, then commit and open a pull request:")
+    typer.echo(f"    git checkout -b release/{r.id.replace('/', '-')}-{r.version} && git add -A "
+               f"&& git commit -m 'Release {r.id} version {r.version}' && gh pr create --fill")
+
+
+@app.command()
+def pull(
+    pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk'. Only the latest version is served."),
+    registry: str = typer.Option("https://kausalflow.github.io/symbolon/registry",
+                                 envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
+    dest: Path | None = typer.Option(None, help="Where to unpack; defaults to ./<name>."),
+    trust: Path | None = typer.Option(None, help="Publisher's public key; require a valid signature from it."),
+) -> None:
+    """Download a pack, check its sha256, digest and (with --trust) signature, and unpack it."""
+    target = dest or Path(pack_id.split("/")[-1])
+    try:
+        got = pull_pack(pack_id, registry, target, trust)
+    except RegistryError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    _line(True, "tarball sha256 matches the registry", got.sha256)
+    _line(True, "pack digest matches the registry", got.digest)
+    if trust:
+        _line(True, "signed by the trusted key")
+    _line(True, f"{got.id} version {got.version} unpacked into {target}")
+    typer.echo(f"\nNext: point your coding agent at {target / 'AGENTS.md'}")
+
+
+@app.command()
+def extract(
+    source: Path = typer.Argument(..., help="The product's source directory. It is read, never changed."),
+    pack_id: str = typer.Option(..., "--pack", help="Pack id to draft, like 'kausalflow/lightkone'."),
+    root: Path = typer.Option(Path("packs"), help="Directory that holds packs; the draft goes in <root>/<pack>/."),
+    version: int = typer.Option(1, min=1, help="Pack version to draft."),
+    agent: str | None = typer.Option(None, help="Coding agent command; defaults to $SYMBOLON_AGENT, then Claude Code."),
+    hint: str = typer.Option("", help="Guidance for the agent, such as which parts of the product to cover."),
+    rounds: int = typer.Option(2, min=1, help="Agent runs at most: the draft, then fixes for what fails."),
+    timeout: int = typer.Option(3600, help="Seconds each agent run may take."),
+    oracle: bool = typer.Option(True, help="Require the original product to pass each component through an adapter."),
+) -> None:
+    """Have a coding agent draft a spec pack from an existing product, then check the draft."""
+    try:
+        command = resolve_agent(agent)
+    except AgentError as e:
+        _line(False, "no agent", str(e))
+        raise typer.Exit(1)
+    typer.echo(f"drafting {pack_id} from {source} with {command.name} (up to {rounds} rounds)")
+
+    def show(n, rnd):
+        typer.echo(f"\nround {n}: agent {'finished' if rnd.run.ok else 'failed'} after {rnd.run.seconds:.0f}s")
+        for c in rnd.checks:
+            _line(c.ok, c.name, c.detail)
+
+    try:
+        result = run_extract(source, pack_id, agent=command, root=root, version=version, hint=hint,
+                             rounds=rounds, timeout=timeout, oracle=oracle, on_round=show)
+    except (ExtractError, AgentError) as e:
+        _line(False, "extract failed", str(e))
+        raise typer.Exit(1)
+    typer.echo("")
+    if result.ok:
+        typer.echo(f"{OK} draft pack {result.pack_dir}")
+        if result.pack_report:
+            typer.echo(f"    {summary_line(result.pack_report.summary)}")
+        typer.echo(f"\nNext: answer {result.product_dir / 'REVIEW.md'}, settle the default and open "
+                   "obligations, then hand the pack to builders.")
+    else:
+        typer.echo(typer.style(f"draft is not valid yet: {result.pack_dir}", fg=typer.colors.RED))
+        typer.echo(f"Agent logs are in {result.product_dir / '.symbolon'}. Fix the draft by hand, or remove "
+                   "it and run extract again with more --rounds.")
+    raise typer.Exit(0 if result.ok else 1)
 
 
 @app.command()
