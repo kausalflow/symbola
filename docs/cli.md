@@ -14,6 +14,7 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 | [`attest`](#attest) | Run the spec in a sandbox and write a signed attestation |
 | [`verify`](#verify) | Check an attestation's signature, trust and digests; optionally reproduce it |
 | [`diff`](#diff) | Run several builds on one input pool and measure where they disagree |
+| [`extract`](#extract) | Have a coding agent draft a spec pack from an existing product, then check the draft |
 | [`pack validate`](#pack-validate) | Check a spec pack's brief, assumptions and obligations |
 | [`mutants`](#mutants) | Show which checks kill which mutants, and the kill rate |
 | [`canary plant`](#canary-plant) | Copy a contract for a builder with one example changed to contradict the spec |
@@ -124,6 +125,28 @@ directory (`rebuilds/go-1/search-query` is `go-1`).
 
 Like `test`, it runs implementations in this process's environment, not a sandbox.
 See [Measuring ambiguity](guides/measuring-ambiguity.md).
+
+## `extract`
+
+```
+symbolon extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
+                 [--agent COMMAND] [--hint TEXT] [--rounds 2] [--timeout 3600] [--no-oracle]
+```
+
+Hands `SOURCE` to an external coding agent, which drafts `ROOT/NAMESPACE/PRODUCT/versions/VERSION/`
+plus an oracle adapter per component and a `REVIEW.md`. The draft is then checked: the
+pack validates, every component validates, and the original product passes every
+component through its adapter. Failures go back to the agent for another round, up
+to `--rounds` runs in all. Component digests in `symbolon-pack.toml` are filled in
+for the agent. Symbolon never changes `SOURCE`.
+
+| Option | Effect |
+| --- | --- |
+| `--agent` | The agent command; defaults to `$SYMBOLON_AGENT`, then Claude Code headless |
+| `--hint` | Extra guidance for the agent, such as which parts of the product to cover |
+| `--no-oracle` | Skip the oracle check, for products whose code cannot be called from an adapter |
+
+See [Extracting a pack](guides/extracting-a-pack.md).
 
 ## `pack validate`
 

@@ -107,6 +107,8 @@ def run_agent(agent: AgentCommand, prompt: str, workdir: Path, *, timeout: int =
     prompt_file.write_text(prompt)
     values = {"prompt_file": str(prompt_file), "workdir": str(workdir)}
     argv = [_substitute(arg, values) for arg in agent.argv]
+    if "/" in argv[0] and not Path(argv[0]).is_absolute():
+        argv[0] = str(Path(argv[0]).resolve())  # ./my-agent.sh means here, not in workdir
     dirs = [str(Path(d).resolve()) for d in extra_dirs]
     if agent.is_claude_code:
         for d in dirs:

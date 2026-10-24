@@ -36,6 +36,7 @@ symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
 | `symbolon attest <contract> <impl>` | Run the spec in a sandbox; write a signed in-toto attestation |
 | `symbolon verify <attestation>` | Check signature, trust, digests; `--rerun` reproduces it locally |
 | `symbolon diff <contract> <impl> <impl>...` | Run several builds on one input pool; report where they disagree, the ambiguity estimate, and the obligations each split traces to |
+| `symbolon extract <source> --pack <ns/product>` | Have a coding agent (Claude Code by default) draft a spec pack from an existing product; check it against the original |
 | `symbolon pack validate <dir>` | Check a spec pack's brief, assumptions and obligations; report obligations by status |
 | `symbolon mutants <dir>` | Show which checks kill which mutants, and the contract's kill rate |
 | `symbolon canary plant <dir> <out>` / `canary check` | Give a builder a copy with one contradictory example; catch builds fitted to the examples |
