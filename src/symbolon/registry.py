@@ -233,13 +233,14 @@ def _component_key(rel: str) -> str | None:
     return parts[1]
 
 
-def pack_markdown(root: Path, pack_id: str, version: int, digest: str) -> dict[str, str]:
+def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bool = False) -> dict[str, str]:
     """The pack as a few Markdown files an agent can read in order, keyed by path.
 
     `pack.md` holds the brief, assumptions, obligations and manifest, plus a list of
     the component files `parts/<component>.md`. Data files such as examples.jsonl
     show their first lines and link the raw file, so each Markdown file stays small
-    enough for one read.
+    enough for one read. With `brief` (a priced pack's preview), only `pack.md` is
+    written and the components are named but not included.
     """
     order = {"AGENTS.md": 0, BRIEF_FILE: 1, OBLIGATIONS_FILE: 3, PACK_MANIFEST_FILE: 4}
     core, components = [], {}
@@ -249,6 +250,15 @@ def pack_markdown(root: Path, pack_id: str, version: int, digest: str) -> dict[s
     core.sort(key=lambda p: (order.get(p.relative_to(root).as_posix(),
                                        2 if p.relative_to(root).parts[0] == ASSUMPTIONS_DIR else 5),
                              p.relative_to(root).as_posix()))
+    if brief:
+        listed = "".join(f"- {key}\n" for key in sorted(components))
+        head = [f"# {pack_id} (version {version})\n",
+                f"Pack digest: `{digest}`. This is the preview of a priced pack: the brief, assumptions, "
+                "obligations and manifest. The component contracts, schemas and tests come with the "
+                "purchase, in the tarball.\n"]
+        if listed:
+            head.append(f"## Components (in the tarball)\n\n{listed}")
+        return {"pack.md": "\n".join(head + [_section(root, p, "files/") for p in core])}
     parts = {}
     for key, paths in sorted(components.items()):
         parts[f"parts/{key}.md"] = "\n".join(
@@ -285,6 +295,15 @@ def listing_price(pack_dir: Path) -> dict | None:
     if not isinstance(currency, str) or not CURRENCY_RE.match(currency):
         raise RegistryError(f"{pack_dir}: [listing] currency must be a lowercase ISO code such as \"eur\"")
     return {"amount": price, "currency": currency}
+
+
+def listing_preview(pack_dir: Path, price: dict | None) -> str:
+    """How much of a pack the site shows: "full", or "brief" (the default for a priced pack)."""
+    with (Path(pack_dir) / PACK_MANIFEST_FILE).open("rb") as f:
+        preview = tomllib.load(f).get("listing", {}).get("preview", "brief" if price else "full")
+    if preview not in ("full", "brief"):
+        raise RegistryError(f"{pack_dir}: [listing] preview must be \"full\" or \"brief\"")
+    return preview
 
 
 ATTESTATIONS_DIR = "attestations"
@@ -403,11 +422,14 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
         version = int(version_dir.name)
         digest = pack_digest(version_dir)
         dest = out / "packs" / owner / name
-        for path in _files(version_dir):
+        price = listing_price(version_dir)
+        preview = listing_preview(version_dir, price)
+        public = [p for p in _files(version_dir)
+                  if preview == "full" or _component_key(p.relative_to(version_dir).as_posix()) is None]
+        for path in public:
             target = dest / "files" / path.relative_to(version_dir)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, target)
-        price = listing_price(version_dir)
         tarball = make_tarball(version_dir, name)
         sha = hashlib.sha256(tarball).hexdigest()
         if price:
@@ -419,7 +441,7 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
         else:
             (dest / TARBALL_FILE).write_bytes(tarball)
         (dest / SHA_FILE).write_text(f"{sha}  {TARBALL_FILE}\n")
-        for rel, text in pack_markdown(version_dir, pack_id, version, digest).items():
+        for rel, text in pack_markdown(version_dir, pack_id, version, digest, preview == "brief").items():
             (dest / rel).parent.mkdir(parents=True, exist_ok=True)
             (dest / rel).write_text(text)
         evidence = pack_evidence(pack_root, version_dir)
@@ -448,21 +470,23 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
             payload = json.dumps({"pack": pack_id, "version": version, "digest": digest,
                                   "tarball_sha256": sha}, sort_keys=True).encode()
             (dest / SIGNATURE_FILE).write_text(json.dumps(keys.sign_envelope(payload, key), indent=2) + "\n")
-        listed = [p.relative_to(version_dir).as_posix() for p in _files(version_dir)]
+        listed = [p.relative_to(version_dir).as_posix() for p in public]
         prefix = f"{base_url.rstrip('/')}/packs/{pack_id}" if base_url else f"packs/{pack_id}"
         download = (f"buy it for {price['amount'] / 100:.2f} {price['currency'].upper()} and pull it with "
                     f"`symbolon pull {pack_id} --token <license>`" if price else f"download {prefix}/{TARBALL_FILE}")
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
             f"Version {version}, digest {digest}. Start with {prefix}/pack.md (brief, assumptions, "
-            f"obligations, and links to one file per component under {prefix}/parts/), or {download}.\n\n## Files\n\n"
+            + (f"obligations, and links to one file per component under {prefix}/parts/), or {download}.\n\n"
+               if preview == "full" else f"obligations; the components come with the purchase), or {download}.\n\n")
+            + "## Files\n\n"
             + "".join(f"- [{rel}]({prefix}/files/{rel})\n" for rel in listed))
         entries.append({
             "id": pack_id, "version": version, "title": meta.get("title", name),
             "license": meta.get("license", ""), "authors": meta.get("authors", []),
             "digest": digest, "tarball_sha256": sha, "signed": key is not None,
             "summary": report.summary, "summary_line": summary_line(report.summary),
-            "files": listed, "price": price,
+            "files": listed, "price": price, "preview": preview,
             "evidence": evidence["summary"], "older": older,
         })
         built.append(BuiltPack(pack_id, version, digest, sha))

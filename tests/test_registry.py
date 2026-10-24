@@ -279,6 +279,24 @@ def test_priced_pack_tarball_stays_off_the_public_site(registry, tmp_path, store
     assert (private / "packs" / "kausalflow" / "lightkone" / "latest.tar.gz").is_file()
 
 
+def test_priced_pack_previews_only_its_brief_unless_it_asks_for_more(registry, tmp_path, store):
+    _price(registry)
+    private, url = store
+    build_site(registry, tmp_path / "site", private_out=private, store_url=url)
+    (entry,) = json.loads((tmp_path / "site" / "index.json").read_text())["packs"]
+    public = tmp_path / "site" / "packs" / "kausalflow" / "lightkone"
+    assert entry["preview"] == "brief" and not any(f.startswith("components/") for f in entry["files"])
+    assert (public / "files" / "BRIEF.md").is_file() and not (public / "files" / "components").exists()
+    assert not (public / "parts").exists()
+    core = (public / "pack.md").read_text()
+    assert "## obligations.toml" in core and "- tidy-v1" in core and "parts/" not in core
+
+    manifest = registry / "kausalflow" / "lightkone" / "versions" / "2" / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text() + 'preview = "full"\n')
+    build_site(registry, tmp_path / "full", private_out=private, store_url=url)
+    assert (tmp_path / "full" / "packs" / "kausalflow" / "lightkone" / "parts" / "tidy-v1.md").is_file()
+
+
 def test_priced_pack_needs_a_store(registry, tmp_path):
     _price(registry)
     with pytest.raises(RegistryError, match="--private-out and --store-url"):

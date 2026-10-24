@@ -148,8 +148,10 @@ price = 1900        # minor units: 19.00
 currency = "eur"
 ```
 
-A priced pack keeps its full preview on the site (brief, obligations, files,
-`pack.md`, sha256), but its tarball is written to `--private-out` instead of the
+A priced pack previews only its brief: the site shows the brief, assumptions,
+obligations, manifest, evidence and sha256, and `pack.md` names the components
+without including them. Add `preview = "full"` under `[listing]` to publish
+everything anyway. Its tarball is written to `--private-out` instead of the
 public site and is served by the store, a Cloudflare Worker in
 [`store/`](https://github.com/kausalflow/symbolon/tree/main/store). The pack page
 shows a Buy button; after paying through Stripe, the buyer gets a license token:
