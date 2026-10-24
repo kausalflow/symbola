@@ -22,8 +22,11 @@ jobs:
           python-version: "3.12"
       - run: pip install ".[docs]"
       - run: zensical build --clean
-      # The static pack registry (docs/REGISTRY.md), served under /registry/.
-      - run: symbolon site build packs --out site/registry --base-url https://kausalflow.github.io/symbolon/registry
+      # The pack registry site (docs/REGISTRY.md), served under /registry/.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: registry-site/build.sh site/registry https://kausalflow.github.io /symbolon/registry
       # Publish to the gh-pages branch, leaving PR previews in place.
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
