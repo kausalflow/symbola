@@ -18,6 +18,7 @@ from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .pack import component_name, report_json, summary_line, validate_pack
+from .registry import RegistryError, build_site, pull as pull_pack, scaffold_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
@@ -534,6 +535,70 @@ def pack_validate(
         else:
             typer.echo(typer.style("\npack is not valid", fg=typer.colors.RED))
     raise typer.Exit(0 if report.ok else 1)
+
+
+@pack_app.command(name="init")
+def pack_init(
+    pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk'."),
+    path: Path = typer.Option(Path("spec"), "--dir", help="Folder to create; by default spec/ next to your code."),
+    author: str = typer.Option("you@example.com", help="Author recorded in the manifest and the brief."),
+) -> None:
+    """Scaffold a spec pack that passes `pack validate` out of the box."""
+    try:
+        target = scaffold_pack(pack_id, path, author)
+    except (ValueError, FileExistsError) as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    _line(True, f"created {target}")
+    for rel in ["symbolon-pack.toml", "BRIEF.md", "obligations.toml", "assumptions/replace-me.toml",
+                "components/", "AGENTS.md"]:
+        typer.echo(f"    {rel}")
+    typer.echo(f"\nNext: replace the placeholders, then run `symbolon pack validate {target}`")
+
+
+site_app = typer.Typer(no_args_is_help=True, help="Build the static pack registry.")
+app.add_typer(site_app, name="site")
+
+
+@site_app.command(name="build")
+def site_build(
+    registry: Path = typer.Argument(Path("packs"), help="Folder of packs: <owner>/<name>/versions/<n>/."),
+    out: Path = typer.Option(Path("site-registry"), help="Output folder; replaced on every build."),
+    key: Path | None = typer.Option(None, help="Signing key; writes latest.sig.json for each pack."),
+    base_url: str = typer.Option("", help="Absolute URL the site is served from, used in llms.txt links."),
+) -> None:
+    """Write index.json, llms.txt and each pack's tarball, pack.md and files for the latest versions."""
+    try:
+        built = build_site(registry, out, key, base_url)
+    except RegistryError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    for b in built:
+        _line(True, f"{b.id}  version {b.version}", b.digest)
+    typer.echo(f"\n{len(built)} pack(s) written to {out}")
+
+
+@app.command()
+def pull(
+    pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk'. Only the latest version is served."),
+    registry: str = typer.Option("https://kausalflow.github.io/symbolon/registry",
+                                 envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
+    dest: Path | None = typer.Option(None, help="Where to unpack; defaults to ./<name>."),
+    trust: Path | None = typer.Option(None, help="Publisher's public key; require a valid signature from it."),
+) -> None:
+    """Download a pack, check its sha256, digest and (with --trust) signature, and unpack it."""
+    target = dest or Path(pack_id.split("/")[-1])
+    try:
+        got = pull_pack(pack_id, registry, target, trust)
+    except RegistryError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    _line(True, "tarball sha256 matches the registry", got.sha256)
+    _line(True, "pack digest matches the registry", got.digest)
+    if trust:
+        _line(True, "signed by the trusted key")
+    _line(True, f"{got.id} version {got.version} unpacked into {target}")
+    typer.echo(f"\nNext: point your coding agent at {target / 'AGENTS.md'}")
 
 
 @app.command()

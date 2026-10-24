@@ -17,6 +17,9 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 | [`extract`](#extract) | Have a coding agent draft a spec pack from an existing product, then check the draft |
 | [`replicate`](#replicate) | Hand a pack to outside coding agents, then test, attest and diff their builds |
 | [`pack validate`](#pack-validate) | Check a spec pack's brief, assumptions and obligations |
+| [`pack init`](#pack-init) | Scaffold a spec pack that passes `pack validate` out of the box |
+| [`site build`](#site-build) | Write the static registry for the latest version of every pack |
+| [`pull`](#pull) | Download a pack from the registry, check it, and unpack it |
 | [`mutants`](#mutants) | Show which checks kill which mutants, and the kill rate |
 | [`canary plant`](#canary-plant) | Copy a contract for a builder with one example changed to contradict the spec |
 | [`canary check`](#canary-check) | Tell whether a build followed the spec or was fitted to the planted example |
@@ -235,3 +238,27 @@ Appends `{"ref", "reason", "flagged_at"}` to `BUILD_DIR/symbolon-flags.jsonl`.
 example and the description, or two checks, disagree, then build the reading they
 think is right. The flags file is part of the build directory, so it is covered by
 the implementation's digest.
+
+## `pack init`
+
+```
+symbolon pack init PACK_ID [--dir spec] [--author you@example.com]
+```
+
+Creates a pack folder (by default `spec/`, next to your code) with a manifest, `BRIEF.md`, a placeholder open obligation, a placeholder assumption, `components/` and `AGENTS.md`. Fails if the folder exists and is not empty. See [Pack registry](REGISTRY.md#making-a-pack).
+
+## `site build`
+
+```
+symbolon site build [REGISTRY=packs] [--out site-registry] [--key KEY] [--base-url URL]
+```
+
+Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md`, `llms.txt` and raw files. With `--key`, signs each pack. Fails if any pack is invalid or contains holdout files. See [Pack registry](REGISTRY.md#building-the-site).
+
+## `pull`
+
+```
+symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--trust PUBKEY]
+```
+
+Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, and with `--trust` the publisher's signature, then unpacks it into `DEST` (default `./<name>`). See [Pack registry](REGISTRY.md#pulling-a-pack).
