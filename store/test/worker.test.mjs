@@ -1,7 +1,7 @@
 // Run with: node --test store/test
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
-import worker from "../src/worker.js";
+import worker, { verifyStripeSignature } from "../src/worker.js";
 
 const INDEX = {
   packs: [
@@ -42,7 +42,7 @@ beforeEach(() => {
 });
 
 const env = () => ({ LICENSES: kv, PACKS: r2, REGISTRY_URL: "https://registry.test", PLATFORM_FEE_PERCENT: "15",
-                     STRIPE_SECRET_KEY: "sk_test" });
+                     STRIPE_SECRET_KEY: "sk_test", STRIPE_WEBHOOK_SECRET: "whsec_test" });
 const call = (path, init) => worker.fetch(new Request(`https://store.test${path}`, init), env());
 const form = (pack) => ({ method: "POST", body: new URLSearchParams({ pack }) });
 
@@ -65,21 +65,61 @@ test("checkout refuses free, unknown and unconnected packs", async () => {
   assert.equal((await call("/checkout", form("acme/desk"))).status, 409);
 });
 
-test("a paid session gets one license, and it downloads only its pack", async () => {
-  const page = await (await call("/success?session_id=cs_paid")).text();
-  const token = page.match(/--token (sym_[0-9a-f]+)/)[1];
-  const again = await (await call("/success?session_id=cs_paid")).text();
-  assert.ok(again.includes(token), "reloading the success page shows the same license");
+async function signed(event, secret = "whsec_test", t = Math.floor(Date.now() / 1000)) {
+  const body = JSON.stringify(event);
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${t}.${body}`));
+  const v1 = [...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return { method: "POST", body, headers: { "stripe-signature": `t=${t},v1=${v1}` } };
+}
 
-  const ok = await call("/download/acme/desk", { headers: { authorization: `Bearer ${token}` } });
-  assert.equal(ok.status, 200);
-  assert.equal(await ok.text(), "TARBALL");
-  assert.equal((await call("/download/acme/free", { headers: { authorization: `Bearer ${token}` } })).status, 403);
-  assert.equal((await call("/download/acme/desk", { headers: { authorization: "Bearer sym_wrong" } })).status, 403);
-  assert.equal((await call("/download/acme/desk")).status, 403);
+const paid = (id = "cs_paid", status = "paid") => ({
+  type: "checkout.session.completed",
+  data: { object: { id, payment_status: status, payment_intent: "pi_1", metadata: { pack: "acme/desk" },
+                    customer_details: { email: "Buyer@Example.com" } } },
 });
 
-test("an unpaid session gets no license", async () => {
-  assert.equal((await call("/success?session_id=cs_open")).status, 402);
+async function licenseFor(session) {
+  const page = await (await call(`/success?session_id=${session}`)).text();
+  return page.match(/--token (sym_[0-9a-f]+)/)?.[1];
+}
+
+test("only the webhook issues a license, once, tied to the buyer's email", async () => {
+  assert.equal(await licenseFor("cs_paid"), undefined, "the success page alone issues nothing");
+  assert.equal((await call("/webhook", await signed(paid()))).status, 200);
+  assert.equal((await call("/webhook", await signed(paid()))).status, 200, "Stripe retries are harmless");
+  const token = await licenseFor("cs_paid");
+  assert.ok(token);
+  assert.equal(await licenseFor("cs_paid"), token, "reloading the success page shows the same license");
+  assert.equal([...kv.m.keys()].filter((k) => k.startsWith("license:")).length, 1);
+  assert.equal(await kv.get("buyer:buyer@example.com:acme/desk"), token);
+  assert.equal(stripeCalls.length, 0, "no Stripe API call is needed after checkout");
+});
+
+test("the webhook refuses bad or stale signatures and unpaid sessions", async () => {
+  assert.equal((await call("/webhook", await signed(paid(), "whsec_wrong"))).status, 400);
+  const old = Math.floor(Date.now() / 1000) - 3600;
+  assert.equal((await call("/webhook", await signed(paid(), "whsec_test", old))).status, 400);
+  assert.equal((await call("/webhook", { method: "POST", body: JSON.stringify(paid()) })).status, 400);
+  await call("/webhook", await signed(paid("cs_open", "unpaid")));
   assert.equal([...kv.m.keys()].filter((k) => k.startsWith("license:")).length, 0);
+  assert.equal(await verifyStripeSignature("{}", "t=1,v1=00", "whsec_test", 1), false);
+});
+
+test("a license downloads only its pack, and a refund revokes it", async () => {
+  await call("/webhook", await signed(paid()));
+  const token = await licenseFor("cs_paid");
+  const auth = (t) => ({ headers: { authorization: `Bearer ${t}` } });
+  const ok = await call("/download/acme/desk", auth(token));
+  assert.equal(ok.status, 200);
+  assert.equal(await ok.text(), "TARBALL");
+  assert.equal((await call("/download/acme/free", auth(token))).status, 403);
+  assert.equal((await call("/download/acme/desk", auth("sym_wrong"))).status, 403);
+  assert.equal((await call("/download/acme/desk")).status, 403);
+
+  await call("/webhook", await signed({ type: "charge.refunded", data: { object: { payment_intent: "pi_1" } } }));
+  const gone = await call("/download/acme/desk", auth(token));
+  assert.equal(gone.status, 403);
+  assert.match(await gone.text(), /revoked/);
 });

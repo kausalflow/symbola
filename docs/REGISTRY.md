@@ -36,16 +36,19 @@ each change.
 ## Releasing
 
 ```
-symbolon keygen                                        # once: your publisher key
 symbolon release spec --registry ../registry/packs     # in a clone of the registry
 ```
 
 `release` validates the pack, sets its manifest version to the next free number,
-copies it to `packs/<owner>/<name>/versions/<n>/`, and writes
-`packs/<owner>/<name>/signatures/<n>.json`, a DSSE envelope over
-`{pack, version, digest}`. Releasing unchanged content does nothing. The first
-release under an owner writes `packs/<owner>/publisher.pub`; after that, only the
-same key can release under that owner. Then commit and open a pull request.
+copies it to `packs/<owner>/<name>/versions/<n>/`, and appends the version's
+digest to `packs/<owner>/<name>/digests.txt`. Releasing unchanged content does
+nothing. Then commit and open a pull request.
+
+There are no publisher keys. Who may release under an owner is decided by who
+can merge into the registry; once packs move to their publishers' own
+repositories as GitHub Releases, GitHub's provenance attestation will identify
+the publisher and `pull` will check it (distribution design v0.5, section 5.2).
+Ed25519 keys are only for runners that sign attestations.
 
 ## Submission checks
 
@@ -55,14 +58,14 @@ symbolon site check packs
 
 CI runs this on every pull request. It builds the whole registry (so every latest
 version must pass `pack validate`, match its manifest id, and hold no holdout
-files) and, for owners with a `publisher.pub`, checks that the latest version's
-signature matches its digest. Owners without a key are reported as unsigned, a
-warning for now.
+files) and checks that every version listed in a pack's `digests.txt` still has
+that digest, so a released version cannot be edited in place. Packs without a
+`digests.txt` get a warning.
 
 ## Building the site
 
 ```
-symbolon site build packs --out site-registry [--key publisher.key] [--base-url https://…/registry]
+symbolon site build packs --out site-registry [--base-url https://…/registry]
 ```
 
 For each pack, it validates the latest version (the build fails if any pack is
@@ -74,12 +77,29 @@ llms.txt                                   one line per pack, for agents
 packs/<owner>/<name>/
   latest.tar.gz                            the pack folder, byte-identical on every build
   latest.sha256                            sha256 of the tarball
-  latest.sig.json                          with --key: a DSSE envelope over {pack, version, digest, tarball_sha256}
   pack.md                                  brief, assumptions, obligations, manifest, and a list of the parts
   parts/<component>-v<n>.md                one component's contract, schemas and tests
+  parts/<component>-v<n>.tar.gz            that component's contract folder, for `symbolon attest`
   llms.txt                                 the pack's files, for agents
   files/…                                  every file of the pack, raw
+  evidence.json                            every attestation beside the pack, checked at build time
+  attestations/…                           the attestation files and runner keys, to re-check
+  by-digest/<digest>.tar.gz                each older version that some attestation names
 ```
+
+`index.json` also carries each pack's evidence summary (components with a passing
+build, distinct builds, distinct runners, invalid attestations) and its `older`
+attested versions.
+
+## Evidence
+
+Attestations sit beside the pack in `packs/<owner>/<name>/attestations/`, with
+the runners' public keys as `*.pub`. For each one, `site build` checks the
+signature, checks that the runner's key is published there, and finds the pack
+version whose component has the attested contract digest. The pack page shows
+an Evidence table: build, result, which version it covers, runner, and a link to
+the file. An attestation that fails a check is shown as invalid, never dropped.
+The catalog sorts packs by their evidence.
 
 The pack digest is the contract framing ([CONTRACT_FORMAT.md](CONTRACT_FORMAT.md))
 over the pack folder with the header `symbolon-pack-v1\n`.
@@ -104,14 +124,16 @@ PR previews get their own copy.
 ## Pulling a pack
 
 ```
-symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--trust publisher.pub]
+symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--digest DIGEST]
 ```
 
-`pull` takes no version: the registry serves only the latest. It downloads the
+`pull` takes no version: the registry serves only the latest. The one exception is
+re-checking evidence: `symbolon pull <id> --digest <pack digest>` downloads an
+older version that some attestation names (the pack page links its digest). It downloads the
 tarball, checks its sha256 against `latest.sha256` and `index.json`, unpacks it,
-and checks the unpacked folder's digest against `index.json`. With `--trust`, it
-also requires a valid signature from that public key over the same digest and
-sha256. The registry defaults to `$SYMBOLON_REGISTRY`, or the kausalflow site.
+and checks the unpacked folder's digest against `index.json`. These checks catch a
+broken download, not a dishonest host: the publisher is not verified until packs
+carry GitHub provenance. The registry defaults to `$SYMBOLON_REGISTRY`, or the kausalflow site.
 
 An agent that only needs to read a pack can fetch `packs/<owner>/<name>/pack.md`
 instead and skip unpacking. It holds everything that applies to the whole pack and
@@ -129,8 +151,10 @@ price = 1900        # minor units: 19.00
 currency = "eur"
 ```
 
-A priced pack keeps its full preview on the site (brief, obligations, files,
-`pack.md`, sha256), but its tarball is written to `--private-out` instead of the
+A priced pack previews only its brief: the site shows the brief, assumptions,
+obligations, manifest, evidence and sha256, and `pack.md` names the components
+without including them. Add `preview = "full"` under `[listing]` to publish
+everything anyway. Its tarball is written to `--private-out` instead of the
 public site and is served by the store, a Cloudflare Worker in
 [`store/`](https://github.com/kausalflow/symbolon/tree/main/store). The pack page
 shows a Buy button; after paying through Stripe, the buyer gets a license token:

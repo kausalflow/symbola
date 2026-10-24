@@ -564,14 +564,13 @@ app.add_typer(site_app, name="site")
 def site_build(
     registry: Path = typer.Argument(Path("packs"), help="Folder of packs: <owner>/<name>/versions/<n>/."),
     out: Path = typer.Option(Path("site-registry"), help="Output folder; replaced on every build."),
-    key: Path | None = typer.Option(None, help="Signing key; writes latest.sig.json for each pack."),
     base_url: str = typer.Option("", help="Absolute URL the site is served from, used in llms.txt links."),
     private_out: Path | None = typer.Option(None, help="Where priced packs' tarballs go, for the store's private bucket."),
     store_url: str = typer.Option("", help="URL of the store Worker that sells priced packs."),
 ) -> None:
     """Write index.json, llms.txt and each pack's tarball, pack.md and files for the latest versions."""
     try:
-        built = build_site(registry, out, key, base_url, private_out, store_url)
+        built = build_site(registry, out, base_url, private_out, store_url)
     except RegistryError as e:
         _line(False, str(e))
         raise typer.Exit(1)
@@ -584,7 +583,7 @@ def site_build(
 def site_check(
     registry: Path = typer.Argument(Path("packs"), help="Folder of packs: <owner>/<name>/versions/<n>/."),
 ) -> None:
-    """What CI runs on a submission: every latest version validates and builds, and is signed by its owner."""
+    """What CI runs on a submission: every latest version validates and builds, and no released version changed."""
     try:
         warnings = check_registry(registry)
     except RegistryError as e:
@@ -599,11 +598,10 @@ def site_check(
 def release(
     spec: Path = typer.Argument(Path("spec"), help="Your pack folder, the one `pack init` made."),
     registry: Path = typer.Option(..., help="The packs/ folder of your clone of the registry repository."),
-    key: Path = typer.Option(keys.DEFAULT_KEY, help="Your publisher signing key (`symbolon keygen`)."),
 ) -> None:
-    """Freeze your pack into the registry as its next version and sign it; then open a PR."""
+    """Freeze your pack into the registry as its next version; then open a PR."""
     try:
-        r = release_pack(spec, registry, key)
+        r = release_pack(spec, registry)
     except (RegistryError, FileNotFoundError) as e:
         _line(False, str(e))
         raise typer.Exit(1)
@@ -611,7 +609,6 @@ def release(
         _line(True, f"{r.id} version {r.version} already has this content; nothing to release", r.digest)
         return
     _line(True, f"{r.id} version {r.version} written to {r.path}", r.digest)
-    _line(True, "signed with your key")
     typer.echo("\nNext: run `symbolon site check` in the registry clone, then commit and open a pull request:")
     typer.echo(f"    git checkout -b release/{r.id.replace('/', '-')}-{r.version} && git add -A "
                f"&& git commit -m 'Release {r.id} version {r.version}' && gh pr create --fill")
@@ -623,20 +620,19 @@ def pull(
     registry: str = typer.Option("https://kausalflow.github.io/symbolon/registry",
                                  envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
     dest: Path | None = typer.Option(None, help="Where to unpack; defaults to ./<name>."),
-    trust: Path | None = typer.Option(None, help="Publisher's public key; require a valid signature from it."),
     token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid pack."),
+    digest: str | None = typer.Option(None, help="Pull the older version with this pack digest, to re-check evidence that names it."),
 ) -> None:
-    """Download a pack, check its sha256, digest and (with --trust) signature, and unpack it."""
+    """Download a pack, check its sha256 and digest against the registry, and unpack it."""
     target = dest or Path(pack_id.split("/")[-1])
     try:
-        got = pull_pack(pack_id, registry, target, trust, token)
+        got = pull_pack(pack_id, registry, target, token, digest)
     except RegistryError as e:
         _line(False, str(e))
         raise typer.Exit(1)
     _line(True, "tarball sha256 matches the registry", got.sha256)
     _line(True, "pack digest matches the registry", got.digest)
-    if trust:
-        _line(True, "signed by the trusted key")
+    typer.echo("  (the publisher is not verified yet: packs get GitHub provenance when they move to GitHub Releases)")
     _line(True, f"{got.id} version {got.version} unpacked into {target}")
     typer.echo(f"\nNext: point your coding agent at {target / 'AGENTS.md'}")
 
