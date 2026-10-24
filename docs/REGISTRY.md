@@ -83,7 +83,22 @@ packs/<owner>/<name>/
 The pack digest is the contract framing ([CONTRACT_FORMAT.md](CONTRACT_FORMAT.md))
 over the pack folder with the header `symbolon-pack-v1\n`.
 
-Rendered previews and search pages are a later step (an Astro site over these files).
+## The site
+
+`registry-site/` is an [Astro](https://astro.build) site over those files, with
+[Pagefind](https://pagefind.app) search built at the same time, so it needs no server.
+It adds a catalog page with search, a page per pack (brief, assumptions, obligations
+by status, download links, file tree), and a rendered view of every file under
+`packs/<owner>/<name>/view/<file>/`.
+
+```
+registry-site/build.sh OUT ORIGIN BASE     # e.g. site/registry https://kausalflow.github.io /symbolon/registry
+```
+
+runs `symbolon site build` into `registry-site/public/`, then `astro build` and
+`pagefind`, and copies the result to `OUT`. The docs workflow runs it on every push
+to `main` and publishes the result at <https://kausalflow.github.io/symbolon/registry/>;
+PR previews get their own copy.
 
 ## Pulling a pack
 
