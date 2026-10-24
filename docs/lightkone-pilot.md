@@ -25,6 +25,24 @@ The first spec pack built from a real product: lightkone, a static web app for k
 
 `symbolon pack validate packs/kausalflow/lightkone/versions/1` reports 64 obligations (all decided) and 4 assumptions, and every one of the components' 340 checks traces to an obligation.
 
+## Results (milestone 4: replicate over the whole pack)
+
+`symbolon replicate` gave all eight components to three Claude Code builds: Sonnet, Opus and Haiku. Lightkone was the reference and the holdout was on. All three builders wrote Python, and their logs show no reads outside the builder's copy. The builds took 11, 16 and 21 minutes and cost $1.76, $5.13 and $1.15 in agent time.
+
+Every build passed every component and every holdout: 24 of 24 on both. They still differ. `diff` found 27 splits, 15 of them in `bibtex-import`. Builders' probes found 12 of the 27. `bibtex-export` and `citation-key` converged.
+
+| Kind | Splits | Examples |
+| --- | --- | --- |
+| One build differs from lightkone and the other two, on well-formed input; the checks of a decided obligation miss it | 9 | Opus keeps duplicate tags when merging (`merge.sets`). Haiku does not treat U+FEFF as whitespace in filing and search. Haiku strips a DOI's trailing `/` and a page range's letters. Sonnet takes `annote` over `note`. Sonnet and Haiku print large numbers in `library.json` differently from JavaScript. Haiku reads `"a b"c` differently |
+| One build differs on truncated or broken BibTeX | 9 | Unclosed `\emph{`, a field cut off after `=` |
+| All three builds agree and lightkone differs | 3 | **Lightkone's `tidy` crashes (TypeError) on a paper with no `authors`**, although the contract's `Input` accepts one. On two broken BibTeX inputs, lightkone keeps a stray `"` in a venue, or returns an entry from an unclosed `{{` |
+| Allowed by the pack | 1 | `year:2.017e3`: the contract leaves number spellings other than digits and a fraction unspecified |
+| Ordering of rare symbols in title sort (format tier) | 1 | Opus's collation differs on symbols such as `⯛` and `ѽ` |
+
+The row where all builds agree against lightkone is what replication alone cannot show: there is no disagreement among the builds to find. Only the reference shows it. The milestone 1 to 3 builds never reached the `tidy` crash, because no example has a paper without authors.
+
+The weaker builder needed more from the pack. Haiku's splits were on Unicode whitespace and DOI and page normalisation, points Sonnet and Opus got right from the description. Opus, the strongest model, had most of the `bibtex-import` and `library-merge` splits: it read more into the text than the examples pinned. A pack that converges for one builder may not converge for another (design v0.5, "minimal for whom").
+
 ## Results (milestone 3: the first `replicate` runs)
 
 `symbolon replicate` handed `search-query` and `citation-key` to two Claude Code builds, one on Sonnet and one on Opus, with lightkone as the reference and the publisher's holdout. Each agent got only the builder's copy of `versions/1/`. Their logs show no reads outside it. Both chose Python. The runs cost $1.41 and $1.56 in agent time, and each took under eight minutes.
