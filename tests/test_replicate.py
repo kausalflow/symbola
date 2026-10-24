@@ -37,7 +37,9 @@ out.mkdir(parents=True)
     f'[implementation]\ncontract = "{contract_digest(spec)}"\nlicense = "MIT"\nauthors = ["stub"]\n')
 spaces = "ignored" if variant == "lenient" else "rejected"
 pathlib.Path("build/readings.toml").write_text(
-    f'[[reading]]\npoint = "spaces inside a date"\nconsidered = ["rejected", "ignored"]\nchosen = "{spaces}"\n')
+    f'[[reading]]\npoint = "spaces inside a date"\nconsidered = ["rejected", "ignored"]\nchosen = "{spaces}"\n'
+    + ('probes = [{ text = "1. 2.1999", locale = "de-DE" }, { text = "x", locale = "nope" }]\n'
+       if variant == "lenient" else ""))
 if variant == "lenient":
     (out / "symbolon-flags.jsonl").write_text(json.dumps({"ref": "date-parse#example:1", "reason": "r"}) + "\n")
 '''
@@ -85,11 +87,9 @@ def test_builds_are_checked_and_diffed(pack):
     holdout.mkdir()
     (holdout / "date-parse.jsonl").write_text(
         json.dumps({"input": {"text": "3.4.2021", "locale": "de-DE"}, "output": {"date": "2021-04-03"}}) + "\n")
-    pool = tmp / "pool.jsonl"
-    pool.write_text(json.dumps({"text": "1. 2.1999", "locale": "de-DE"}) + "\n")
     out = tmp / "run"
     r = _replicate(root, "--agent", agent("alpha", "same"), "--agent", agent("beta", "lenient"),
-                   "--builds", "2", "--holdout", str(holdout), "--pool", str(pool), "-o", str(out))
+                   "--builds", "2", "--holdout", str(holdout), "-o", str(out))
 
     assert [b["name"] for b in r["builds"]] == ["alpha-1", "beta-2"]
     for b in r["builds"]:
@@ -109,6 +109,10 @@ def test_builds_are_checked_and_diffed(pack):
     assert d["members"] == ["alpha-1", "beta-2"] and d["ambiguity"] > 0
     gap = [s for s in d["splits"] if s["groups"] == [["alpha-1"], ["beta-2"]] and not s["obligations"]]
     assert gap and gap[0]["verdict"] == "gap"
+    # Found by beta's probe, not by chance: the pool has no input with a space inside a date.
+    report = json.loads((out / "diff" / "date-parse.json").read_text())
+    assert any("pool:probes-beta-2.jsonl" in s["origins"] for s in report["splits"])
+    assert report["readings"]["probes"] == 2
     assert d["readings"]["splits"][0]["chosen"] == {"alpha-1": "rejected", "beta-2": "ignored"}
     assert (out / "diff" / "date-parse.json").is_file()
     assert r["summary"]["all_passed"] and not r["summary"]["converged"]

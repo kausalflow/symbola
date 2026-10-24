@@ -20,7 +20,7 @@ import random
 from pathlib import Path
 from typing import Any, Callable
 
-from .spec import LoadedContract, load_examples, run_properties
+from .spec import FIXTURES_DIR, LoadedContract, SpecError, load_examples, resolve_fixtures, run_properties
 
 # Leaves that tend to split readings: separators, braces and quotes,
 # whitespace outside ASCII, case-folding and collation traps.
@@ -157,15 +157,23 @@ def _lists(value: Any, path: tuple = ()):
             yield from _lists(x, path + (k,))
 
 
-def read_pool(path: Path) -> list[Case]:
-    """A JSONL file of inputs, each line an input object or {"input": ...}."""
-    cases = []
+def read_pool(path: Path, fixtures: Path | None = None) -> list[Case]:
+    """A JSONL file of inputs, each line an input object or {"input": ...}.
+
+    {"$fixture": ...} and {"$text": ...} name files in the contract's fixtures/, as in examples.
+    """
+    cases, cache = [], {}
     for line in Path(path).read_text(encoding="utf-8").split("\n"):
         if not line.strip():
             continue
         value = json.loads(line)
         if isinstance(value, dict) and set(value) >= {"input"} and set(value) <= {"input", "output", "raises", "note"}:
             value = value["input"]
+        if fixtures is not None:
+            try:
+                value = resolve_fixtures(value, fixtures, cache)
+            except SpecError:
+                continue  # names a fixture the contract does not have
         cases.append(Case(value, f"pool:{Path(path).name}", "pool"))
     return cases
 
@@ -258,7 +266,7 @@ def run_diff(contract: LoadedContract, impls: dict[str, Callable], config: dict)
         parent = rng.choice(seeds)
         pool.append(Case(mutate(rng, parent.input), parent.origin, "mutation"))
     for path in config.get("pools", []):
-        pool += read_pool(Path(path))
+        pool += read_pool(Path(path), contract.root / FIXTURES_DIR)
 
     seen: set[str] = set()
     cases: list[dict] = []

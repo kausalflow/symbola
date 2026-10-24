@@ -93,6 +93,9 @@ class Reading(BaseModel):
     chosen: str = Field(min_length=1)
     obligation: str | None = None
     component: str | None = None
+    # Inputs where the readings differ, so `diff` can test the point instead
+    # of waiting for a random input to hit it.
+    probes: list[Any] = []
 
 
 class Readings(BaseModel):
@@ -160,7 +163,7 @@ def compare_readings(members: list[Member]) -> dict:
     by_point: dict[str, dict[str, Reading]] = defaultdict(dict)
     for m in members:
         for r in m.readings:
-            by_point[r.obligation or " ".join(r.point.lower().split())][m.name] = r
+            by_point[" ".join(r.point.lower().split())][m.name] = r
     splits, shared = [], 0
     for key, rs in sorted(by_point.items()):
         if len(rs) < 2:
@@ -170,7 +173,8 @@ def compare_readings(members: list[Member]) -> dict:
         if len(chosen) > 1:
             splits.append({"point": next(iter(rs.values())).point, "obligation": next(iter(rs.values())).obligation,
                            "chosen": {n: r.chosen for n, r in rs.items()}})
-    return {"points": len(by_point), "shared": shared, "splits": splits}
+    probes = sum(len(r.probes) for m in members for r in m.readings)
+    return {"points": len(by_point), "shared": shared, "splits": splits, "probes": probes}
 
 
 # ── estimators ───────────────────────────────────────────────────────────
@@ -399,8 +403,17 @@ def measure(contract_dir: Path, members: list[Member], *, reference: str | None 
         return result
 
     tol = load_manifest(contract_dir).spec.float_rel_tol
-    result = run({"mutations": mutations, "property_cases": property_cases, "search": search,
-                  "pools": [str(Path(p).resolve()) for p in pools]})
+    with tempfile.TemporaryDirectory() as tmp:
+        # Each build's probes become a pool of their own, so splits name who asked.
+        probe_files = []
+        for m in members:
+            probes = [p for r in m.readings for p in r.probes]
+            if probes:
+                f = Path(tmp) / f"probes-{m.name}.jsonl"
+                f.write_text("".join(json.dumps({"input": p}, ensure_ascii=False) + "\n" for p in probes))
+                probe_files.append(str(f))
+        result = run({"mutations": mutations, "property_cases": property_cases, "search": search,
+                      "pools": [str(Path(p).resolve()) for p in pools] + probe_files})
     report = analyse(result["cases"], members, contract_dir, reference=reference, severity=severity,
                      rel_tol=tol, seed=seed, witnesses=result["witnesses"]).report
     if realistic is not None:

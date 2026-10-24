@@ -72,6 +72,11 @@ you chose for each. Record every such choice in `$build/readings.toml` as well:
     chosen = "the reading you built"
     obligation = "the obligation id, if it is about one"
     component = "the component"
+    probes = [ { ... } ]   # inputs (as in examples.jsonl, without output) where the readings differ
+
+Give each reading one to three probes: inputs that the readings you considered
+would answer differently. They are run on every build, so be concrete. Probes
+may name fixtures like the examples do, written in TOML as `{ "$fixture" = "<file>" }`.
 
 If the spec contradicts itself, run
 `symbolon flag <component>#example:<line> "<what disagrees, and the reading you chose>" --dir $build/<component>`

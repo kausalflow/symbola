@@ -116,10 +116,21 @@ point = "Two year: terms in one query"
 obligation = "search.year-last-wins"    # optional: the obligation it is about
 considered = ["all must hold", "last wins"]
 chosen = "last wins"
+probes = [                              # optional: inputs where the readings differ
+  { papers = { "$fixture" = "library.json" }, sort = "added", query = "year:2019 year:2017" },
+]
 ```
 
-`diff` lists the points that two or more builds recorded and chose differently.
-These are often the splits the input pool has not found yet.
+`diff` lists the points that two or more builds recorded, by the same wording, and
+chose differently. More useful are the `probes`: every build's probes go into the
+pool for all builds, so a point one builder noticed is tested on every build,
+whatever the others wrote. Probes may name the contract's `fixtures/` like examples
+do; a probe the contract's `Input` rejects is dropped. Splits found by a probe show
+`pool:probes-<build>.jsonl` as their origin.
+
+In the first real `replicate` run on lightkone, two builds agreed on all 1,113 pooled
+inputs, yet ran differently on `author:` with nothing after the colon, a point
+both builders had written down. Probes catch exactly this.
 
 ## In CI
 
