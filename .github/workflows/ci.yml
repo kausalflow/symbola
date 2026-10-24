@@ -15,3 +15,5 @@ jobs:
           python-version: "3.13"
       - run: pip install -e ".[dev]"
       - run: pytest -q -rs
+      # The checks every pack submission must pass (docs/REGISTRY.md).
+      - run: symbolon site check packs

@@ -18,7 +18,7 @@ from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .pack import component_name, report_json, summary_line, validate_pack
-from .registry import RegistryError, build_site, pull as pull_pack, scaffold_pack
+from .registry import RegistryError, build_site, check_registry, pull as pull_pack, release as release_pack, scaffold_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
@@ -576,6 +576,43 @@ def site_build(
     for b in built:
         _line(True, f"{b.id}  version {b.version}", b.digest)
     typer.echo(f"\n{len(built)} pack(s) written to {out}")
+
+
+@site_app.command(name="check")
+def site_check(
+    registry: Path = typer.Argument(Path("packs"), help="Folder of packs: <owner>/<name>/versions/<n>/."),
+) -> None:
+    """What CI runs on a submission: every latest version validates and builds, and is signed by its owner."""
+    try:
+        warnings = check_registry(registry)
+    except RegistryError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    for w in warnings:
+        typer.echo(typer.style(f"! {w}", fg=typer.colors.YELLOW))
+    _line(True, "registry is ready to publish")
+
+
+@app.command()
+def release(
+    spec: Path = typer.Argument(Path("spec"), help="Your pack folder, the one `pack init` made."),
+    registry: Path = typer.Option(..., help="The packs/ folder of your clone of the registry repository."),
+    key: Path = typer.Option(keys.DEFAULT_KEY, help="Your publisher signing key (`symbolon keygen`)."),
+) -> None:
+    """Freeze your pack into the registry as its next version and sign it; then open a PR."""
+    try:
+        r = release_pack(spec, registry, key)
+    except (RegistryError, FileNotFoundError) as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    if not r.created:
+        _line(True, f"{r.id} version {r.version} already has this content; nothing to release", r.digest)
+        return
+    _line(True, f"{r.id} version {r.version} written to {r.path}", r.digest)
+    _line(True, "signed with your key")
+    typer.echo("\nNext: run `symbolon site check` in the registry clone, then commit and open a pull request:")
+    typer.echo(f"    git checkout -b release/{r.id.replace('/', '-')}-{r.version} && git add -A "
+               f"&& git commit -m 'Release {r.id} version {r.version}' && gh pr create --fill")
 
 
 @app.command()
