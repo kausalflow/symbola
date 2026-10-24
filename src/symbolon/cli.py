@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+import time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -17,6 +18,8 @@ from .extract import ExtractError, extract as run_extract
 from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
+from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_site, publish as publish_pack, \
+    request_state, start_login
 from .pack import component_name, report_json, summary_line, validate_pack
 from .registry import RegistryError, build_site, check_registry, pull as pull_pack, release as release_pack, scaffold_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
@@ -612,6 +615,71 @@ def release(
     typer.echo("\nNext: run `symbolon site check` in the registry clone, then commit and open a pull request:")
     typer.echo(f"    git checkout -b release/{r.id.replace('/', '-')}-{r.version} && git add -A "
                f"&& git commit -m 'Release {r.id} version {r.version}' && gh pr create --fill")
+
+
+SITE_OPTION = typer.Option(DEFAULT_SITE, "--site", envvar="SYMBOLON_SITE", help="The registry website.")
+
+
+@app.command()
+def login(
+    site: str = SITE_OPTION,
+    name: str = typer.Option("symbolon CLI", help="A name for this token, shown on your account page."),
+) -> None:
+    """Sign in to the registry website with GitHub, so `symbolon publish` can upload."""
+    site = site.rstrip("/")
+    try:
+        client_id, code = start_login(site)
+        typer.echo(f"Open {code.verification_uri} and enter the code {typer.style(code.user_code, bold=True)}")
+        typer.echo("Waiting for you to approve it on GitHub…")
+        got = finish_login(site, client_id, code, name)
+    except PublishError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    _line(True, f"signed in to {site} as {got['login']}", "namespaces: " + ", ".join(got.get("namespaces", [])))
+
+
+@app.command()
+def logout(site: str = SITE_OPTION) -> None:
+    """Forget the token `symbolon login` saved. Revoke it on your account page to disable it everywhere."""
+    site = site.rstrip("/")
+    _line(True, f"signed out of {site}" if logout_site(site) else f"was not signed in to {site}")
+
+
+@app.command()
+def publish(
+    spec: Path = typer.Argument(Path("spec"), help="Your pack folder, the one `pack init` made."),
+    site: str = SITE_OPTION,
+    wait: bool = typer.Option(True, help="Follow the request until its pull request is open (or it fails)."),
+) -> None:
+    """Validate a pack and publish it to the registry website as its next version."""
+    site = site.rstrip("/")
+    try:
+        got = publish_pack(spec, site)
+    except PublishError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    req = got["request"]
+    _line(True, f"uploaded {req['pack']}", got["url"])
+    if not wait:
+        return
+    seen = None
+    for _ in range(120):
+        try:
+            req = request_state(site, req["id"])
+        except PublishError as e:
+            _line(False, str(e))
+            raise typer.Exit(1)
+        if req["state"] != seen:
+            seen = req["state"]
+            if req["state"] == "failed":
+                _line(False, "the registry refused the pack", req["message"])
+                raise typer.Exit(1)
+            if req["state"] in ("review", "merging", "merged", "live"):
+                _line(True, req["message"], req.get("pr", ""))
+                return
+            typer.echo(f"  {req['message']}")
+        time.sleep(5)
+    typer.echo(f"Still working; follow it at {got['url']}")
 
 
 @app.command()
