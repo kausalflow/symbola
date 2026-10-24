@@ -1296,9 +1296,19 @@ the build root with a <code>component</code> on each entry:</p>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">obligation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"search.year-last-wins"</span><span class="w">    </span><span class="c1"># optional: the obligation it is about</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">considered</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"all must hold"</span><span class="p">,</span><span class="w"> </span><span class="s2">"last wins"</span><span class="p">]</span>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">chosen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"last wins"</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">probes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w">                              </span><span class="c1"># optional: inputs where the readings differ</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="n">papers</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">"$fixture"</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"library.json"</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="n">sort</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"added"</span><span class="p">,</span><span class="w"> </span><span class="n">query</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"year:2019 year:2017"</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">]</span>
 </span></code></pre></div>
-<p><code>diff</code> lists the points that two or more builds recorded and chose differently.
-These are often the splits the input pool has not found yet.</p>
+<p><code>diff</code> lists the points that two or more builds recorded, by the same wording, and
+chose differently. More useful are the <code>probes</code>: every build's probes go into the
+pool for all builds, so a point one builder noticed is tested on every build,
+whatever the others wrote. Probes may name the contract's <code>fixtures/</code> like examples
+do; a probe the contract's <code>Input</code> rejects is dropped. Splits found by a probe show
+<code>pool:probes-&lt;build&gt;.jsonl</code> as their origin.</p>
+<p>In the first real <code>replicate</code> run on lightkone, two builds agreed on all 1,113 pooled
+inputs, yet ran differently on <code>author:</code> with nothing after the colon, a point
+both builders had written down. Probes catch exactly this.</p>
 <h2 id="in-ci">In CI<a class="headerlink" href="#in-ci" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>symbolon<span class="w"> </span>diff<span class="w"> </span>CONTRACT<span class="w"> </span>build-a<span class="w"> </span>build-b<span class="w"> </span>--max-ambiguity<span class="w"> </span><span class="m">0</span>.01
 </span></code></pre></div>

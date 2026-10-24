@@ -6,4 +6,4 @@ Catalog as JSON: https://kausalflow.github.io/symbolon/registry/index.json
 
 ## Packs
 
-- [kausalflow/lightkone](https://kausalflow.github.io/symbolon/registry/packs/kausalflow/lightkone/llms.txt): Lightkone core: search, BibTeX, keys, filing, merge, tidy and the library file · 63 obligations (63 decided, 0 default, 0 open) · 4 assumptions (4 monitored) · 337/337 checks trace to an obligation
+- [kausalflow/lightkone](https://kausalflow.github.io/symbolon/registry/packs/kausalflow/lightkone/llms.txt): Lightkone core: search, BibTeX, keys, filing, merge, tidy and the library file · 64 obligations (64 decided, 0 default, 0 open) · 4 assumptions (4 monitored) · 340/340 checks trace to an obligation
