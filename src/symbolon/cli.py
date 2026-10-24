@@ -625,11 +625,12 @@ def pull(
     dest: Path | None = typer.Option(None, help="Where to unpack; defaults to ./<name>."),
     trust: Path | None = typer.Option(None, help="Publisher's public key; require a valid signature from it."),
     token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid pack."),
+    digest: str | None = typer.Option(None, help="Pull the older version with this pack digest, to re-check evidence that names it."),
 ) -> None:
     """Download a pack, check its sha256, digest and (with --trust) signature, and unpack it."""
     target = dest or Path(pack_id.split("/")[-1])
     try:
-        got = pull_pack(pack_id, registry, target, trust, token)
+        got = pull_pack(pack_id, registry, target, trust, token, digest)
     except RegistryError as e:
         _line(False, str(e))
         raise typer.Exit(1)

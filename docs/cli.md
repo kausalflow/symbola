@@ -255,15 +255,15 @@ Creates a pack folder (by default `spec/`, next to your code) with a manifest, `
 symbolon site build [REGISTRY=packs] [--out site-registry] [--key KEY] [--base-url URL] [--private-out DIR --store-url URL]
 ```
 
-Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md` and `parts/`, `llms.txt` and raw files. With `--key`, signs each pack. A priced pack's tarball goes to `--private-out` for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See [Pack registry](REGISTRY.md#building-the-site).
+Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md` and `parts/`, `llms.txt`, raw files, and `evidence.json` with every attestation checked. With `--key`, signs each pack. A priced pack's tarball goes to `--private-out` for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See [Pack registry](REGISTRY.md#building-the-site).
 
 ## `pull`
 
 ```
-symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--trust PUBKEY] [--token LICENSE]
+symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--trust PUBKEY] [--token LICENSE] [--digest DIGEST]
 ```
 
-Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, and with `--trust` the publisher's signature, then unpacks it into `DEST` (default `./<name>`). A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). See [Pack registry](REGISTRY.md#pulling-a-pack).
+Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, and with `--trust` the publisher's signature, then unpacks it into `DEST` (default `./<name>`). A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Pack registry](REGISTRY.md#pulling-a-pack).
 
 ## `site check`
 

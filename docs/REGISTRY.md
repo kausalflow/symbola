@@ -79,7 +79,24 @@ packs/<owner>/<name>/
   parts/<component>-v<n>.md                one component's contract, schemas and tests
   llms.txt                                 the pack's files, for agents
   files/…                                  every file of the pack, raw
+  evidence.json                            every attestation beside the pack, checked at build time
+  attestations/…                           the attestation files and runner keys, to re-check
+  by-digest/<digest>.tar.gz                each older version that some attestation names
 ```
+
+`index.json` also carries each pack's evidence summary (components with a passing
+build, distinct builds, distinct runners, invalid attestations) and its `older`
+attested versions.
+
+## Evidence
+
+Attestations sit beside the pack in `packs/<owner>/<name>/attestations/`, with
+the runners' public keys as `*.pub`. For each one, `site build` checks the
+signature, checks that the runner's key is published there, and finds the pack
+version whose component has the attested contract digest. The pack page shows
+an Evidence table: build, result, which version it covers, runner, and a link to
+the file. An attestation that fails a check is shown as invalid, never dropped.
+The catalog sorts packs by their evidence.
 
 The pack digest is the contract framing ([CONTRACT_FORMAT.md](CONTRACT_FORMAT.md))
 over the pack folder with the header `symbolon-pack-v1\n`.
@@ -107,7 +124,9 @@ PR previews get their own copy.
 symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--trust publisher.pub]
 ```
 
-`pull` takes no version: the registry serves only the latest. It downloads the
+`pull` takes no version: the registry serves only the latest. The one exception is
+re-checking evidence: `symbolon pull <id> --digest <pack digest>` downloads an
+older version that some attestation names (the pack page links its digest). It downloads the
 tarball, checks its sha256 against `latest.sha256` and `index.json`, unpacks it,
 and checks the unpacked folder's digest against `index.json`. With `--trust`, it
 also requires a valid signature from that public key over the same digest and

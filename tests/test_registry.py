@@ -5,6 +5,7 @@ import pytest
 from typer.testing import CliRunner
 
 from symbolon import keys
+from symbolon.digest import contract_digest
 from symbolon.cli import app
 from symbolon.pack import validate_pack
 from symbolon.registry import RegistryError, build_site, check_registry, pack_digest, pull, release, scaffold_pack
@@ -74,6 +75,52 @@ def test_pack_md_is_split_into_parts_small_enough_for_one_read(site):
     assert "(../files/components/tidy/versions/1/examples.jsonl)" in tidy
     for part in parts:
         assert f"(parts/{part.name})" in core
+
+
+@pytest.fixture
+def attested(registry):
+    """Lightkone's attestations beside the registry copy; version 2 changes the tidy contract."""
+    shutil.copytree(LIGHTKONE.parent.parent / "attestations", registry / "kausalflow" / "lightkone" / "attestations")
+    desc = registry / "kausalflow" / "lightkone" / "versions" / "2" / "components" / "tidy" / "versions" / "1" / "symbolon.toml"
+    before = contract_digest(desc.parent)
+    desc.write_text(desc.read_text() + "\n# version 2\n")
+    manifest = desc.parents[4] / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text().replace(before, contract_digest(desc.parent)))
+    return registry
+
+
+def test_site_shows_checked_evidence_and_keeps_attested_versions(attested, tmp_path):
+    site = tmp_path / "site"
+    build_site(attested, site)
+    files = site / "packs" / "kausalflow" / "lightkone"
+    evidence = json.loads((files / "evidence.json").read_text())
+    records = {r["file"]: r for r in evidence["attestations"]}
+    assert all(r["valid"] for r in records.values())
+    assert records["attestations/library-file.go-1.json"]["covers"] == "latest"
+    tidy = records["attestations/tidy.go-1.json"]
+    assert tidy["covers"] == "older" and tidy["pack_version"] == 1
+    (entry,) = json.loads((site / "index.json").read_text())["packs"]
+    assert entry["evidence"]["components_with_passing_build"] == 7
+    assert "go-1 rebuild" in entry["evidence"]["builds"]
+    (old,) = entry["older"]
+    assert old["version"] == 1 and tidy["pack_digest"] == old["digest"]
+    assert (files / old["path"]).is_file() and (files / "attestations" / "runner-a.pub").is_file()
+
+    got = pull("kausalflow/lightkone", str(site), tmp_path / "v1", digest=old["digest"])
+    assert got.version == 1 and got.digest == old["digest"]
+    with pytest.raises(RegistryError, match="no evidence names"):
+        pull("kausalflow/lightkone", str(site), tmp_path / "x", digest="sha256:" + "0" * 64)
+
+
+def test_a_tampered_attestation_is_shown_as_invalid(attested, tmp_path):
+    path = attested / "kausalflow" / "lightkone" / "attestations" / "tidy.go-1.json"
+    envelope = json.loads(path.read_text())
+    envelope["signatures"][0]["sig"] = envelope["signatures"][0]["sig"][::-1]
+    path.write_text(json.dumps(envelope))
+    build_site(attested, tmp_path / "site")
+    evidence = json.loads((tmp_path / "site" / "packs" / "kausalflow" / "lightkone" / "evidence.json").read_text())
+    bad = next(r for r in evidence["attestations"] if r["file"].endswith("tidy.go-1.json"))
+    assert not bad["valid"] and bad["problems"] and evidence["summary"]["invalid"] == 1
 
 
 def test_tarball_is_byte_identical_across_builds(registry, tmp_path):

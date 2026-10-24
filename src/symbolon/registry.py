@@ -5,12 +5,15 @@ into static files that any web host can serve (distribution design, sections 2-4
 
     index.json, llms.txt
     packs/<owner>/<name>/latest.tar.gz, latest.sha256, latest.sig.json,
-                         pack.md, parts/*.md, llms.txt, files/...
+                         pack.md, parts/*.md, llms.txt, files/...,
+                         evidence.json, attestations/, by-digest/<digest>.tar.gz
 
 Only the latest version of each pack is published. Older versions stay in the
 registry's git history and folders, so attestations that name them can still be
-re-checked, but the site never links them. Holdout tests never live inside a
-pack folder, and the build refuses a pack that has one.
+re-checked. An older version that some attestation names is also published
+under by-digest/ so anyone can re-check it, but the catalog never offers it.
+Holdout tests never live inside a pack folder, and the build refuses a pack
+that has one.
 """
 
 from __future__ import annotations
@@ -30,7 +33,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from . import keys
-from .digest import contract_files, tree_digest
+from .digest import contract_files, hex_of, tree_digest
 from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
                    VERSIONS_DIR, summary_line, validate_pack)
 
@@ -284,6 +287,92 @@ def listing_price(pack_dir: Path) -> dict | None:
     return {"amount": price, "currency": currency}
 
 
+ATTESTATIONS_DIR = "attestations"
+EVIDENCE_FILE = "evidence.json"
+BY_DIGEST_DIR = "by-digest"
+
+
+def _component_digests(version_dir: Path) -> dict[str, str]:
+    """Contract digest (hex) -> component key (`<name>-v<n>`) for every component of a pack version."""
+    from .digest import contract_digest
+    found = {}
+    for manifest in sorted((version_dir / COMPONENTS_DIR).glob(f"*/{VERSIONS_DIR}/*/symbolon.toml")):
+        found[hex_of(contract_digest(manifest.parent))] = _component_key(
+            manifest.parent.relative_to(version_dir).as_posix() + "/symbolon.toml")
+    return found
+
+
+def pack_evidence(pack_root: Path, latest: Path) -> dict:
+    """Check every attestation beside a pack and say which pack version each one covers.
+
+    Attestations sit in `<pack>/attestations/*.json`, with the runners' public keys
+    as `*.pub`. A signature or digest that does not check is reported, never hidden.
+    """
+    from .attest import AttestError, verify_attestation
+    folder = pack_root / ATTESTATIONS_DIR
+    runners = {keys.keyid(keys.load_public(p)): p.stem for p in sorted(folder.glob("*.pub"))}
+    versions = {}
+    numbered = [p for p in (pack_root / VERSIONS_DIR).glob("*") if p.is_dir() and p.name.isdigit()]
+    for version_dir in sorted(numbered, key=lambda p: -int(p.name)):  # a contract kept unchanged counts as the latest
+        for digest, key in _component_digests(version_dir).items():
+            versions.setdefault(digest, (int(version_dir.name), key))
+    latest_n = int(latest.name)
+    records = []
+    for path in sorted(folder.glob("*.json")):
+        record = {"file": f"{ATTESTATIONS_DIR}/{path.name}"}
+        try:
+            check = verify_attestation(json.loads(path.read_text()))
+        except (AttestError, json.JSONDecodeError) as e:
+            records.append({**record, "valid": False, "problems": [str(e)]})
+            continue
+        pred = check.predicate
+        contract = next(c for c in pred["configuration"] if c["name"].startswith("contract:"))
+        digest = contract["digest"]["sha256"]
+        version, component = versions.get(digest, (None, None))
+        if component is None:  # a contract no published version has: name it as the folder would be
+            name_part, _, n = contract["name"].split(":", 1)[1].rpartition("@")
+            component = f"{name_part.rsplit('/', 1)[-1]}-v{n}"
+        impl = pred["symbolon"].get("implementation", {})
+        impl = impl.get("implementation", impl)
+        problems = list(check.problems)
+        if check.keyid not in runners:
+            problems.append("runner key is not published beside the pack")
+        records.append({
+            **record,
+            "valid": not problems,
+            "problems": problems,
+            "contract": contract["name"].split(":", 1)[1],
+            "contract_digest": f"sha256:{digest}",
+            "component": component,
+            "pack_version": version,
+            "covers": "latest" if version == latest_n else ("older" if version else "unpublished"),
+            "build": (impl.get("authors") or ["unknown"])[0],
+            "implementation_digest": check.statement["subject"][0]["digest"]["sha256"],
+            "result": pred["result"],
+            "passed": len(pred["passedTests"]),
+            "failed": pred["failedTests"],
+            "runner": runners.get(check.keyid, check.keyid),
+            "evidence": pred["symbolon"].get("evidence"),
+            "finished": pred["symbolon"].get("finishedOn"),
+        })
+    good = [r for r in records if r["valid"] and r["covers"] == "latest"]
+    passing = [r for r in good if r["result"] == "PASSED"]
+    components = len(_component_digests(latest))
+    summary = {
+        "attestations": len(records),
+        "invalid": sum(not r["valid"] for r in records),
+        "on_latest": len(good),
+        "components": components,
+        "components_with_passing_build": len({r["component"] for r in passing}),
+        "builds": sorted({r["build"] for r in passing}),
+        "full_builds": sorted(b for b in {r["build"] for r in passing}
+                              if len({r["component"] for r in passing if r["build"] == b}) == components),
+        "runners": sorted({r["runner"] for r in good}),
+        "newest": max((r["finished"] for r in good if r["finished"]), default=None),
+    }
+    return {"summary": summary, "attestations": records}
+
+
 def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url: str = "",
                private_out: Path | None = None, store_url: str = "") -> list[BuiltPack]:
     """Write the registry's static data for the latest version of every pack.
@@ -333,6 +422,28 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
         for rel, text in pack_markdown(version_dir, pack_id, version, digest).items():
             (dest / rel).parent.mkdir(parents=True, exist_ok=True)
             (dest / rel).write_text(text)
+        evidence = pack_evidence(pack_root, version_dir)
+        older = []
+        for n in sorted({r["pack_version"] for r in evidence["attestations"] if r.get("covers") == "older"}):
+            old_dir = pack_root / VERSIONS_DIR / str(n)
+            old_digest = pack_digest(old_dir)
+            old_tarball = make_tarball(old_dir, name)
+            rel = f"{BY_DIGEST_DIR}/{hex_of(old_digest)}.tar.gz"
+            target = (Path(private_out) / "packs" / owner / name if price else dest) / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(old_tarball)
+            older.append({"version": n, "digest": old_digest,
+                          "tarball_sha256": hashlib.sha256(old_tarball).hexdigest(), "path": rel})
+        for record in evidence["attestations"]:
+            if record.get("pack_version"):
+                record["pack_digest"] = (digest if record["pack_version"] == version else
+                                         next(o["digest"] for o in older if o["version"] == record["pack_version"]))
+        if evidence["attestations"]:
+            (dest / ATTESTATIONS_DIR).mkdir(parents=True, exist_ok=True)
+            for path in sorted((pack_root / ATTESTATIONS_DIR).glob("*")):
+                if path.suffix in (".json", ".pub"):
+                    shutil.copyfile(path, dest / ATTESTATIONS_DIR / path.name)
+        (dest / EVIDENCE_FILE).write_text(json.dumps(evidence, indent=2) + "\n")
         if key:
             payload = json.dumps({"pack": pack_id, "version": version, "digest": digest,
                                   "tarball_sha256": sha}, sort_keys=True).encode()
@@ -352,6 +463,7 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
             "digest": digest, "tarball_sha256": sha, "signed": key is not None,
             "summary": report.summary, "summary_line": summary_line(report.summary),
             "files": listed, "price": price,
+            "evidence": evidence["summary"], "older": older,
         })
         built.append(BuiltPack(pack_id, version, digest, sha))
     index = {"format": 1, "packs": entries}
@@ -483,8 +595,13 @@ def _fetch(url: str, token: str | None = None) -> bytes:
         raise RegistryError(f"could not fetch {url}: {e}") from None
 
 
-def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None, token: str | None = None) -> BuiltPack:
-    """Download the latest version of a pack, check it, and unpack it into `dest`."""
+def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None, token: str | None = None,
+         digest: str | None = None) -> BuiltPack:
+    """Download the latest version of a pack, check it, and unpack it into `dest`.
+
+    With `digest`, download that version instead, if some evidence names it: the
+    registry keeps every attested version so attestations can be re-checked.
+    """
     if not PACK_REF_RE.match(pack_id):
         raise RegistryError("pack must look like 'owner/name' (only the latest version can be pulled)")
     base = _base(registry)
@@ -493,6 +610,18 @@ def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None, tok
     if entry is None:
         raise RegistryError(f"{pack_id} is not in the registry at {base}")
     prefix = f"{base}packs/{pack_id}/"
+    if digest and digest != entry["digest"]:
+        old = next((o for o in entry.get("older", []) if o["digest"] == digest), None)
+        if old is None:
+            raise RegistryError(f"{pack_id}: no evidence names {digest}, so the registry does not keep it; "
+                                f"the latest is {entry['digest']}")
+        if entry.get("price"):
+            raise RegistryError(f"{pack_id} is priced; ask the store for older versions")
+        tarball = _fetch(prefix + old["path"])
+        if hashlib.sha256(tarball).hexdigest() != old["tarball_sha256"]:
+            raise RegistryError(f"tarball sha256 does not match the registry for {digest}")
+        got = _unpack(tarball, pack_id, dest, digest)
+        return BuiltPack(pack_id, old["version"], got, old["tarball_sha256"])
     if entry.get("price"):
         if not token:
             p = entry["price"]
@@ -515,6 +644,10 @@ def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None, tok
             raise RegistryError(f"signature: {e}") from None
         if payload.get("pack") != pack_id or payload.get("tarball_sha256") != sha or payload.get("digest") != entry["digest"]:
             raise RegistryError("signature does not cover this tarball")
+    return BuiltPack(pack_id, entry["version"], _unpack(tarball, pack_id, dest, entry["digest"]), sha)
+
+
+def _unpack(tarball: bytes, pack_id: str, dest: Path, expected: str) -> str:
     dest = Path(dest)
     if dest.exists() and any(dest.iterdir()):
         raise RegistryError(f"{dest} exists and is not empty")
@@ -524,10 +657,10 @@ def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None, tok
             tar.extractall(tmp, filter="data")
         unpacked = Path(tmp) / name
         digest = pack_digest(unpacked)
-        if digest != entry["digest"]:
-            raise RegistryError(f"unpacked pack digest is {digest}, the registry lists {entry['digest']}")
+        if digest != expected:
+            raise RegistryError(f"unpacked pack digest is {digest}, the registry lists {expected}")
         dest.parent.mkdir(parents=True, exist_ok=True)
         if dest.exists():
             dest.rmdir()
         shutil.copytree(unpacked, dest)
-    return BuiltPack(pack_id, entry["version"], digest, sha)
+    return digest
