@@ -566,10 +566,12 @@ def site_build(
     out: Path = typer.Option(Path("site-registry"), help="Output folder; replaced on every build."),
     key: Path | None = typer.Option(None, help="Signing key; writes latest.sig.json for each pack."),
     base_url: str = typer.Option("", help="Absolute URL the site is served from, used in llms.txt links."),
+    private_out: Path | None = typer.Option(None, help="Where priced packs' tarballs go, for the store's private bucket."),
+    store_url: str = typer.Option("", help="URL of the store Worker that sells priced packs."),
 ) -> None:
     """Write index.json, llms.txt and each pack's tarball, pack.md and files for the latest versions."""
     try:
-        built = build_site(registry, out, key, base_url)
+        built = build_site(registry, out, key, base_url, private_out, store_url)
     except RegistryError as e:
         _line(False, str(e))
         raise typer.Exit(1)
@@ -622,11 +624,12 @@ def pull(
                                  envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
     dest: Path | None = typer.Option(None, help="Where to unpack; defaults to ./<name>."),
     trust: Path | None = typer.Option(None, help="Publisher's public key; require a valid signature from it."),
+    token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid pack."),
 ) -> None:
     """Download a pack, check its sha256, digest and (with --trust) signature, and unpack it."""
     target = dest or Path(pack_id.split("/")[-1])
     try:
-        got = pull_pack(pack_id, registry, target, trust)
+        got = pull_pack(pack_id, registry, target, trust, token)
     except RegistryError as e:
         _line(False, str(e))
         raise typer.Exit(1)

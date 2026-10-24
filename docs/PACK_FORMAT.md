@@ -23,6 +23,18 @@ packs/<namespace>/<product>/versions/<version>/
   AGENTS.md             short guide for coding agents
 ```
 
+## Selling: `[listing]`
+
+An optional table in `symbolon-pack.toml` prices the pack:
+
+```toml
+[listing]
+price = 1900        # minor units: 19.00
+currency = "eur"    # lowercase ISO 4217
+```
+
+See [Pack registry](REGISTRY.md#selling-a-pack).
+
 ## `BRIEF.md`
 
 Prose for people and agents. It must have these headings (any level, any case):

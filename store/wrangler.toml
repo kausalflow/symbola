@@ -1,0 +1,18 @@
+# Cloudflare Worker for selling priced packs. See store/README.md before deploying.
+name = "symbolon-store"
+main = "src/worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+REGISTRY_URL = "https://kausalflow.github.io/symbolon/registry"
+PLATFORM_FEE_PERCENT = "15"
+
+# Create with `wrangler kv namespace create LICENSES` and paste the id here.
+[[kv_namespaces]]
+binding = "LICENSES"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Create with `wrangler r2 bucket create symbolon-packs`.
+[[r2_buckets]]
+binding = "PACKS"
+bucket_name = "symbolon-packs"
