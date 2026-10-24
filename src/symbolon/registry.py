@@ -5,7 +5,7 @@ into static files that any web host can serve (distribution design, sections 2-4
 
     index.json, llms.txt
     packs/<owner>/<name>/latest.tar.gz, latest.sha256, latest.sig.json,
-                         pack.md, llms.txt, files/...
+                         pack.md, parts/*.md, llms.txt, files/...
 
 Only the latest version of each pack is published. Older versions stay in the
 registry's git history and folders, so attestations that name them can still be
@@ -196,29 +196,70 @@ def _fence(text: str) -> str:
     return ticks
 
 
-def pack_markdown(root: Path, pack_id: str, version: int, digest: str) -> str:
-    """The whole pack as one Markdown file, so an agent can read it in one fetch."""
+DATA_SUFFIXES = {".jsonl", ".csv"}
+DATA_PREVIEW_LINES = 3
+
+
+def _section(root: Path, path: Path, files_prefix: str) -> str:
+    rel = path.relative_to(root).as_posix()
+    try:
+        text = path.read_text()
+    except UnicodeDecodeError:
+        return f"## {rel}\n\n(binary file, {path.stat().st_size} bytes: [{rel}]({files_prefix}{rel}))\n"
+    if path.suffix == ".md":
+        return f"## {rel}\n\n{text.rstrip()}\n"
+    lang = {".toml": "toml", ".py": "python", ".json": "json", ".jsonl": "json"}.get(path.suffix, "")
+    note = ""
+    if path.suffix in DATA_SUFFIXES:
+        lines = text.splitlines()
+        if len(lines) > DATA_PREVIEW_LINES:
+            note = (f"The first {DATA_PREVIEW_LINES} of {len(lines)} lines. The rest is part of the spec "
+                    f"too: read the whole file at [{rel}]({files_prefix}{rel}).\n\n")
+            text = "\n".join(lines[:DATA_PREVIEW_LINES])
+    fence = _fence(text)
+    return f"## {rel}\n\n{note}{fence}{lang}\n{text.rstrip()}\n{fence}\n"
+
+
+def _component_key(rel: str) -> str | None:
+    """`components/<name>/versions/<n>/...` -> `<name>-v<n>`, or `<name>` for an unversioned component."""
+    parts = rel.split("/")
+    if len(parts) < 3 or parts[0] != COMPONENTS_DIR:
+        return None
+    if len(parts) >= 5 and parts[2] == VERSIONS_DIR:
+        return f"{parts[1]}-v{parts[3]}"
+    return parts[1]
+
+
+def pack_markdown(root: Path, pack_id: str, version: int, digest: str) -> dict[str, str]:
+    """The pack as a few Markdown files an agent can read in order, keyed by path.
+
+    `pack.md` holds the brief, assumptions, obligations and manifest, plus a list of
+    the component files `parts/<component>.md`. Data files such as examples.jsonl
+    show their first lines and link the raw file, so each Markdown file stays small
+    enough for one read.
+    """
     order = {"AGENTS.md": 0, BRIEF_FILE: 1, OBLIGATIONS_FILE: 3, PACK_MANIFEST_FILE: 4}
-    files = sorted(_files(root), key=lambda p: (
-        order.get(p.relative_to(root).as_posix(),
-                  2 if p.relative_to(root).parts[0] == ASSUMPTIONS_DIR else 5),
-        p.relative_to(root).as_posix()))
-    out = [f"# {pack_id} (version {version})\n",
-           f"Pack digest: `{digest}`. Every file of the pack follows, one section each.\n"]
-    for path in files:
-        rel = path.relative_to(root).as_posix()
-        try:
-            text = path.read_text()
-        except UnicodeDecodeError:
-            out.append(f"## {rel}\n\n(binary file, {path.stat().st_size} bytes; see the tarball)\n")
-            continue
-        if path.suffix == ".md":
-            out.append(f"## {rel}\n\n{text.rstrip()}\n")
-        else:
-            fence = _fence(text)
-            lang = {".toml": "toml", ".py": "python", ".json": "json", ".jsonl": "json"}.get(path.suffix, "")
-            out.append(f"## {rel}\n\n{fence}{lang}\n{text.rstrip()}\n{fence}\n")
-    return "\n".join(out)
+    core, components = [], {}
+    for path in _files(root):
+        key = _component_key(path.relative_to(root).as_posix())
+        (components.setdefault(key, []) if key else core).append(path)
+    core.sort(key=lambda p: (order.get(p.relative_to(root).as_posix(),
+                                       2 if p.relative_to(root).parts[0] == ASSUMPTIONS_DIR else 5),
+                             p.relative_to(root).as_posix()))
+    parts = {}
+    for key, paths in sorted(components.items()):
+        parts[f"parts/{key}.md"] = "\n".join(
+            [f"# {pack_id} (version {version}): component {key}\n",
+             f"Part of the pack at [../pack.md](../pack.md). Pack digest: `{digest}`.\n"]
+            + [_section(root, p, "../files/") for p in sorted(paths)])
+    contents = "".join(f"- [{rel}]({rel}) ({len(text.encode()) // 1024 + 1} KB)\n" for rel, text in parts.items())
+    head = [f"# {pack_id} (version {version})\n",
+            f"Pack digest: `{digest}`. This file holds the brief, assumptions, obligations and manifest. "
+            "Each component's contract, schemas and tests are in their own file; read the ones you build. "
+            "Raw files are under [files/](files/), and the tarball holds everything.\n"]
+    if contents:
+        head.append(f"## Components\n\n{contents}")
+    return {"pack.md": "\n".join(head + [_section(root, p, "files/") for p in core]), **parts}
 
 
 def _manifest(root: Path) -> dict:
@@ -289,7 +330,9 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
         else:
             (dest / TARBALL_FILE).write_bytes(tarball)
         (dest / SHA_FILE).write_text(f"{sha}  {TARBALL_FILE}\n")
-        (dest / "pack.md").write_text(pack_markdown(version_dir, pack_id, version, digest))
+        for rel, text in pack_markdown(version_dir, pack_id, version, digest).items():
+            (dest / rel).parent.mkdir(parents=True, exist_ok=True)
+            (dest / rel).write_text(text)
         if key:
             payload = json.dumps({"pack": pack_id, "version": version, "digest": digest,
                                   "tarball_sha256": sha}, sort_keys=True).encode()
@@ -300,8 +343,8 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
                     f"`symbolon pull {pack_id} --token <license>`" if price else f"download {prefix}/{TARBALL_FILE}")
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
-            f"Version {version}, digest {digest}. Read the whole pack in one file at "
-            f"{prefix}/pack.md, or {download}.\n\n## Files\n\n"
+            f"Version {version}, digest {digest}. Start with {prefix}/pack.md (brief, assumptions, "
+            f"obligations, and links to one file per component under {prefix}/parts/), or {download}.\n\n## Files\n\n"
             + "".join(f"- [{rel}]({prefix}/files/{rel})\n" for rel in listed))
         entries.append({
             "id": pack_id, "version": version, "title": meta.get("title", name),

@@ -75,7 +75,8 @@ packs/<owner>/<name>/
   latest.tar.gz                            the pack folder, byte-identical on every build
   latest.sha256                            sha256 of the tarball
   latest.sig.json                          with --key: a DSSE envelope over {pack, version, digest, tarball_sha256}
-  pack.md                                  the whole pack in one Markdown file
+  pack.md                                  brief, assumptions, obligations, manifest, and a list of the parts
+  parts/<component>-v<n>.md                one component's contract, schemas and tests
   llms.txt                                 the pack's files, for agents
   files/…                                  every file of the pack, raw
 ```
@@ -113,7 +114,10 @@ also requires a valid signature from that public key over the same digest and
 sha256. The registry defaults to `$SYMBOLON_REGISTRY`, or the kausalflow site.
 
 An agent that only needs to read a pack can fetch `packs/<owner>/<name>/pack.md`
-instead and skip unpacking.
+instead and skip unpacking. It holds everything that applies to the whole pack and
+links one `parts/` file per component, so the agent reads only the components it
+builds and no file is too big for one read. Data files such as `examples.jsonl`
+show their first lines in the part and link the raw file under `files/`.
 
 ## Selling a pack
 

@@ -57,8 +57,23 @@ def test_site_publishes_only_the_latest_version(site, registry):
     files = site / "packs" / "kausalflow" / "lightkone"
     assert "Version two." in (files / "files" / "BRIEF.md").read_text()
     assert "Version two." in (files / "pack.md").read_text()
+    assert "parts/tidy-v1.md" in (files / "pack.md").read_text()
     assert "kausalflow/lightkone" in (site / "llms.txt").read_text()
     assert "files/obligations.toml" in (files / "llms.txt").read_text()
+
+
+def test_pack_md_is_split_into_parts_small_enough_for_one_read(site):
+    files = site / "packs" / "kausalflow" / "lightkone"
+    core = (files / "pack.md").read_text()
+    parts = sorted((files / "parts").glob("*.md"))
+    assert [p.name for p in parts][:2] == ["bibtex-export-v1.md", "bibtex-import-v1.md"]
+    assert "## obligations.toml" in core and "## components/" not in core
+    assert len(core.encode()) < 64_000 and all(len(p.read_bytes()) < 64_000 for p in parts)
+    tidy = (files / "parts" / "tidy-v1.md").read_text()
+    assert "## components/tidy/versions/1/symbolon.toml" in tidy
+    assert "(../files/components/tidy/versions/1/examples.jsonl)" in tidy
+    for part in parts:
+        assert f"(parts/{part.name})" in core
 
 
 def test_tarball_is_byte_identical_across_builds(registry, tmp_path):
