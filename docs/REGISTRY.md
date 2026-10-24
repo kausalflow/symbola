@@ -108,7 +108,7 @@ over the pack folder with the header `symbolon-pack-v1\n`.
 
 The packs live in [kausalflow/symbolon-registry](https://github.com/kausalflow/symbolon-registry).
 The website is built from them by `spikinglabs/symbolon-store` and hosted on
-Cloudflare Pages at <https://symbolon.pages.dev/>. It is an [Astro](https://astro.build)
+Cloudflare Pages at <https://symbola.sh/>. It is an [Astro](https://astro.build)
 site over the files above, with [Pagefind](https://pagefind.app) search built at the
 same time, so it needs no server. It adds a catalog page with search, a page per
 pack (brief, assumptions, obligations by status, evidence, publisher, download
@@ -116,7 +116,7 @@ links, file tree), and a rendered view of every file under
 `packs/<owner>/<name>/view/<file>/`.
 
 ```
-site/build.sh OUT ORIGIN BASE     # in spikinglabs/symbolon-store, e.g. dist-site https://symbolon.pages.dev /
+site/build.sh OUT ORIGIN BASE     # in spikinglabs/symbolon-store, e.g. dist-site https://symbola.sh /
 ```
 
 clones the registry, runs `symbolon site build` over its packs, then `astro build`
@@ -137,7 +137,7 @@ older version that some attestation names (the pack page links its digest). It d
 tarball, checks its sha256 against `latest.sha256` and `index.json`, unpacks it,
 and checks the unpacked folder's digest against `index.json`. These checks catch a
 broken download, not a dishonest host: the publisher is not verified until packs
-carry GitHub provenance. The registry defaults to `$SYMBOLON_REGISTRY`, or <https://symbolon.pages.dev>.
+carry GitHub provenance. The registry defaults to `$SYMBOLON_REGISTRY`, or <https://symbola.sh>.
 
 An agent that only needs to read a pack can fetch `packs/<owner>/<name>/pack.md`
 instead and skip unpacking. It holds everything that applies to the whole pack and
