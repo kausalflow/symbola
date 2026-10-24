@@ -617,7 +617,7 @@ def release(
 @app.command()
 def pull(
     pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk'. Only the latest version is served."),
-    registry: str = typer.Option("https://kausalflow.github.io/symbolon/registry",
+    registry: str = typer.Option("https://symbolon.pages.dev",
                                  envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
     dest: Path | None = typer.Option(None, help="Where to unpack; defaults to ./<name>."),
     token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid pack."),

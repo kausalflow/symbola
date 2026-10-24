@@ -22,11 +22,11 @@ jobs:
           python-version: "3.12"
       - run: pip install ".[docs]"
       - run: zensical build --clean
-      # The pack registry site (docs/REGISTRY.md), served under /registry/.
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: registry-site/build.sh site/registry https://kausalflow.github.io /symbolon/registry
+      # The registry website moved to Cloudflare Pages; keep old links working.
+      - run: |
+          mkdir -p site/registry
+          printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=%s/"><link rel="canonical" href="%s/"><a href="%s/">The pack registry moved here.</a>\n' \
+            https://symbolon.pages.dev https://symbolon.pages.dev https://symbolon.pages.dev > site/registry/index.html
       # Publish to the gh-pages branch, leaving PR previews in place.
       - uses: JamesIves/github-pages-deploy-action@v4
         with:

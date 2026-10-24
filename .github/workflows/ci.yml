@@ -15,9 +15,4 @@ jobs:
           python-version: "3.13"
       - run: pip install -e ".[dev]"
       - run: pytest -q -rs
-      # The checks every pack submission must pass (docs/REGISTRY.md).
-      - run: symbolon site check packs
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: cd store && npm test
+      # Packs and the registry site live in kausalflow/symbolon-registry, the store in spikinglabs/symbolon-store.
