@@ -1273,7 +1273,7 @@ the code whenever you make a decision a builder could not have guessed, state a
 fact about the world, or leave something open, and to run <code>pack validate</code> after
 each change.</p>
 <h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbolon release spec --registry ../registry/packs     # in a clone of the registry
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbolon release spec --registry ../symbolon-registry/packs   # in a clone of kausalflow/symbolon-registry
 </span></code></pre></div>
 <p><code>release</code> validates the pack, sets its manifest version to the next free number,
 copies it to <code>packs/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code>, and appends the version's
@@ -1325,17 +1325,21 @@ The catalog sorts packs by their evidence.</p>
 <p>The pack digest is the contract framing (<a href="../CONTRACT_FORMAT/">CONTRACT_FORMAT.md</a>)
 over the pack folder with the header <code>symbolon-pack-v1\n</code>.</p>
 <h2 id="the-site">The site<a class="headerlink" href="#the-site" title="Permanent link">&para;</a></h2>
-<p><code>registry-site/</code> is an <a href="https://astro.build">Astro</a> site over those files, with
-<a href="https://pagefind.app">Pagefind</a> search built at the same time, so it needs no server.
-It adds a catalog page with search, a page per pack (brief, assumptions, obligations
-by status, download links, file tree), and a rendered view of every file under
+<p>The packs live in <a href="https://github.com/kausalflow/symbolon-registry">kausalflow/symbolon-registry</a>.
+The website is built from them by <code>spikinglabs/symbolon-store</code> and hosted on
+Cloudflare Pages at <a href="https://symbola.sh/">https://symbola.sh/</a>. It is an <a href="https://astro.build">Astro</a>
+site over the files above, with <a href="https://pagefind.app">Pagefind</a> search built at the
+same time, so it needs no server. It adds a catalog page with search, a page per
+pack (brief, assumptions, obligations by status, evidence, publisher, download
+links, file tree), and a rendered view of every file under
 <code>packs/&lt;owner&gt;/&lt;name&gt;/view/&lt;file&gt;/</code>.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>registry-site/build.sh OUT ORIGIN BASE     # e.g. site/registry https://kausalflow.github.io /symbolon/registry
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>site/build.sh OUT ORIGIN BASE     # in spikinglabs/symbolon-store, e.g. dist-site https://symbola.sh /
 </span></code></pre></div>
-<p>runs <code>symbolon site build</code> into <code>registry-site/public/</code>, then <code>astro build</code> and
-<code>pagefind</code>, and copies the result to <code>OUT</code>. The docs workflow runs it on every push
-to <code>main</code> and publishes the result at <a href="https://kausalflow.github.io/symbolon/registry/">https://kausalflow.github.io/symbolon/registry/</a>;
-PR previews get their own copy.</p>
+<p>clones the registry, runs <code>symbolon site build</code> over its packs, then <code>astro build</code>
+and <code>pagefind</code>, and copies the result to <code>OUT</code>. Cloudflare runs it on every push to
+the site's repository, and the registry's CI triggers it after every merge to its
+<code>main</code>. Both repositories pin the CLI they use in <code>.symbolon-version</code>, so a CLI
+change reaches the registry and the site when those pins move.</p>
 <h2 id="pulling-a-pack">Pulling a pack<a class="headerlink" href="#pulling-a-pack" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--digest DIGEST]
 </span></code></pre></div>
@@ -1345,7 +1349,7 @@ older version that some attestation names (the pack page links its digest). It d
 tarball, checks its sha256 against <code>latest.sha256</code> and <code>index.json</code>, unpacks it,
 and checks the unpacked folder's digest against <code>index.json</code>. These checks catch a
 broken download, not a dishonest host: the publisher is not verified until packs
-carry GitHub provenance. The registry defaults to <code>$SYMBOLON_REGISTRY</code>, or the kausalflow site.</p>
+carry GitHub provenance. The registry defaults to <code>$SYMBOLON_REGISTRY</code>, or <a href="https://symbola.sh">https://symbola.sh</a>.</p>
 <p>An agent that only needs to read a pack can fetch <code>packs/&lt;owner&gt;/&lt;name&gt;/pack.md</code>
 instead and skip unpacking. It holds everything that applies to the whole pack and
 links one <code>parts/</code> file per component, so the agent reads only the components it
@@ -1380,12 +1384,12 @@ obligations, manifest, evidence and sha256, and <code>pack.md</code> names the c
 without including them. Add <code>preview = "full"</code> under <code>[listing]</code> to publish
 everything anyway. Its tarball is written to <code>--private-out</code> instead of the
 public site and is served by the store, a Cloudflare Worker in
-<a href="https://github.com/kausalflow/symbolon/tree/main/store"><code>store/</code></a>. The pack page
+<code>spikinglabs/symbolon-store</code> (private). The pack page
 shows a Buy button; after paying through Stripe, the buyer gets a license token:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>symbolon pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
 </span></code></pre></div>
 <p><code>site build</code> refuses a priced pack unless it is given <code>--private-out</code> and
-<code>--store-url</code>. Deployment steps are in <code>store/README.md</code>.</p>
+<code>--store-url</code>. Deployment steps are in that repository's README.</p>
 
 
 

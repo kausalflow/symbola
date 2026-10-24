@@ -1153,7 +1153,7 @@
 
 
 <h1 id="lightkone-pilot">Lightkone pilot<a class="headerlink" href="#lightkone-pilot" title="Permanent link">&para;</a></h1>
-<p>The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in <code>packs/kausalflow/lightkone/</code>.</p>
+<p>The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in <a href="https://github.com/kausalflow/symbolon-registry">kausalflow/symbolon-registry</a>, under <code>packs/kausalflow/lightkone/</code>.</p>
 <table>
 <thead>
 <tr>
@@ -1407,7 +1407,7 @@
 <h2 id="measuring-the-remaining-ambiguity">Measuring the remaining ambiguity<a class="headerlink" href="#measuring-the-remaining-ambiguity" title="Permanent link">&para;</a></h2>
 <p><code>symbolon diff</code> turns the milestone 2 differential test into a command that works on any number of builds (see <a href="../guides/measuring-ambiguity/">Measuring ambiguity</a>). Run on <code>search-query</code> with lightkone as the reference and both rebuilds, it puts the Go build at distance 0 from lightkone. It finds the two rules milestone 2 tightened, <code>search.year-malformed</code> and <code>search.title-sort-other</code>, as the splits between the milestone 1 Python build and the other two. On <code>bibtex-import</code>, after the importer fix in kausalflow/lightkone#50, it finds no disagreement between lightkone and the Go build.</p>
 <h2 id="re-running-the-evidence">Re-running the evidence<a class="headerlink" href="#re-running-the-evidence" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>packs/kausalflow/lightkone
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/kausalflow/symbolon-registry<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>symbolon-registry/packs/kausalflow/lightkone
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>symbolon<span class="w"> </span>pack<span class="w"> </span>validate<span class="w"> </span><span class="m">1</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>symbolon<span class="w"> </span>verify<span class="w"> </span>attestations/search-query.go-1.json<span class="w"> </span>--trust<span class="w"> </span>attestations/runner-a.pub<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--contract<span class="w"> </span>versions/1/components/search-query/versions/1<span class="w"> </span>--impl<span class="w"> </span>rebuilds/go-1/search-query<span class="w"> </span>--rerun
