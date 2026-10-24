@@ -4,7 +4,7 @@ The registry is a folder of packs (`packs/<owner>/<name>/versions/<n>/`) turned
 into static files that any web host can serve (distribution design, sections 2-4):
 
     index.json, llms.txt
-    packs/<owner>/<name>/latest.tar.gz, latest.sha256, latest.sig.json,
+    packs/<owner>/<name>/latest.tar.gz, latest.sha256,
                          pack.md, parts/*.md, llms.txt, files/...,
                          evidence.json, attestations/, by-digest/<digest>.tar.gz
 
@@ -39,11 +39,9 @@ from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, OBLIGATIONS_FILE
 
 PACK_HEADER = b"symbolon-pack-v1\n"
 PACK_REF_RE = re.compile(r"^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$")
-SIGNATURE_FILE = "latest.sig.json"
 TARBALL_FILE = "latest.tar.gz"
 SHA_FILE = "latest.sha256"
-SIGNATURES_DIR = "signatures"
-PUBLISHER_KEY = "publisher.pub"
+DIGESTS_FILE = "digests.txt"
 
 
 class RegistryError(Exception):
@@ -392,7 +390,7 @@ def pack_evidence(pack_root: Path, latest: Path) -> dict:
     return {"summary": summary, "attestations": records}
 
 
-def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url: str = "",
+def build_site(registry: Path, out: Path, base_url: str = "",
                private_out: Path | None = None, store_url: str = "") -> list[BuiltPack]:
     """Write the registry's static data for the latest version of every pack.
 
@@ -401,7 +399,6 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
     the tarball's sha256, stays public so buyers can check what they download.
     """
     registry, out = Path(registry), Path(out)
-    key = keys.load_private(key_path) if key_path else None
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
@@ -466,10 +463,6 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
                 if path.suffix in (".json", ".pub"):
                     shutil.copyfile(path, dest / ATTESTATIONS_DIR / path.name)
         (dest / EVIDENCE_FILE).write_text(json.dumps(evidence, indent=2) + "\n")
-        if key:
-            payload = json.dumps({"pack": pack_id, "version": version, "digest": digest,
-                                  "tarball_sha256": sha}, sort_keys=True).encode()
-            (dest / SIGNATURE_FILE).write_text(json.dumps(keys.sign_envelope(payload, key), indent=2) + "\n")
         listed = [p.relative_to(version_dir).as_posix() for p in public]
         prefix = f"{base_url.rstrip('/')}/packs/{pack_id}" if base_url else f"packs/{pack_id}"
         download = (f"buy it for {price['amount'] / 100:.2f} {price['currency'].upper()} and pull it with "
@@ -484,7 +477,7 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
         entries.append({
             "id": pack_id, "version": version, "title": meta.get("title", name),
             "license": meta.get("license", ""), "authors": meta.get("authors", []),
-            "digest": digest, "tarball_sha256": sha, "signed": key is not None,
+            "digest": digest, "tarball_sha256": sha,
             "summary": report.summary, "summary_line": summary_line(report.summary),
             "files": listed, "price": price, "preview": preview,
             "evidence": evidence["summary"], "older": older,
@@ -523,26 +516,23 @@ def _set_version(manifest: Path, version: int) -> None:
     manifest.write_text(new)
 
 
-def _verify_signature(pack_root: Path, version: int, digest: str, public: Path) -> None:
-    path = pack_root / SIGNATURES_DIR / f"{version}.json"
+def _recorded_digests(pack_root: Path) -> dict[int, str]:
+    path = pack_root / DIGESTS_FILE
     if not path.is_file():
-        raise RegistryError(f"{path}: missing; the owner has {PUBLISHER_KEY}, so every release must be signed")
-    try:
-        payload = json.loads(keys.verify_envelope(json.loads(path.read_text()), keys.load_public(public)))
-    except ValueError as e:
-        raise RegistryError(f"{path}: {e}") from None
-    if payload.get("version") != version or payload.get("digest") != digest:
-        raise RegistryError(f"{path}: signs version {payload.get('version')} {payload.get('digest')}, "
-                            f"but versions/{version} is {digest}")
+        return {}
+    pairs = (line.split() for line in path.read_text().splitlines() if line.strip())
+    return {int(n): d for n, d in pairs}
 
 
-def release(spec: Path, registry: Path, key_path: Path) -> Release:
-    """Freeze a pack folder into the registry as its next version, signed by the publisher.
+def release(spec: Path, registry: Path) -> Release:
+    """Freeze a pack folder into the registry as its next version.
 
     The spec folder's manifest is bumped to the new version first, so the spec and
     the frozen copy share a digest and a second release of the same content is a no-op.
-    The first release under an owner records the publisher's public key next to its
-    packs; later releases must be signed by the same key.
+    Each version's digest is appended to the pack's `digests.txt`, and `site check`
+    refuses a version whose files no longer match it. Who may release is decided by
+    who can merge into the registry (and, with GitHub Releases, who can release in
+    the publisher's repository), not by keys of our own.
     """
     spec, registry = Path(spec), Path(registry)
     report = validate_pack(spec)
@@ -553,11 +543,6 @@ def release(spec: Path, registry: Path, key_path: Path) -> Release:
     if not PACK_REF_RE.match(pack_id):
         raise RegistryError(f"{PACK_MANIFEST_FILE}: id must look like 'owner/name', got {pack_id!r}")
     owner, name = pack_id.split("/")
-    key = keys.load_private(key_path)
-    public = keys.public_path(Path(key_path))
-    owner_key = registry / owner / PUBLISHER_KEY
-    if owner_key.is_file() and keys.keyid(keys.load_public(owner_key)) != keys.keyid(key.public_key()):
-        raise RegistryError(f"{owner_key} belongs to another key; only the owner's key can release under {owner}/")
     pack_root = registry / owner / name
     current = latest_version(pack_root)
     if current is not None:
@@ -573,19 +558,15 @@ def release(spec: Path, registry: Path, key_path: Path) -> Release:
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(path, dest)
     digest = pack_digest(target)
-    payload = json.dumps({"pack": pack_id, "version": version, "digest": digest}, sort_keys=True).encode()
-    sig = pack_root / SIGNATURES_DIR / f"{version}.json"
-    sig.parent.mkdir(parents=True, exist_ok=True)
-    sig.write_text(json.dumps(keys.sign_envelope(payload, key), indent=2) + "\n")
-    if not owner_key.is_file():
-        shutil.copyfile(public, owner_key)
+    with (pack_root / DIGESTS_FILE).open("a") as f:
+        f.write(f"{version} {digest}\n")
     return Release(pack_id, version, digest, target, True)
 
 
 def check_registry(registry: Path) -> list[str]:
-    """What a submission must pass: every latest version builds, and is signed where its owner has a key.
+    """What a submission must pass: every latest version builds, and no released version changed.
 
-    Returns warnings for packs whose owner has not registered a key yet.
+    Returns warnings for packs that have no `digests.txt` yet (made before `release` wrote one).
     """
     registry = Path(registry)
     with tempfile.TemporaryDirectory() as tmp:
@@ -593,12 +574,16 @@ def check_registry(registry: Path) -> list[str]:
                            store_url="https://store.invalid")
     warnings = []
     for b in built:
-        owner, name = b.id.split("/")
-        owner_key = registry / owner / PUBLISHER_KEY
-        if owner_key.is_file():
-            _verify_signature(registry / owner / name, b.version, b.digest, owner_key)
-        else:
-            warnings.append(f"{b.id}: unsigned; {owner}/ has no {PUBLISHER_KEY}")
+        pack_root = registry / b.id
+        recorded = _recorded_digests(pack_root)
+        if not recorded:
+            warnings.append(f"{b.id}: no {DIGESTS_FILE}, so edits to released versions are not caught")
+            continue
+        for n, expected in sorted(recorded.items()):
+            actual = pack_digest(pack_root / VERSIONS_DIR / str(n))
+            if actual != expected:
+                raise RegistryError(f"{b.id}: version {n} was released as {expected} but is now {actual}; "
+                                    "release a new version instead of editing an old one")
     return warnings
 
 
@@ -619,7 +604,7 @@ def _fetch(url: str, token: str | None = None) -> bytes:
         raise RegistryError(f"could not fetch {url}: {e}") from None
 
 
-def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None, token: str | None = None,
+def pull(pack_id: str, registry: str, dest: Path, token: str | None = None,
          digest: str | None = None) -> BuiltPack:
     """Download the latest version of a pack, check it, and unpack it into `dest`.
 
@@ -660,14 +645,6 @@ def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None, tok
     listed = _fetch(prefix + SHA_FILE).decode().split()[0]
     if sha != listed or sha != entry["tarball_sha256"]:
         raise RegistryError(f"tarball sha256 is {sha}, the registry lists {listed}")
-    if trust:
-        envelope = json.loads(_fetch(prefix + SIGNATURE_FILE))
-        try:
-            payload = json.loads(keys.verify_envelope(envelope, keys.load_public(trust)))
-        except ValueError as e:
-            raise RegistryError(f"signature: {e}") from None
-        if payload.get("pack") != pack_id or payload.get("tarball_sha256") != sha or payload.get("digest") != entry["digest"]:
-            raise RegistryError("signature does not cover this tarball")
     return BuiltPack(pack_id, entry["version"], _unpack(tarball, pack_id, dest, entry["digest"]), sha)
 
 

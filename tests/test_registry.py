@@ -4,7 +4,6 @@ import shutil
 import pytest
 from typer.testing import CliRunner
 
-from symbolon import keys
 from symbolon.digest import contract_digest
 from symbolon.cli import app
 from symbolon.pack import validate_pack
@@ -164,16 +163,6 @@ def test_pull_does_not_take_a_version(site, tmp_path):
         pull("kausalflow/lightkone@1", str(site), tmp_path / "lk")
 
 
-def test_signed_pull_checks_the_publisher_key(registry, tmp_path):
-    key = keys.generate(tmp_path / "keys" / "publisher.key")
-    other = keys.generate(tmp_path / "keys" / "other.key")
-    build_site(registry, tmp_path / "site", key_path=key)
-    got = pull("kausalflow/lightkone", str(tmp_path / "site"), tmp_path / "lk", trust=keys.public_path(key))
-    assert got.version == 2
-    with pytest.raises(RegistryError, match="signature"):
-        pull("kausalflow/lightkone", str(tmp_path / "site"), tmp_path / "lk2", trust=keys.public_path(other))
-
-
 def test_cli_init_build_and_pull(registry, tmp_path):
     r = runner.invoke(app, ["pack", "init", "acme/demo", "--dir", str(tmp_path / "spec")])
     assert r.exit_code == 0, r.output
@@ -185,53 +174,40 @@ def test_cli_init_build_and_pull(registry, tmp_path):
     assert (tmp_path / "lk" / "AGENTS.md").is_file()
 
 
-@pytest.fixture
-def publisher(tmp_path):
-    return keys.generate(tmp_path / "keys" / "publisher.key")
-
-
-def test_release_freezes_signs_and_claims_the_owner(tmp_path, publisher):
+def test_release_freezes_and_records_the_digest(tmp_path):
     spec = scaffold_pack("acme/demo", tmp_path / "spec")
     reg = tmp_path / "packs"
-    r = release(spec, reg, publisher)
+    r = release(spec, reg)
     assert r.created and r.version == 1
-    assert (reg / "acme" / "publisher.pub").is_file()
-    assert (reg / "acme" / "demo" / "signatures" / "1.json").is_file()
+    assert (reg / "acme" / "demo" / "digests.txt").read_text() == f"1 {r.digest}\n"
     assert pack_digest(reg / "acme" / "demo" / "versions" / "1") == pack_digest(spec) == r.digest
     assert check_registry(reg) == []
 
 
-def test_release_of_unchanged_content_is_a_no_op(tmp_path, publisher):
+def test_release_of_unchanged_content_is_a_no_op(tmp_path):
     spec = scaffold_pack("acme/demo", tmp_path / "spec")
     reg = tmp_path / "packs"
-    release(spec, reg, publisher)
-    assert not release(spec, reg, publisher).created
+    release(spec, reg)
+    assert not release(spec, reg).created
     (spec / "BRIEF.md").write_text((spec / "BRIEF.md").read_text() + "\nMore.\n")
-    r = release(spec, reg, publisher)
+    r = release(spec, reg)
     assert r.created and r.version == 2
     assert 'version = 2' in (reg / "acme" / "demo" / "versions" / "2" / "symbolon-pack.toml").read_text()
     assert check_registry(reg) == []
 
 
-def test_release_refuses_another_owners_key(tmp_path, publisher):
+def test_check_registry_rejects_an_edited_released_version(tmp_path):
     reg = tmp_path / "packs"
-    release(scaffold_pack("acme/demo", tmp_path / "spec"), reg, publisher)
-    intruder = keys.generate(tmp_path / "keys" / "intruder.key")
-    with pytest.raises(RegistryError, match="another key"):
-        release(scaffold_pack("acme/other", tmp_path / "spec2"), reg, intruder)
-
-
-def test_check_registry_rejects_an_edited_signed_version(tmp_path, publisher):
-    reg = tmp_path / "packs"
-    release(scaffold_pack("acme/demo", tmp_path / "spec"), reg, publisher)
+    release(scaffold_pack("acme/demo", tmp_path / "spec"), reg)
     brief = reg / "acme" / "demo" / "versions" / "1" / "BRIEF.md"
     brief.write_text(brief.read_text() + "\nTampered.\n")
-    with pytest.raises(RegistryError, match="signs version 1"):
+    with pytest.raises(RegistryError, match="version 1 was released as"):
         check_registry(reg)
 
 
-def test_check_registry_warns_about_unsigned_owners(registry):
-    assert check_registry(registry) == ["kausalflow/lightkone: unsigned; kausalflow/ has no publisher.pub"]
+def test_check_registry_warns_about_packs_without_recorded_digests(registry):
+    assert check_registry(registry) == [
+        "kausalflow/lightkone: no digests.txt, so edits to released versions are not caught"]
 
 
 def _price(registry, amount=1900):

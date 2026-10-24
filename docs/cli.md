@@ -252,18 +252,18 @@ Creates a pack folder (by default `spec/`, next to your code) with a manifest, `
 ## `site build`
 
 ```
-symbolon site build [REGISTRY=packs] [--out site-registry] [--key KEY] [--base-url URL] [--private-out DIR --store-url URL]
+symbolon site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
 ```
 
-Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md` and `parts/`, `llms.txt`, raw files, and `evidence.json` with every attestation checked. With `--key`, signs each pack. A priced pack's tarball goes to `--private-out` for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See [Pack registry](REGISTRY.md#building-the-site).
+Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md` and `parts/`, `llms.txt`, raw files, and `evidence.json` with every attestation checked. A priced pack's tarball goes to `--private-out` for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See [Pack registry](REGISTRY.md#building-the-site).
 
 ## `pull`
 
 ```
-symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--trust PUBKEY] [--token LICENSE] [--digest DIGEST]
+symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
 ```
 
-Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, and with `--trust` the publisher's signature, then unpacks it into `DEST` (default `./<name>`). A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Pack registry](REGISTRY.md#pulling-a-pack).
+Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into `DEST` (default `./<name>`). A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Pack registry](REGISTRY.md#pulling-a-pack).
 
 ## `site check`
 
@@ -271,12 +271,12 @@ Downloads the latest version of a pack, checks the tarball's sha256 and the unpa
 symbolon site check [REGISTRY=packs]
 ```
 
-Builds the registry in a temporary folder and checks each latest version's signature against its owner's `publisher.pub`. Prints a warning for owners without a key. See [Pack registry](REGISTRY.md#submission-checks).
+Builds the registry in a temporary folder, so every latest version must validate, and checks that every version in a pack's `digests.txt` still has its recorded digest. Prints a warning for packs without a `digests.txt`. See [Pack registry](REGISTRY.md#submission-checks).
 
 ## `release`
 
 ```
-symbolon release [SPEC=spec] --registry PACKS [--key KEY]
+symbolon release [SPEC=spec] --registry PACKS
 ```
 
-Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next version, and signs it. Does nothing if the content is unchanged since the latest version. See [Pack registry](REGISTRY.md#releasing).
+Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next version, and records its digest in `digests.txt`. Does nothing if the content is unchanged since the latest version. See [Pack registry](REGISTRY.md#releasing).
