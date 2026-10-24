@@ -12,7 +12,7 @@ from symbolon.registry import RegistryError, build_site, check_registry, pack_di
 
 from .conftest import REPO
 
-LIGHTKONE = REPO / "packs" / "kausalflow" / "lightkone" / "versions" / "1"
+LIGHTKONE = REPO / "tests" / "fixtures" / "lightkone" / "versions" / "1"
 runner = CliRunner()
 
 

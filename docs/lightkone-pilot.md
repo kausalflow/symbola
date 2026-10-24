@@ -1,6 +1,6 @@
 # Lightkone pilot
 
-The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in `packs/kausalflow/lightkone/`.
+The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in [kausalflow/symbolon-registry](https://github.com/kausalflow/symbolon-registry), under `packs/kausalflow/lightkone/`.
 
 | Path | What it is | Ships to buyers |
 | --- | --- | --- |
@@ -88,7 +88,7 @@ Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split
 ## Re-running the evidence
 
 ```bash
-cd packs/kausalflow/lightkone
+git clone https://github.com/kausalflow/symbolon-registry && cd symbolon-registry/packs/kausalflow/lightkone
 symbolon pack validate 1
 symbolon verify attestations/search-query.go-1.json --trust attestations/runner-a.pub \
   --contract versions/1/components/search-query/versions/1 --impl rebuilds/go-1/search-query --rerun

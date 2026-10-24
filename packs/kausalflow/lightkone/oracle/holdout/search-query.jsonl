@@ -1,9 +1,0 @@
-{"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "in:math/logic"}, "output": {"ids": ["godel31"]}, "note": "nested folder, folded"}
-{"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "author:bottou is:trash"}, "output": {"ids": ["lecun98"]}, "note": "author filter inside the trash"}
-{"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "\"attention is\""}, "output": {"ids": ["vaswani17"]}, "note": "phrase"}
-{"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "year:2012-2012 tag:dropout"}, "output": {"ids": ["hinton12"]}, "note": "range of one year and tag"}
-{"input": {"papers": {"$fixture": "library.json"}, "sort": "year", "query": "has:arxiv"}, "output": {"ids": ["vaswani17", "hinton12"]}, "note": "has:arxiv by year"}
-{"input": {"papers": {"$fixture": "library.json"}, "sort": "opened", "query": "neural"}, "output": {"ids": ["hinton12", "vaswani17"]}, "note": "words under the opened sort"}
-{"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "SATZE"}, "output": {"ids": ["godel31"]}, "note": "folded title word"}
-{"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "is:STARRED"}, "output": {"ids": ["hinton12"]}, "note": "is: value is lower-cased"}
-{"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "no:pdf has:notes"}, "output": {"ids": ["cafe"]}, "note": "combined has/no"}
