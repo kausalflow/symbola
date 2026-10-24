@@ -1095,12 +1095,12 @@
 </tr>
 <tr>
 <td><code>rebuilds/python-1/</code></td>
-<td>Milestone 1: an AI build in Python of the first three contracts</td>
+<td>Milestone 1: an AI build in Python (Claude Opus 5.5 in Claude Code) of the first three contracts</td>
 <td>no</td>
 </tr>
 <tr>
 <td><code>rebuilds/go-1/</code></td>
-<td>Milestone 2: a second AI's build in Go of all eight contracts, with its NOTES.md</td>
+<td>Milestone 2: a second AI build in Go of all eight contracts, with its NOTES.md</td>
 <td>no</td>
 </tr>
 <tr>
@@ -1236,7 +1236,7 @@
 </table>
 <p>How it went:</p>
 <ol>
-<li><strong>Second builder, second language.</strong> A different AI model got only <code>versions/1/</code> and built all eight components in Go (standard library only), with lightkone, the oracle and the Python rebuild moved off the machine. It passed all eight contracts and all eight holdouts.</li>
+<li><strong>Second build, second language.</strong> A fresh Claude Code session (Claude Opus 5.5, the same model as the Python build, with no access to it) got only <code>versions/1/</code> and built all eight components in Go (standard library only), with lightkone, the oracle and the Python rebuild moved off the machine. It passed all eight contracts and all eight holdouts.</li>
 <li><strong>Passing is not agreeing.</strong> <code>oracle/differential.py</code> sends the same generated inputs to lightkone and the Go build and reports every disagreement on inputs the contract accepts. On about 5,000 inputs, six contracts agreed completely. <code>bibtex-import</code> and <code>search-query</code> showed five real gaps that both the spec and the holdout had missed:</li>
 <li>a malformed BibTeX field skipped to a <code>}</code> ends the entry, but one skipped to a comma does not (the contract said the rest was always lost);</li>
 <li>"whitespace" means JavaScript's <code>\s</code>, including no-break space and U+2028;</li>
