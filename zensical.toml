@@ -17,6 +17,7 @@ nav = [
     { "Writing a contract" = "guides/writing-a-contract.md" },
     { "Measuring ambiguity" = "guides/measuring-ambiguity.md" },
     { "Extracting a pack" = "guides/extracting-a-pack.md" },
+    { "Replicating a pack" = "guides/replicating-a-pack.md" },
   ] },
   { "Reference" = [
     { "CLI" = "cli.md" },

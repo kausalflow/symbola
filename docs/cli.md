@@ -15,6 +15,7 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 | [`verify`](#verify) | Check an attestation's signature, trust and digests; optionally reproduce it |
 | [`diff`](#diff) | Run several builds on one input pool and measure where they disagree |
 | [`extract`](#extract) | Have a coding agent draft a spec pack from an existing product, then check the draft |
+| [`replicate`](#replicate) | Hand a pack to outside coding agents, then test, attest and diff their builds |
 | [`pack validate`](#pack-validate) | Check a spec pack's brief, assumptions and obligations |
 | [`mutants`](#mutants) | Show which checks kill which mutants, and the kill rate |
 | [`canary plant`](#canary-plant) | Copy a contract for a builder with one example changed to contradict the spec |
@@ -147,6 +148,37 @@ for the agent. Symbolon never changes `SOURCE`.
 | `--no-oracle` | Skip the oracle check, for products whose code cannot be called from an adapter |
 
 See [Extracting a pack](guides/extracting-a-pack.md).
+
+## `replicate`
+
+```
+symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--component NAME ...]
+                   [--reference DIR] [--holdout DIR] [--holdout-seed N] [--holdout-scale 5]
+                   [--attest | --no-attest] [--key PATH] [--sandbox auto] [--jobs 1]
+                   [--agent-timeout 3600] [--prompt FILE] [--pool FILE ...]
+                   [--mutations 500] [--property-cases 50] [--search 300] [--seed 0]
+                   [--max-ambiguity X] [-o replication] [--json]
+```
+
+Gives a builder's copy of the pack at `PACK` to an outside coding agent once per
+build, then attests every component of every build, runs the holdout, and runs
+`diff` per component across the builds that passed. Symbolon does not build
+anything itself. Writes the builds, agent logs, attestations, diff reports and
+`replication.json` into the `-o` directory, which must not exist.
+
+| Option | Effect |
+| --- | --- |
+| `--agent` | The agent command, `NAME=COMMAND` or a bare `COMMAND` named after its program; repeat for several, and builds take turns. Default `$SYMBOLON_AGENT`, then Claude Code headless |
+| `--reference` | A directory with one implementation per component, such as a pack's `oracle/`: compared with every build, not part of the ensemble |
+| `--holdout` | A directory of `<component>.jsonl` examples the builders never see, run with `--holdout-seed` and `--holdout-scale` times the property cases |
+| `--no-attest` | Test each build instead of attesting it; no runner key needed |
+| `--jobs` | How many agents run at once |
+| `--prompt` | A prompt template instead of the default; `$pack`, `$build` and `$components` are filled in |
+| `--pool`, `--mutations`, `--property-cases`, `--search`, `--seed` | Passed to `diff` |
+
+Exits 1 when a build fails a component or its holdout, or a component's ambiguity is
+above `--max-ambiguity`. The agent runs with your permissions, outside the sandbox.
+See [Replicating a pack](guides/replicating-a-pack.md).
 
 ## `pack validate`
 
