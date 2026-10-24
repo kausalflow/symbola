@@ -101,7 +101,7 @@ def test_site_shows_checked_evidence_and_keeps_attested_versions(attested, tmp_p
     evidence = json.loads((files / "evidence.json").read_text())
     records = {r["file"]: r for r in evidence["attestations"]}
     assert all(r["valid"] for r in records.values())
-    assert records["attestations/library-file.go-1.json"]["covers"] == "latest"
+    assert records["attestations/citation-key.go-1.json"]["covers"] == "latest"
     tidy = records["attestations/tidy.go-1.json"]
     assert tidy["covers"] == "older" and tidy["pack_version"] == 1
     (entry,) = json.loads((site / "index.json").read_text())["packs"]
