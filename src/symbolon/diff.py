@@ -22,7 +22,7 @@ every build but is not part of the ensemble, so the estimate stays
 reference-free and the distance to the reference is a separate number.
 
 Nothing here executes contract or implementation code: the outcomes come
-from the worker (pool.py).
+from the worker (pool.py), which `measure` starts in its own process.
 """
 
 from __future__ import annotations
@@ -30,6 +30,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import tempfile
 import tomllib
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -39,9 +40,12 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE, load_impl_manifest
+from .manifest import load_manifest
 from .pack import OBLIGATIONS_FILE, PACK_MANIFEST_FILE, Obligations, component_name
 from .spec import values_match
+from .validate import WorkerError, run_worker
 
 TIERS = ("crash", "value", "format")
 DEFAULT_SEVERITY = {"crash": 1.0, "value": 1.0, "format": 0.1}
@@ -375,3 +379,33 @@ def analyse(cases: list[dict], members: list[Member], contract_dir: Path, *, ref
         "readings": compare_readings(ensemble),
     }
     return DiffResult(report, estimate)
+
+
+def measure(contract_dir: Path, members: list[Member], *, reference: str | None = None,
+            severity: dict[str, float] | None = None, pools: list[Path] = (), realistic: Path | None = None,
+            mutations: int = 500, property_cases: int = 50, search: int = 300, seed: int = 0,
+            timeout: int = 900) -> dict:
+    """Build the input pool, run every member on it in the worker, and return the report."""
+    contract_dir = Path(contract_dir).resolve()
+
+    def run(config: dict) -> dict:
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = Path(tmp) / "diff.json"
+            cfg.write_text(json.dumps({"impls": [[m.name, str(Path(m.path).resolve())] for m in members],
+                                       "seed": seed, **config}))
+            result = run_worker("diff", contract_dir, str(cfg), timeout=timeout)
+        if "error" in result:
+            raise WorkerError(result["error"])
+        return result
+
+    tol = load_manifest(contract_dir).spec.float_rel_tol
+    result = run({"mutations": mutations, "property_cases": property_cases, "search": search,
+                  "pools": [str(Path(p).resolve()) for p in pools]})
+    report = analyse(result["cases"], members, contract_dir, reference=reference, severity=severity,
+                     rel_tol=tol, seed=seed, witnesses=result["witnesses"]).report
+    if realistic is not None:
+        real_cases = run({"examples": False, "pools": [str(Path(realistic).resolve())], "witnesses": 0})["cases"]
+        real = analyse(real_cases, members, contract_dir, reference=reference, severity=severity,
+                       rel_tol=tol, seed=seed).report
+        report["realistic"] = {k: real[k] for k in ("pool", "distances", "rao", "to_reference")}
+    return {"digest": contract_digest(contract_dir), **report}

@@ -10,12 +10,14 @@ from pathlib import Path
 import typer
 
 from . import canary as canary_mod, keys
+from .agent import AgentError, parse_agents
 from .attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
-from .diff import TIERS, analyse, load_member, member_name
+from .diff import TIERS, load_member, measure, member_name
 from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .pack import component_name, report_json, summary_line, validate_pack
+from .replicate import Options, ReplicateError, replicate as replicate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
 from .validate import WorkerError, check_impl, mutants_report, regenerate_schema, run_worker, validate
@@ -364,31 +366,14 @@ def diff_cmd(
         _line(False, "could not read an implementation's manifest or readings.toml", str(e))
         raise typer.Exit(1)
 
-    def run(config: dict) -> list[dict]:
-        with tempfile.TemporaryDirectory() as tmp:
-            cfg = Path(tmp) / "diff.json"
-            cfg.write_text(json.dumps({"impls": [[n, str(p)] for n, p in named], "seed": seed, **config}))
-            result = run_worker("diff", Path(contract).resolve(), str(cfg), timeout=timeout)
-        if "error" in result:
-            raise WorkerError(result["error"])
-        return result
-
-    tol = load_manifest(contract).spec.float_rel_tol
     try:
-        result = run({"mutations": mutations, "property_cases": property_cases, "search": search,
-                      "pools": [str(p.resolve()) for p in pool]})
-        report = analyse(result["cases"], members, contract, reference=reference, severity=costs, rel_tol=tol,
-                         seed=seed, witnesses=result["witnesses"]).report
-        real = None
-        if realistic is not None:
-            real_cases = run({"examples": False, "pools": [str(realistic.resolve())], "witnesses": 0})["cases"]
-            real = analyse(real_cases, members, contract, reference=reference, severity=costs,
-                           rel_tol=tol, seed=seed).report
-            report["realistic"] = {k: real[k] for k in ("pool", "distances", "rao", "to_reference")}
+        report = measure(contract, members, reference=reference, severity=costs, pools=pool, realistic=realistic,
+                         mutations=mutations, property_cases=property_cases, search=search, seed=seed,
+                         timeout=timeout)
     except WorkerError as e:
         _line(False, "diff run failed", str(e))
         raise typer.Exit(1)
-    report = {"digest": contract_digest(contract), **report}
+    real = report.get("realistic")
     if out is not None:
         out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
     if as_json:
@@ -402,6 +387,129 @@ def diff_cmd(
         if not as_json:
             typer.echo(typer.style(f"\nambiguity {estimate:.4f} is above --max-ambiguity {max_ambiguity:g}", fg=typer.colors.RED))
         raise typer.Exit(1)
+
+
+def _print_replication(r: dict, top: int) -> None:
+    for b in r["builds"]:
+        built = sum(c.get("built", False) for c in b["components"].values())
+        took = f"{b['seconds']:.0f}s" if b["seconds"] is not None else "did not finish"
+        _line(b["exit_code"] == 0, f"build {b['name']}", f"{b['agent']}, {took}, {built}/{len(b['components'])} components built")
+        if b["exit_code"] != 0:
+            typer.echo(f"    agent exit {b['exit_code']}, see {b['log']}")
+        for comp, c in b["components"].items():
+            pub = c.get("public", {})
+            if not pub.get("passed"):
+                _line(False, f"  {comp}", pub.get("error") or f"failed {len(pub.get('failed', []))} of {pub.get('checks')} checks: "
+                      + ", ".join(pub.get("failed", [])[:5]))
+            elif "holdout" in c and not c["holdout"].get("passed"):
+                h = c["holdout"]
+                _line(False, f"  {comp} holdout", h.get("error") or f"failed {len(h.get('failed', []))} of {h.get('checks')} checks: "
+                      + ", ".join(h.get("failed", [])[:5]))
+    typer.echo("")
+    for comp, row in r["components"].items():
+        held = f", holdout {row['holdout_passed']}/{row['passed']}" if row["holdout_passed"] is not None else ""
+        d = row["diff"]
+        if d is None:
+            measured = "not diffed: needs two passing implementations"
+        elif "error" in d:
+            measured = f"diff failed: {d['error']}"
+        else:
+            amb = f"ambiguity {d['ambiguity']:.4f}" if d["ambiguity"] is not None else "ambiguity needs two builds"
+            ref = ""
+            if d["to_reference"]:
+                ref = ", vs reference " + ", ".join(f"{n} {v:.4f}" for n, v in d["to_reference"].items())
+            measured = f"{amb}{ref}, {len(d['splits'])} split(s)"
+        ok = row["passed"] == row["builds"] and (row["holdout_passed"] in (None, row["passed"]))
+        _line(ok and bool(d) and "error" not in d and not d["splits"],
+              f"{comp}  {row['passed']}/{row['builds']} builds passed{held}", measured)
+        if d and "splits" in d:
+            for i, s in enumerate(d["splits"][:top], 1):
+                groups = " | ".join(", ".join(g) for g in s["groups"])
+                traced = ", ".join(s["obligations"])
+                what = {"gap": "no obligation covers it, a gap in the pack",
+                        "weak-check": f"traces to {traced}, whose checks are too weak to tell them apart",
+                        }.get(s["verdict"], f"traces to {traced}")
+                typer.echo(f"    {i}. {groups}  {s['inputs']} inputs; {what}")
+            if len(d["splits"]) > top:
+                typer.echo(typer.style(f"    … {len(d['splits']) - top} more in {d['report']}", dim=True))
+    s = r["summary"]
+    typer.echo("")
+    if s["converged"]:
+        typer.echo(typer.style(f"converged: {s['builds']} builds pass and agree on every input tried", fg=typer.colors.GREEN, bold=True))
+    else:
+        why = []
+        if not s["all_passed"]:
+            why.append("some builds fail the public suite")
+        if not s["holdouts_passed"]:
+            why.append("some builds fail the holdout")
+        if s["splits"]:
+            why.append(f"{s['splits']} split(s) to review")
+        if not why:
+            why.append("too few passing builds to compare")
+        typer.echo(typer.style("not converged: " + "; ".join(why), fg=typer.colors.YELLOW, bold=True))
+
+
+@app.command()
+def replicate(
+    pack: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    agent: list[str] = typer.Option([], help="Coding agent command, as NAME=COMMAND or COMMAND. Repeat for several; "
+                                     "builds take turns. Default $SYMBOLON_AGENT, else Claude Code."),
+    builds: int = typer.Option(2, help="How many builds to make."),
+    component: list[str] = typer.Option([], help="Build only this component. Repeat for several. Default every one."),
+    reference: Path | None = typer.Option(None, help="The original product: a directory with one implementation per component, compared with every build."),
+    holdout: Path | None = typer.Option(None, help="Publisher's holdout: a directory of <component>.jsonl examples the builders never see."),
+    holdout_seed: int = typer.Option(20261021, help="Property seed for the holdout run."),
+    holdout_scale: int = typer.Option(5, help="Holdout runs this many times the property cases."),
+    out: Path = typer.Option(Path("replication"), "-o", "--out", help="Run directory to create: builds, logs, attestations, replication.json."),
+    attest_builds: bool = typer.Option(True, "--attest/--no-attest", help="Attest each build in a sandbox, or just test it."),
+    key: Path = typer.Option(keys.DEFAULT_KEY, help="Runner signing key for the attestations."),
+    sandbox: str = typer.Option("auto", help="auto, container or process."),
+    jobs: int = typer.Option(1, help="Agents to run at once."),
+    agent_timeout: int = typer.Option(3600, help="Seconds before an agent is stopped."),
+    prompt: Path | None = typer.Option(None, help="Prompt template to use instead of the default; $pack, $build and $components are filled in."),
+    pool: list[Path] = typer.Option([], help="diff: extra inputs, one JSON input per line, such as real use. Repeat for several."),
+    mutations: int = typer.Option(500, help="diff: mutated copies of example and property inputs."),
+    property_cases: int = typer.Option(50, help="diff: inputs to record from each property's generator."),
+    search: int = typer.Option(300, help="diff: budget of extra inputs mutated from disagreements."),
+    seed: int = typer.Option(0, help="diff: seed for the pool and the bootstrap."),
+    diff_timeout: int = typer.Option(900, help="diff: seconds before a component's run is stopped."),
+    max_ambiguity: float | None = typer.Option(None, help="Exit 1 if any component's ambiguity is above this."),
+    top: int = typer.Option(3, help="Splits to print per component."),
+    as_json: bool = typer.Option(False, "--json", help="Print the report as JSON."),
+) -> None:
+    """Hand a pack to outside coding agents, then test, attest and diff the builds they make."""
+    try:
+        agents = parse_agents(agent)
+    except AgentError as e:
+        raise typer.BadParameter(str(e), param_hint="--agent")
+    opts = Options(builds=builds, components=component or None, reference=reference, holdout=holdout,
+                   holdout_seed=holdout_seed, holdout_scale=holdout_scale, jobs=jobs, agent_timeout=agent_timeout,
+                   prompt=prompt.read_text() if prompt else None, pools=pool, mutations=mutations,
+                   property_cases=property_cases, search=search, seed=seed, diff_timeout=diff_timeout,
+                   progress=(lambda msg: None) if as_json else (lambda msg: typer.echo(typer.style(msg, dim=True))))
+    if attest_builds:
+        try:
+            opts.key = keys.load_private(key)
+        except FileNotFoundError:
+            _line(False, f"no runner key at {key}", "run `symbolon keygen`, or pass --no-attest to test without signing")
+            raise typer.Exit(1)
+    try:
+        if attest_builds:
+            opts.sandbox = select(sandbox)
+        report = replicate_pack(pack, out, agents, opts)
+    except (ReplicateError, SandboxError, ValueError) as e:
+        _line(False, "replication failed", str(e))
+        raise typer.Exit(1)
+    if as_json:
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+    else:
+        _print_replication(report, top)
+        typer.echo(f"\nwrote {out / 'replication.json'}")
+    s = report["summary"]
+    too_ambiguous = max_ambiguity is not None and any(
+        r["diff"] and r["diff"].get("ambiguity") is not None and r["diff"]["ambiguity"] > max_ambiguity
+        for r in report["components"].values())
+    raise typer.Exit(0 if s["all_passed"] and s["holdouts_passed"] and not too_ambiguous else 1)
 
 
 pack_app = typer.Typer(no_args_is_help=True, help="Work with spec packs.")
