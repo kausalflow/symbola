@@ -746,10 +746,54 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#keeping-a-pack-while-you-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Keeping a pack while you build
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Releasing
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submission-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Submission checks
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#building-the-site" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
         Building the site
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The site
       </span>
     </span>
   </a>
@@ -981,10 +1025,54 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#keeping-a-pack-while-you-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Keeping a pack while you build
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Releasing
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submission-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Submission checks
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#building-the-site" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
         Building the site
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The site
       </span>
     </span>
   </a>
@@ -1111,26 +1199,62 @@ not have guessed as an obligation with a check, and each fact about the world as
 assumption.</p>
 <p>Holdout tests must stay <strong>outside</strong> the pack folder. <code>site build</code> refuses a pack that
 contains a <code>holdout</code> path.</p>
+<h2 id="keeping-a-pack-while-you-build">Keeping a pack while you build<a class="headerlink" href="#keeping-a-pack-while-you-build" title="Permanent link">&para;</a></h2>
+<p>The repository ships a Claude Code skill, <a href="https://github.com/kausalflow/symbolon/blob/main/skills/symbolon-pack/SKILL.md"><code>skills/symbolon-pack/SKILL.md</code></a>.
+Copy it into your project's <code>.claude/skills/</code> (or point another coding tool at it
+from your <code>AGENTS.md</code>). It tells the agent to update <code>spec/</code> in the same change as
+the code whenever you make a decision a builder could not have guessed, state a
+fact about the world, or leave something open, and to run <code>pack validate</code> after
+each change.</p>
+<h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbolon keygen                                        # once: your publisher key
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>symbolon release spec --registry ../registry/packs     # in a clone of the registry
+</span></code></pre></div>
+<p><code>release</code> validates the pack, sets its manifest version to the next free number,
+copies it to <code>packs/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code>, and writes
+<code>packs/&lt;owner&gt;/&lt;name&gt;/signatures/&lt;n&gt;.json</code>, a DSSE envelope over
+<code>{pack, version, digest}</code>. Releasing unchanged content does nothing. The first
+release under an owner writes <code>packs/&lt;owner&gt;/publisher.pub</code>; after that, only the
+same key can release under that owner. Then commit and open a pull request.</p>
+<h2 id="submission-checks">Submission checks<a class="headerlink" href="#submission-checks" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>symbolon site check packs
+</span></code></pre></div>
+<p>CI runs this on every pull request. It builds the whole registry (so every latest
+version must pass <code>pack validate</code>, match its manifest id, and hold no holdout
+files) and, for owners with a <code>publisher.pub</code>, checks that the latest version's
+signature matches its digest. Owners without a key are reported as unsigned, a
+warning for now.</p>
 <h2 id="building-the-site">Building the site<a class="headerlink" href="#building-the-site" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbolon site build packs --out site-registry [--key publisher.key] [--base-url https://…/registry]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>symbolon site build packs --out site-registry [--key publisher.key] [--base-url https://…/registry]
 </span></code></pre></div>
 <p>For each pack, it validates the latest version (the build fails if any pack is
 invalid) and writes:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>index.json                                 every pack: id, version, title, license, digest, tarball sha256, summary, files
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>llms.txt                                   one line per pack, for agents
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>packs/&lt;owner&gt;/&lt;name&gt;/
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  latest.tar.gz                            the pack folder, byte-identical on every build
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  latest.sha256                            sha256 of the tarball
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  latest.sig.json                          with --key: a DSSE envelope over {pack, version, digest, tarball_sha256}
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>  pack.md                                  the whole pack in one Markdown file
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>  llms.txt                                 the pack's files, for agents
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  files/…                                  every file of the pack, raw
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>index.json                                 every pack: id, version, title, license, digest, tarball sha256, summary, files
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>llms.txt                                   one line per pack, for agents
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>packs/&lt;owner&gt;/&lt;name&gt;/
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  latest.tar.gz                            the pack folder, byte-identical on every build
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  latest.sha256                            sha256 of the tarball
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  latest.sig.json                          with --key: a DSSE envelope over {pack, version, digest, tarball_sha256}
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>  pack.md                                  the whole pack in one Markdown file
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  llms.txt                                 the pack's files, for agents
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  files/…                                  every file of the pack, raw
 </span></code></pre></div>
 <p>The pack digest is the contract framing (<a href="../CONTRACT_FORMAT/">CONTRACT_FORMAT.md</a>)
 over the pack folder with the header <code>symbolon-pack-v1\n</code>.</p>
-<p>Rendered previews and search pages are a later step (an Astro site over these files).</p>
+<h2 id="the-site">The site<a class="headerlink" href="#the-site" title="Permanent link">&para;</a></h2>
+<p><code>registry-site/</code> is an <a href="https://astro.build">Astro</a> site over those files, with
+<a href="https://pagefind.app">Pagefind</a> search built at the same time, so it needs no server.
+It adds a catalog page with search, a page per pack (brief, assumptions, obligations
+by status, download links, file tree), and a rendered view of every file under
+<code>packs/&lt;owner&gt;/&lt;name&gt;/view/&lt;file&gt;/</code>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>registry-site/build.sh OUT ORIGIN BASE     # e.g. site/registry https://kausalflow.github.io /symbolon/registry
+</span></code></pre></div>
+<p>runs <code>symbolon site build</code> into <code>registry-site/public/</code>, then <code>astro build</code> and
+<code>pagefind</code>, and copies the result to <code>OUT</code>. The docs workflow runs it on every push
+to <code>main</code> and publishes the result at <a href="https://kausalflow.github.io/symbolon/registry/">https://kausalflow.github.io/symbolon/registry/</a>;
+PR previews get their own copy.</p>
 <h2 id="pulling-a-pack">Pulling a pack<a class="headerlink" href="#pulling-a-pack" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--trust publisher.pub]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--trust publisher.pub]
 </span></code></pre></div>
 <p><code>pull</code> takes no version: the registry serves only the latest. It downloads the
 tarball, checks its sha256 against <code>latest.sha256</code> and <code>index.json</code>, unpacks it,

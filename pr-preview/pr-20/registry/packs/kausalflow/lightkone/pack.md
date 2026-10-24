@@ -1,6 +1,6 @@
 # kausalflow/lightkone (version 1)
 
-Pack digest: `sha256:149c31512ee855ae94efd4eac6565c2b2c03d12bf62649e14053083e2cdaf2de`. Every file of the pack follows, one section each.
+Pack digest: `sha256:075c30cc624fda7b44c574318d20224fc97184ed3505597bf0fe7616defdfd10`. Every file of the pack follows, one section each.
 
 ## AGENTS.md
 
@@ -169,6 +169,13 @@ statement = "Terms split on whitespace; quotes make one word; an unknown field:v
 status = "decided"
 source = "extract"
 checks = ["search-query#example:8", "search-query#example:9", "search-query#example:21", "search-query#example:22", "search-query#example:23", "search-query#example:27"]
+
+[[obligation]]
+id = "search.field-edge-cases"
+statement = "A field with nothing after the colon is an ordinary word; an unknown field with a quoted value is one word, quotes included."
+status = "decided"
+source = "replication"
+checks = ["search-query#example:82", "search-query#example:83", "search-query#example:84"]
 
 [[obligation]]
 id = "search.terms-conjunctive"
@@ -628,7 +635,7 @@ license = "Proprietary (kausalflow)"
 authors = ["kausalflow"]
 
 [components]
-"lightkone/search-query@1" = "sha256:0af52a9bc30cb440bf1ec9924e6c00c5659ca0b05e478501080466699d0a49bc"
+"lightkone/search-query@1" = "sha256:3ee30369355a97d18b46e5c729a157c29c15834655f7dc1033c0404d2c714b46"
 "lightkone/bibtex-import@1" = "sha256:549f518845ebd601650bf502cd18bb372368a3fea4e44510d2e67a53ba8ee88a"
 "lightkone/bibtex-export@1" = "sha256:b2be7e43a14a1cdf9f5f65dcef181d159fe2afb95859dd1c6c836a6a89c3b97c"
 "lightkone/citation-key@1" = "sha256:69041cb4a2e57a7ab161892db71ac21b103afb7e9187624207c66bbac1e5db94"
@@ -3642,6 +3649,9 @@ timeout_seconds = 300
 {"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "year:1990-2020-1900"}, "output": {"ids": ["vaswani17", "hinton12", "emptytrash"]}, "note": "parts after the second are ignored"}
 {"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "year:2020-1990"}, "output": {"ids": []}, "note": "a reversed range matches nothing"}
 {"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "year:1990-x"}, "output": {"ids": []}, "note": "a second part that is not a number means the first year only"}
+{"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "author:"}, "output": {"ids": []}, "note": "a filter with nothing after the colon is an ordinary word, which matches nothing here"}
+{"input": {"papers": {"$fixture": "library.json"}, "sort": "added", "query": "tag:"}, "output": {"ids": []}, "note": "the same for any field: tag: is the word tag:"}
+{"input": {"papers": [{"id": "a", "title": "bar baz", "added": "2024-01-01T00:00:00.000Z"}, {"id": "b", "title": "o:\"bar baz\"", "added": "2024-01-02T00:00:00.000Z"}], "sort": "added", "query": "o:\"bar baz\""}, "output": {"ids": ["b"]}, "note": "an unknown field with a quoted value is one word, quotes included"}
 ```
 
 ## components/search-query/versions/1/fixtures/library.json
@@ -4598,7 +4608,9 @@ counts applies):
   has:X / no:X  for X in pdf, abstract, arxiv, notes. has:pdf accepts either
               pdf or file; no:pdf looks at pdf only. Unknown X is ignored.
   is:starred, is:recent (has been opened), is:trash. Unknown values are ignored.
-Any other field:value term is an ordinary word, including the colon.
+Any other field:value term is an ordinary word, including the colon. So is a
+field with nothing after the colon (author: is the word author:), and an
+unknown field with a quoted value is one word, quotes included: o:"a b".
 
 Trashed papers appear only with is:trash, and then only trashed papers appear.
 

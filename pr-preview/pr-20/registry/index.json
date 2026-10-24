@@ -9,33 +9,33 @@
       "authors": [
         "kausalflow"
       ],
-      "digest": "sha256:149c31512ee855ae94efd4eac6565c2b2c03d12bf62649e14053083e2cdaf2de",
-      "tarball_sha256": "513bbb1344cfdbb0eb63df6a946db5667a6da33e56ef643ded36a2a1d3afdb35",
+      "digest": "sha256:075c30cc624fda7b44c574318d20224fc97184ed3505597bf0fe7616defdfd10",
+      "tarball_sha256": "960a0524f2cd224316cd197bc448f325070d9c0ea919c5b982eea983b44a98f1",
       "signed": false,
       "summary": {
-        "obligations": 63,
+        "obligations": 64,
         "by_status": {
-          "decided": 63,
+          "decided": 64,
           "default": 0,
           "open": 0
         },
         "by_source": {
           "extract": 29,
-          "replication": 6,
+          "replication": 7,
           "oracle": 28
         },
         "by_exactness": {
-          "exact": 63,
+          "exact": 64,
           "statistical": 0,
           "free": 0
         },
         "assumptions": 4,
         "monitored_assumptions": 4,
         "components": 8,
-        "checks": 337,
-        "checks_tracing_to_an_obligation": 337
+        "checks": 340,
+        "checks_tracing_to_an_obligation": 340
       },
-      "summary_line": "63 obligations (63 decided, 0 default, 0 open) \u00b7 4 assumptions (4 monitored) \u00b7 337/337 checks trace to an obligation",
+      "summary_line": "64 obligations (64 decided, 0 default, 0 open) \u00b7 4 assumptions (4 monitored) \u00b7 340/340 checks trace to an obligation",
       "files": [
         "AGENTS.md",
         "BRIEF.md",
