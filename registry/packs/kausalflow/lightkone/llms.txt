@@ -2,7 +2,7 @@
 
 > Lightkone core: search, BibTeX, keys, filing, merge, tidy and the library file
 
-Version 1, digest sha256:075c30cc624fda7b44c574318d20224fc97184ed3505597bf0fe7616defdfd10. Read the whole pack in one file at https://kausalflow.github.io/symbolon/registry/packs/kausalflow/lightkone/pack.md, or download https://kausalflow.github.io/symbolon/registry/packs/kausalflow/lightkone/latest.tar.gz.
+Version 1, digest sha256:075c30cc624fda7b44c574318d20224fc97184ed3505597bf0fe7616defdfd10. Start with https://kausalflow.github.io/symbolon/registry/packs/kausalflow/lightkone/pack.md (brief, assumptions, obligations, and links to one file per component under https://kausalflow.github.io/symbolon/registry/packs/kausalflow/lightkone/parts/), or download https://kausalflow.github.io/symbolon/registry/packs/kausalflow/lightkone/latest.tar.gz.
 
 ## Files
 
