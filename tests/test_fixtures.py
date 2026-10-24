@@ -81,7 +81,7 @@ def test_lightkone_search_examples_share_one_library():
     examples = load_examples(SEARCH / "examples.jsonl")
     sizes = [len(e["input"]["papers"]) for e in examples]
     # library.json, or titles.json for title sort; a few examples need papers of their own.
-    assert sizes.count(10) >= 70 and sum(n not in (10, 27) for n in sizes) <= 3
+    assert sizes.count(10) >= 70 and sum(n not in (10, 27) for n in sizes) <= 6
     assert '"$fixture": "library.json"' in (SEARCH / "examples.jsonl").read_text()
 
 

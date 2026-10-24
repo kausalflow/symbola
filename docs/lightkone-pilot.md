@@ -43,6 +43,16 @@ The row where all builds agree against lightkone is what replication alone canno
 
 The weaker builder needed more from the pack. Haiku's splits were on Unicode whitespace and DOI and page normalisation, points Sonnet and Opus got right from the description. Opus, the strongest model, had most of the `bibtex-import` and `library-merge` splits: it read more into the text than the examples pinned. A pack that converges for one builder may not converge for another (design v0.5, "minimal for whom").
 
+Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. Ten examples were recorded from lightkone and added to the obligations that missed the points:
+
+- `merge.sets`: a tag listed twice is kept once.
+- `filing.paperpile-layout` and `search.query-tokens`: U+FEFF is whitespace, and a quoted phrase ends at its closing quote.
+- `import.identifiers`: a DOI keeps its trailing slash.
+- `import.draft-fields`: `annote` wins whenever the entry has one, even when it is empty, and pages keep their letters.
+- `file.exact-text`: numbers print as JavaScript prints them.
+
+The descriptions of four contracts now state these rules. The pack has 64 obligations and 350 checks. Lightkone passes the five changed contracts and is re-attested on them by `runner-c`. The `tidy` crash is filed as [kausalflow/lightkone#54](https://github.com/kausalflow/lightkone/issues/54). The pack will record an example once lightkone is fixed.
+
 ## Results (milestone 3: the first `replicate` runs)
 
 `symbolon replicate` handed `search-query` and `citation-key` to two Claude Code builds, one on Sonnet and one on Opus, with lightkone as the reference and the publisher's holdout. Each agent got only the builder's copy of `versions/1/`. Their logs show no reads outside it. Both chose Python. The runs cost $1.41 and $1.56 in agent time, and each took under eight minutes.

@@ -82,3 +82,6 @@
 {"query": "author:", "note": "a filter with nothing after the colon is an ordinary word, which matches nothing here"}
 {"query": "tag:", "note": "the same for any field: tag: is the word tag:"}
 {"papers": [{"id": "a", "title": "bar baz", "added": "2024-01-01T00:00:00.000Z"}, {"id": "b", "title": "o:\"bar baz\"", "added": "2024-01-02T00:00:00.000Z"}], "query": "o:\"bar baz\"", "note": "an unknown field with a quoted value is one word, quotes included"}
+{"papers": [{"id": "a", "title": "a b", "added": "2024-01-01T00:00:00.000Z"}, {"id": "b", "title": "x", "added": "2024-01-02T00:00:00.000Z"}], "query": "﻿", "note": "U+FEFF is whitespace (JavaScript's \\s): a query of only U+FEFF is empty and matches everything"}
+{"papers": [{"id": "a", "title": "deep learning", "added": "2024-01-01T00:00:00.000Z"}, {"id": "b", "title": "deep", "added": "2024-01-02T00:00:00.000Z"}], "query": "deep﻿learning", "note": "U+FEFF separates terms"}
+{"papers": [{"id": "a", "title": "a b yc", "added": "2024-01-01T00:00:00.000Z"}, {"id": "b", "title": "c then a b", "added": "2024-01-02T00:00:00.000Z"}, {"id": "c", "title": "a b", "added": "2024-01-03T00:00:00.000Z"}, {"id": "d", "title": "a bc", "added": "2024-01-04T00:00:00.000Z"}], "query": "\"a b\"c", "note": "a quoted phrase ends at its closing quote; text right after it is the next term"}

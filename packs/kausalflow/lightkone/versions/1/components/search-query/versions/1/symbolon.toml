@@ -6,7 +6,9 @@ description = """
 Filters and orders a list of papers by a query string, as lightkone's search
 box does. Returns the ids of the matching papers, in display order.
 
-Query terms are separated by whitespace. A term is one of:
+Query terms are separated by whitespace (JavaScript's \\s, which includes
+U+FEFF). A quoted phrase ends at its closing quote, and text right after it
+starts the next term. A term is one of:
 
   field:value or field:"quoted value"   a filter (field names are ASCII
                                          letters, digits and _, any case)
