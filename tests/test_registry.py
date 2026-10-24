@@ -170,3 +170,78 @@ def test_check_registry_rejects_an_edited_signed_version(tmp_path, publisher):
 
 def test_check_registry_warns_about_unsigned_owners(registry):
     assert check_registry(registry) == ["kausalflow/lightkone: unsigned; kausalflow/ has no publisher.pub"]
+
+
+def _price(registry, amount=1900):
+    manifest = registry / "kausalflow" / "lightkone" / "versions" / "2" / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text() + f'\n[listing]\nprice = {amount}\ncurrency = "eur"\n')
+
+
+@pytest.fixture
+def store(tmp_path):
+    """A stand-in for the store Worker: serves private tarballs to one valid token."""
+    import http.server
+    import threading
+
+    root = tmp_path / "private"
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            path = root / "packs" / self.path.removeprefix("/download/") / "latest.tar.gz"
+            if self.headers.get("Authorization") != "Bearer good" or not path.is_file():
+                self.send_response(403)
+                self.end_headers()
+                return
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(path.read_bytes())
+
+        def log_message(self, *a):
+            pass
+
+    server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield root, f"http://127.0.0.1:{server.server_port}"
+    server.shutdown()
+
+
+def test_priced_pack_tarball_stays_off_the_public_site(registry, tmp_path, store):
+    _price(registry)
+    private, url = store
+    build_site(registry, tmp_path / "site", private_out=private, store_url=url)
+    index = json.loads((tmp_path / "site" / "index.json").read_text())
+    assert index["store"] == url and index["packs"][0]["price"] == {"amount": 1900, "currency": "eur"}
+    public = tmp_path / "site" / "packs" / "kausalflow" / "lightkone"
+    assert not (public / "latest.tar.gz").exists()
+    assert (public / "pack.md").is_file() and (public / "latest.sha256").is_file()
+    assert (private / "packs" / "kausalflow" / "lightkone" / "latest.tar.gz").is_file()
+
+
+def test_priced_pack_needs_a_store(registry, tmp_path):
+    _price(registry)
+    with pytest.raises(RegistryError, match="--private-out and --store-url"):
+        build_site(registry, tmp_path / "site")
+
+
+def test_bad_price_is_refused(registry, tmp_path):
+    _price(registry, amount=0)
+    with pytest.raises(RegistryError, match="positive integer"):
+        build_site(registry, tmp_path / "site", private_out=tmp_path / "p", store_url="https://x")
+
+
+def test_pull_of_a_priced_pack_needs_a_valid_token(registry, tmp_path, store):
+    _price(registry)
+    private, url = store
+    build_site(registry, tmp_path / "site", private_out=private, store_url=url)
+    site = str(tmp_path / "site")
+    with pytest.raises(RegistryError, match="costs 19.00 EUR"):
+        pull("kausalflow/lightkone", site, tmp_path / "a")
+    with pytest.raises(RegistryError, match="could not fetch"):
+        pull("kausalflow/lightkone", site, tmp_path / "b", token="bad")
+    got = pull("kausalflow/lightkone", site, tmp_path / "c", token="good")
+    assert pack_digest(tmp_path / "c") == got.digest
+
+
+def test_check_registry_accepts_priced_packs(registry):
+    _price(registry)
+    assert check_registry(registry)

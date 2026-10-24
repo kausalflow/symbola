@@ -226,8 +226,31 @@ def _manifest(root: Path) -> dict:
         return tomllib.load(f).get("pack", {})
 
 
-def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url: str = "") -> list[BuiltPack]:
-    """Write the registry's static data for the latest version of every pack."""
+CURRENCY_RE = re.compile(r"^[a-z]{3}$")
+
+
+def listing_price(pack_dir: Path) -> dict | None:
+    """A pack's price from `[listing]` in its manifest: price in minor units, ISO currency."""
+    with (Path(pack_dir) / PACK_MANIFEST_FILE).open("rb") as f:
+        listing = tomllib.load(f).get("listing", {})
+    if "price" not in listing:
+        return None
+    price, currency = listing["price"], listing.get("currency", "")
+    if not isinstance(price, int) or isinstance(price, bool) or price <= 0:
+        raise RegistryError(f"{pack_dir}: [listing] price must be a positive integer in minor units (1900 = 19.00)")
+    if not isinstance(currency, str) or not CURRENCY_RE.match(currency):
+        raise RegistryError(f"{pack_dir}: [listing] currency must be a lowercase ISO code such as \"eur\"")
+    return {"amount": price, "currency": currency}
+
+
+def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url: str = "",
+               private_out: Path | None = None, store_url: str = "") -> list[BuiltPack]:
+    """Write the registry's static data for the latest version of every pack.
+
+    A priced pack's tarball goes to `private_out` (uploaded to the store's private
+    bucket) instead of the public site; everything else, including the preview and
+    the tarball's sha256, stays public so buyers can check what they download.
+    """
     registry, out = Path(registry), Path(out)
     key = keys.load_private(key_path) if key_path else None
     if out.exists():
@@ -254,9 +277,17 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
             target = dest / "files" / path.relative_to(version_dir)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, target)
+        price = listing_price(version_dir)
         tarball = make_tarball(version_dir, name)
         sha = hashlib.sha256(tarball).hexdigest()
-        (dest / TARBALL_FILE).write_bytes(tarball)
+        if price:
+            if private_out is None or not store_url:
+                raise RegistryError(f"{pack_id}: priced, so the build needs --private-out and --store-url")
+            private = Path(private_out) / "packs" / owner / name / TARBALL_FILE
+            private.parent.mkdir(parents=True, exist_ok=True)
+            private.write_bytes(tarball)
+        else:
+            (dest / TARBALL_FILE).write_bytes(tarball)
         (dest / SHA_FILE).write_text(f"{sha}  {TARBALL_FILE}\n")
         (dest / "pack.md").write_text(pack_markdown(version_dir, pack_id, version, digest))
         if key:
@@ -265,20 +296,25 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
             (dest / SIGNATURE_FILE).write_text(json.dumps(keys.sign_envelope(payload, key), indent=2) + "\n")
         listed = [p.relative_to(version_dir).as_posix() for p in _files(version_dir)]
         prefix = f"{base_url.rstrip('/')}/packs/{pack_id}" if base_url else f"packs/{pack_id}"
+        download = (f"buy it for {price['amount'] / 100:.2f} {price['currency'].upper()} and pull it with "
+                    f"`symbolon pull {pack_id} --token <license>`" if price else f"download {prefix}/{TARBALL_FILE}")
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
             f"Version {version}, digest {digest}. Read the whole pack in one file at "
-            f"{prefix}/pack.md, or download {prefix}/{TARBALL_FILE}.\n\n## Files\n\n"
+            f"{prefix}/pack.md, or {download}.\n\n## Files\n\n"
             + "".join(f"- [{rel}]({prefix}/files/{rel})\n" for rel in listed))
         entries.append({
             "id": pack_id, "version": version, "title": meta.get("title", name),
             "license": meta.get("license", ""), "authors": meta.get("authors", []),
             "digest": digest, "tarball_sha256": sha, "signed": key is not None,
             "summary": report.summary, "summary_line": summary_line(report.summary),
-            "files": listed,
+            "files": listed, "price": price,
         })
         built.append(BuiltPack(pack_id, version, digest, sha))
-    (out / "index.json").write_text(json.dumps({"format": 1, "packs": entries}, indent=2) + "\n")
+    index = {"format": 1, "packs": entries}
+    if store_url:
+        index["store"] = store_url.rstrip("/")
+    (out / "index.json").write_text(json.dumps(index, indent=2) + "\n")
     root_prefix = base_url.rstrip("/") + "/" if base_url else ""
     (out / "llms.txt").write_text(
         "# Symbolon pack registry\n\n> Spec packs that AI coding agents can build from. "
@@ -374,7 +410,8 @@ def check_registry(registry: Path) -> list[str]:
     """
     registry = Path(registry)
     with tempfile.TemporaryDirectory() as tmp:
-        built = build_site(registry, Path(tmp) / "site")
+        built = build_site(registry, Path(tmp) / "site", private_out=Path(tmp) / "private",
+                           store_url="https://store.invalid")
     warnings = []
     for b in built:
         owner, name = b.id.split("/")
@@ -394,15 +431,16 @@ def _base(registry: str) -> str:
     return registry.rstrip("/") + "/"
 
 
-def _fetch(url: str) -> bytes:
+def _fetch(url: str, token: str | None = None) -> bytes:
+    request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"} if token else {})
     try:
-        with urllib.request.urlopen(url, timeout=60) as r:
+        with urllib.request.urlopen(request, timeout=60) as r:
             return r.read()
     except (urllib.error.URLError, OSError) as e:
         raise RegistryError(f"could not fetch {url}: {e}") from None
 
 
-def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None) -> BuiltPack:
+def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None, token: str | None = None) -> BuiltPack:
     """Download the latest version of a pack, check it, and unpack it into `dest`."""
     if not PACK_REF_RE.match(pack_id):
         raise RegistryError("pack must look like 'owner/name' (only the latest version can be pulled)")
@@ -412,7 +450,16 @@ def pull(pack_id: str, registry: str, dest: Path, trust: Path | None = None) -> 
     if entry is None:
         raise RegistryError(f"{pack_id} is not in the registry at {base}")
     prefix = f"{base}packs/{pack_id}/"
-    tarball = _fetch(prefix + TARBALL_FILE)
+    if entry.get("price"):
+        if not token:
+            p = entry["price"]
+            raise RegistryError(f"{pack_id} costs {p['amount'] / 100:.2f} {p['currency'].upper()}; "
+                                f"buy it on its page, then pull with --token <license>")
+        if not index.get("store"):
+            raise RegistryError(f"{pack_id} is priced but the registry names no store")
+        tarball = _fetch(f"{index['store']}/download/{pack_id}", token)
+    else:
+        tarball = _fetch(prefix + TARBALL_FILE)
     sha = hashlib.sha256(tarball).hexdigest()
     listed = _fetch(prefix + SHA_FILE).decode().split()[0]
     if sha != listed or sha != entry["tarball_sha256"]:

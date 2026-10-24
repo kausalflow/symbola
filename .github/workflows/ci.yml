@@ -17,3 +17,7 @@ jobs:
       - run: pytest -q -rs
       # The checks every pack submission must pass (docs/REGISTRY.md).
       - run: symbolon site check packs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: cd store && npm test
