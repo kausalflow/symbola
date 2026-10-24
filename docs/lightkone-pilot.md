@@ -27,7 +27,7 @@ The first spec pack built from a real product: lightkone, a static web app for k
 
 ## Results (milestone 3: the first `replicate` runs)
 
-`symbolon replicate` handed `search-query` and `citation-key` to two Claude Code builds, one on Sonnet and one on Opus, with lightkone as the reference and the publisher's holdout. Each agent got only the builder's copy of `versions/1/`. Their logs show no reads outside it. Both chose Python. Each run cost about $1.40 in agent time and took under eight minutes.
+`symbolon replicate` handed `search-query` and `citation-key` to two Claude Code builds, one on Sonnet and one on Opus, with lightkone as the reference and the publisher's holdout. Each agent got only the builder's copy of `versions/1/`. Their logs show no reads outside it. Both chose Python. The runs cost $1.41 and $1.56 in agent time, and each took under eight minutes.
 
 | Run | Builds pass | Holdout | Splits found | What it showed |
 | --- | --- | --- | --- | --- |
