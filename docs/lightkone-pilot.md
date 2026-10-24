@@ -25,6 +25,17 @@ The first spec pack built from a real product: lightkone, a static web app for k
 
 `symbolon pack validate packs/kausalflow/lightkone/versions/1` reports 63 obligations (all decided) and 4 assumptions, and every one of the components' 337 checks traces to an obligation.
 
+## Results (milestone 3: the first `replicate` runs)
+
+`symbolon replicate` handed `search-query` and `citation-key` to two Claude Code builds, one on Sonnet and one on Opus, with lightkone as the reference and the publisher's holdout. Each agent got only the builder's copy of `versions/1/`. Their logs show no reads outside it. Both chose Python. Each run cost about $1.40 in agent time and took under eight minutes.
+
+| Run | Builds pass | Holdout | Splits found | What it showed |
+| --- | --- | --- | --- | --- |
+| 1 | 2/2 on both | 2/2 on both | 0 in 1,113 inputs | Converged, but wrongly: by hand, `author:` with nothing after the colon runs differently, and both builders had written that point down |
+| 2, with probes | 2/2 on both | 2/2 on both | 2, both from probes | `author:` (Opus finds every paper; lightkone and Sonnet find none) and an unknown field with a quoted value, `o:"bar baz"` (Opus splits it into two words; lightkone and Sonnet keep one word) |
+
+So passing every check and the holdout still left two gaps in `search-query`, and only the builders' own probes found them. Builders now attach `probes` to each reading in `readings.toml`, and `diff` runs every build's probes on every build. Neither gap is closed in the pack yet: kausalflow decides the rule, and the examples get recorded from lightkone.
+
 ## Results (milestone 2)
 
 Five more contracts: `citation-key`, `pdf-filing`, `library-merge`, `tidy`, and `library-file`, the data contract for `library.json` itself (how lightkone reads it and writes it back, byte for byte, with `library.bib`). Contracts can now share sample data in `fixtures/`, including raw text files with `{"$text": ...}`; `library-file` ships three sample libraries.
