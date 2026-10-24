@@ -1,10 +1,11 @@
 import json
 import shutil
+import tarfile
 
 import pytest
 from typer.testing import CliRunner
 
-from symbolon import keys
+from symbolon.digest import contract_digest
 from symbolon.cli import app
 from symbolon.pack import validate_pack
 from symbolon.registry import RegistryError, build_site, check_registry, pack_digest, pull, release, scaffold_pack
@@ -57,8 +58,74 @@ def test_site_publishes_only_the_latest_version(site, registry):
     files = site / "packs" / "kausalflow" / "lightkone"
     assert "Version two." in (files / "files" / "BRIEF.md").read_text()
     assert "Version two." in (files / "pack.md").read_text()
+    assert "parts/tidy-v1.md" in (files / "pack.md").read_text()
     assert "kausalflow/lightkone" in (site / "llms.txt").read_text()
     assert "files/obligations.toml" in (files / "llms.txt").read_text()
+
+
+def test_pack_md_is_split_into_parts_small_enough_for_one_read(site, tmp_path):
+    files = site / "packs" / "kausalflow" / "lightkone"
+    core = (files / "pack.md").read_text()
+    parts = sorted((files / "parts").glob("*.md"))
+    assert [p.name for p in parts][:2] == ["bibtex-export-v1.md", "bibtex-import-v1.md"]
+    assert "## obligations.toml" in core and "## components/" not in core
+    assert len(core.encode()) < 64_000 and all(len(p.read_bytes()) < 64_000 for p in parts)
+    tidy = (files / "parts" / "tidy-v1.md").read_text()
+    assert "## components/tidy/versions/1/symbolon.toml" in tidy
+    assert "(../files/components/tidy/versions/1/examples.jsonl)" in tidy
+    assert "[tidy-v1.tar.gz](tidy-v1.tar.gz)" in tidy and "symbolon keygen" in tidy
+    with tarfile.open(files / "parts" / "tidy-v1.tar.gz") as tar:
+        tar.extractall(tmp_path / "tidy", filter="data")
+    assert contract_digest(tmp_path / "tidy" / "tidy-v1") == contract_digest(
+        LIGHTKONE / "components" / "tidy" / "versions" / "1")
+    for part in parts:
+        assert f"(parts/{part.name})" in core
+
+
+@pytest.fixture
+def attested(registry):
+    """Lightkone's attestations beside the registry copy; version 2 changes the tidy contract."""
+    shutil.copytree(LIGHTKONE.parent.parent / "attestations", registry / "kausalflow" / "lightkone" / "attestations")
+    desc = registry / "kausalflow" / "lightkone" / "versions" / "2" / "components" / "tidy" / "versions" / "1" / "symbolon.toml"
+    before = contract_digest(desc.parent)
+    desc.write_text(desc.read_text() + "\n# version 2\n")
+    manifest = desc.parents[4] / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text().replace(before, contract_digest(desc.parent)))
+    return registry
+
+
+def test_site_shows_checked_evidence_and_keeps_attested_versions(attested, tmp_path):
+    site = tmp_path / "site"
+    build_site(attested, site)
+    files = site / "packs" / "kausalflow" / "lightkone"
+    evidence = json.loads((files / "evidence.json").read_text())
+    records = {r["file"]: r for r in evidence["attestations"]}
+    assert all(r["valid"] for r in records.values())
+    assert records["attestations/library-file.go-1.json"]["covers"] == "latest"
+    tidy = records["attestations/tidy.go-1.json"]
+    assert tidy["covers"] == "older" and tidy["pack_version"] == 1
+    (entry,) = json.loads((site / "index.json").read_text())["packs"]
+    assert entry["evidence"]["components_with_passing_build"] == 7
+    assert "go-1 rebuild" in entry["evidence"]["builds"]
+    (old,) = entry["older"]
+    assert old["version"] == 1 and tidy["pack_digest"] == old["digest"]
+    assert (files / old["path"]).is_file() and (files / "attestations" / "runner-a.pub").is_file()
+
+    got = pull("kausalflow/lightkone", str(site), tmp_path / "v1", digest=old["digest"])
+    assert got.version == 1 and got.digest == old["digest"]
+    with pytest.raises(RegistryError, match="no evidence names"):
+        pull("kausalflow/lightkone", str(site), tmp_path / "x", digest="sha256:" + "0" * 64)
+
+
+def test_a_tampered_attestation_is_shown_as_invalid(attested, tmp_path):
+    path = attested / "kausalflow" / "lightkone" / "attestations" / "tidy.go-1.json"
+    envelope = json.loads(path.read_text())
+    envelope["signatures"][0]["sig"] = envelope["signatures"][0]["sig"][::-1]
+    path.write_text(json.dumps(envelope))
+    build_site(attested, tmp_path / "site")
+    evidence = json.loads((tmp_path / "site" / "packs" / "kausalflow" / "lightkone" / "evidence.json").read_text())
+    bad = next(r for r in evidence["attestations"] if r["file"].endswith("tidy.go-1.json"))
+    assert not bad["valid"] and bad["problems"] and evidence["summary"]["invalid"] == 1
 
 
 def test_tarball_is_byte_identical_across_builds(registry, tmp_path):
@@ -102,16 +169,6 @@ def test_pull_does_not_take_a_version(site, tmp_path):
         pull("kausalflow/lightkone@1", str(site), tmp_path / "lk")
 
 
-def test_signed_pull_checks_the_publisher_key(registry, tmp_path):
-    key = keys.generate(tmp_path / "keys" / "publisher.key")
-    other = keys.generate(tmp_path / "keys" / "other.key")
-    build_site(registry, tmp_path / "site", key_path=key)
-    got = pull("kausalflow/lightkone", str(tmp_path / "site"), tmp_path / "lk", trust=keys.public_path(key))
-    assert got.version == 2
-    with pytest.raises(RegistryError, match="signature"):
-        pull("kausalflow/lightkone", str(tmp_path / "site"), tmp_path / "lk2", trust=keys.public_path(other))
-
-
 def test_cli_init_build_and_pull(registry, tmp_path):
     r = runner.invoke(app, ["pack", "init", "acme/demo", "--dir", str(tmp_path / "spec")])
     assert r.exit_code == 0, r.output
@@ -123,53 +180,40 @@ def test_cli_init_build_and_pull(registry, tmp_path):
     assert (tmp_path / "lk" / "AGENTS.md").is_file()
 
 
-@pytest.fixture
-def publisher(tmp_path):
-    return keys.generate(tmp_path / "keys" / "publisher.key")
-
-
-def test_release_freezes_signs_and_claims_the_owner(tmp_path, publisher):
+def test_release_freezes_and_records_the_digest(tmp_path):
     spec = scaffold_pack("acme/demo", tmp_path / "spec")
     reg = tmp_path / "packs"
-    r = release(spec, reg, publisher)
+    r = release(spec, reg)
     assert r.created and r.version == 1
-    assert (reg / "acme" / "publisher.pub").is_file()
-    assert (reg / "acme" / "demo" / "signatures" / "1.json").is_file()
+    assert (reg / "acme" / "demo" / "digests.txt").read_text() == f"1 {r.digest}\n"
     assert pack_digest(reg / "acme" / "demo" / "versions" / "1") == pack_digest(spec) == r.digest
     assert check_registry(reg) == []
 
 
-def test_release_of_unchanged_content_is_a_no_op(tmp_path, publisher):
+def test_release_of_unchanged_content_is_a_no_op(tmp_path):
     spec = scaffold_pack("acme/demo", tmp_path / "spec")
     reg = tmp_path / "packs"
-    release(spec, reg, publisher)
-    assert not release(spec, reg, publisher).created
+    release(spec, reg)
+    assert not release(spec, reg).created
     (spec / "BRIEF.md").write_text((spec / "BRIEF.md").read_text() + "\nMore.\n")
-    r = release(spec, reg, publisher)
+    r = release(spec, reg)
     assert r.created and r.version == 2
     assert 'version = 2' in (reg / "acme" / "demo" / "versions" / "2" / "symbolon-pack.toml").read_text()
     assert check_registry(reg) == []
 
 
-def test_release_refuses_another_owners_key(tmp_path, publisher):
+def test_check_registry_rejects_an_edited_released_version(tmp_path):
     reg = tmp_path / "packs"
-    release(scaffold_pack("acme/demo", tmp_path / "spec"), reg, publisher)
-    intruder = keys.generate(tmp_path / "keys" / "intruder.key")
-    with pytest.raises(RegistryError, match="another key"):
-        release(scaffold_pack("acme/other", tmp_path / "spec2"), reg, intruder)
-
-
-def test_check_registry_rejects_an_edited_signed_version(tmp_path, publisher):
-    reg = tmp_path / "packs"
-    release(scaffold_pack("acme/demo", tmp_path / "spec"), reg, publisher)
+    release(scaffold_pack("acme/demo", tmp_path / "spec"), reg)
     brief = reg / "acme" / "demo" / "versions" / "1" / "BRIEF.md"
     brief.write_text(brief.read_text() + "\nTampered.\n")
-    with pytest.raises(RegistryError, match="signs version 1"):
+    with pytest.raises(RegistryError, match="version 1 was released as"):
         check_registry(reg)
 
 
-def test_check_registry_warns_about_unsigned_owners(registry):
-    assert check_registry(registry) == ["kausalflow/lightkone: unsigned; kausalflow/ has no publisher.pub"]
+def test_check_registry_warns_about_packs_without_recorded_digests(registry):
+    assert check_registry(registry) == [
+        "kausalflow/lightkone: no digests.txt, so edits to released versions are not caught"]
 
 
 def _price(registry, amount=1900):
@@ -215,6 +259,24 @@ def test_priced_pack_tarball_stays_off_the_public_site(registry, tmp_path, store
     assert not (public / "latest.tar.gz").exists()
     assert (public / "pack.md").is_file() and (public / "latest.sha256").is_file()
     assert (private / "packs" / "kausalflow" / "lightkone" / "latest.tar.gz").is_file()
+
+
+def test_priced_pack_previews_only_its_brief_unless_it_asks_for_more(registry, tmp_path, store):
+    _price(registry)
+    private, url = store
+    build_site(registry, tmp_path / "site", private_out=private, store_url=url)
+    (entry,) = json.loads((tmp_path / "site" / "index.json").read_text())["packs"]
+    public = tmp_path / "site" / "packs" / "kausalflow" / "lightkone"
+    assert entry["preview"] == "brief" and not any(f.startswith("components/") for f in entry["files"])
+    assert (public / "files" / "BRIEF.md").is_file() and not (public / "files" / "components").exists()
+    assert not (public / "parts").exists()
+    core = (public / "pack.md").read_text()
+    assert "## obligations.toml" in core and "- tidy-v1" in core and "parts/" not in core
+
+    manifest = registry / "kausalflow" / "lightkone" / "versions" / "2" / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text() + 'preview = "full"\n')
+    build_site(registry, tmp_path / "full", private_out=private, store_url=url)
+    assert (tmp_path / "full" / "packs" / "kausalflow" / "lightkone" / "parts" / "tidy-v1.md").is_file()
 
 
 def test_priced_pack_needs_a_store(registry, tmp_path):

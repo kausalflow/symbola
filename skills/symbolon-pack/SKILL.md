@@ -55,10 +55,9 @@ reports.
 When the user asks to release:
 
 1. `symbolon pack validate spec` must pass.
-2. If the user has no key yet: `symbolon keygen`.
-3. In a clone of the registry repository:
+2. In a clone of the registry repository:
    `symbolon release spec --registry <clone>/packs`
-4. In the clone: `symbolon site check packs`, then commit and open a pull
+3. In the clone: `symbolon site check packs`, then commit and open a pull
    request. Tell the user the PR link.
 
 `release` is a no-op when nothing changed since the last version. Each release
