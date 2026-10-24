@@ -515,6 +515,8 @@
       
         
       
+        
+      
     
     
     
@@ -811,6 +813,39 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#pack-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack init</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#site-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>site build</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pull</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -889,6 +924,33 @@
     
   
   Spec pack format
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REGISTRY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Pack registry
 
     
   </span>
@@ -1281,6 +1343,39 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#pack-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack init</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#site-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>site build</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pull</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1324,6 +1419,8 @@
   
     
     
+      
+        
       
         
       
@@ -1430,6 +1527,18 @@
 <tr>
 <td><a href="#pack-validate"><code>pack validate</code></a></td>
 <td>Check a spec pack's brief, assumptions and obligations</td>
+</tr>
+<tr>
+<td><a href="#pack-init"><code>pack init</code></a></td>
+<td>Scaffold a spec pack that passes <code>pack validate</code> out of the box</td>
+</tr>
+<tr>
+<td><a href="#site-build"><code>site build</code></a></td>
+<td>Write the static registry for the latest version of every pack</td>
+</tr>
+<tr>
+<td><a href="#pull"><code>pull</code></a></td>
+<td>Download a pack from the registry, check it, and unpack it</td>
 </tr>
 <tr>
 <td><a href="#mutants"><code>mutants</code></a></td>
@@ -1678,6 +1787,18 @@ for <code>gamed</code>. In a replication, drop gamed builds from the convergence
 example and the description, or two checks, disagree, then build the reading they
 think is right. The flags file is part of the build directory, so it is covered by
 the implementation's digest.</p>
+<h2 id="pack-init"><code>pack init</code><a class="headerlink" href="#pack-init" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>symbolon pack init PACK_ID [--dir spec] [--author you@example.com]
+</span></code></pre></div>
+<p>Creates a pack folder (by default <code>spec/</code>, next to your code) with a manifest, <code>BRIEF.md</code>, a placeholder open obligation, a placeholder assumption, <code>components/</code> and <code>AGENTS.md</code>. Fails if the folder exists and is not empty. See <a href="../REGISTRY/#making-a-pack">Pack registry</a>.</p>
+<h2 id="site-build"><code>site build</code><a class="headerlink" href="#site-build" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>symbolon site build [REGISTRY=packs] [--out site-registry] [--key KEY] [--base-url URL]
+</span></code></pre></div>
+<p>Validates the latest version of every pack under <code>REGISTRY</code> and writes <code>index.json</code>, <code>llms.txt</code>, and each pack's tarball, sha256, <code>pack.md</code>, <code>llms.txt</code> and raw files. With <code>--key</code>, signs each pack. Fails if any pack is invalid or contains holdout files. See <a href="../REGISTRY/#building-the-site">Pack registry</a>.</p>
+<h2 id="pull"><code>pull</code><a class="headerlink" href="#pull" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--trust PUBKEY]
+</span></code></pre></div>
+<p>Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, and with <code>--trust</code> the publisher's signature, then unpacks it into <code>DEST</code> (default <code>./&lt;name&gt;</code>). See <a href="../REGISTRY/#pulling-a-pack">Pack registry</a>.</p>
 
 
 
