@@ -261,7 +261,10 @@ def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bo
     for key, paths in sorted(components.items()):
         parts[f"parts/{key}.md"] = "\n".join(
             [f"# {pack_id} (version {version}): component {key}\n",
-             f"Part of the pack at [../pack.md](../pack.md). Pack digest: `{digest}`.\n"]
+             f"Part of the pack at [../pack.md](../pack.md). Pack digest: `{digest}`.\n",
+             f"The contract folder, to check a build against: [{key}.tar.gz]({key}.tar.gz). Unpack it, "
+             f"then run `symbolon impl-init <build folder> --contract <contract folder>`, `symbolon keygen` "
+             f"once, and `symbolon attest <contract folder> <build folder>`.\n"]
             + [_section(root, p, "../files/") for p in sorted(paths)])
     contents = "".join(f"- [{rel}]({rel}) ({len(text.encode()) // 1024 + 1} KB)\n" for rel, text in parts.items())
     head = [f"# {pack_id} (version {version})\n",
@@ -441,6 +444,10 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         for rel, text in pack_markdown(version_dir, pack_id, version, digest, preview == "brief").items():
             (dest / rel).parent.mkdir(parents=True, exist_ok=True)
             (dest / rel).write_text(text)
+        if preview == "full":
+            for manifest in sorted((version_dir / COMPONENTS_DIR).glob(f"*/{VERSIONS_DIR}/*/symbolon.toml")):
+                key = _component_key(manifest.parent.relative_to(version_dir).as_posix() + "/symbolon.toml")
+                (dest / "parts" / f"{key}.tar.gz").write_bytes(make_tarball(manifest.parent, key))
         evidence = pack_evidence(pack_root, version_dir)
         older = []
         for n in sorted({r["pack_version"] for r in evidence["attestations"] if r.get("covers") == "older"}):

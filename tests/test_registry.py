@@ -1,5 +1,6 @@
 import json
 import shutil
+import tarfile
 
 import pytest
 from typer.testing import CliRunner
@@ -62,7 +63,7 @@ def test_site_publishes_only_the_latest_version(site, registry):
     assert "files/obligations.toml" in (files / "llms.txt").read_text()
 
 
-def test_pack_md_is_split_into_parts_small_enough_for_one_read(site):
+def test_pack_md_is_split_into_parts_small_enough_for_one_read(site, tmp_path):
     files = site / "packs" / "kausalflow" / "lightkone"
     core = (files / "pack.md").read_text()
     parts = sorted((files / "parts").glob("*.md"))
@@ -72,6 +73,11 @@ def test_pack_md_is_split_into_parts_small_enough_for_one_read(site):
     tidy = (files / "parts" / "tidy-v1.md").read_text()
     assert "## components/tidy/versions/1/symbolon.toml" in tidy
     assert "(../files/components/tidy/versions/1/examples.jsonl)" in tidy
+    assert "[tidy-v1.tar.gz](tidy-v1.tar.gz)" in tidy and "symbolon keygen" in tidy
+    with tarfile.open(files / "parts" / "tidy-v1.tar.gz") as tar:
+        tar.extractall(tmp_path / "tidy", filter="data")
+    assert contract_digest(tmp_path / "tidy" / "tidy-v1") == contract_digest(
+        LIGHTKONE / "components" / "tidy" / "versions" / "1")
     for part in parts:
         assert f"(parts/{part.name})" in core
 

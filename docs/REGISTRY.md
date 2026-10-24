@@ -79,6 +79,7 @@ packs/<owner>/<name>/
   latest.sha256                            sha256 of the tarball
   pack.md                                  brief, assumptions, obligations, manifest, and a list of the parts
   parts/<component>-v<n>.md                one component's contract, schemas and tests
+  parts/<component>-v<n>.tar.gz            that component's contract folder, for `symbolon attest`
   llms.txt                                 the pack's files, for agents
   files/…                                  every file of the pack, raw
   evidence.json                            every attestation beside the pack, checked at build time
