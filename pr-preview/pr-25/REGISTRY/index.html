@@ -1282,11 +1282,12 @@ invalid) and writes:</p>
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  latest.sha256                            sha256 of the tarball
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  pack.md                                  brief, assumptions, obligations, manifest, and a list of the parts
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>  parts/&lt;component&gt;-v&lt;n&gt;.md                one component's contract, schemas and tests
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  llms.txt                                 the pack's files, for agents
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  files/…                                  every file of the pack, raw
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  evidence.json                            every attestation beside the pack, checked at build time
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  attestations/…                           the attestation files and runner keys, to re-check
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  by-digest/&lt;digest&gt;.tar.gz                each older version that some attestation names
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  parts/&lt;component&gt;-v&lt;n&gt;.tar.gz            that component's contract folder, for `symbolon attest`
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  llms.txt                                 the pack's files, for agents
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  files/…                                  every file of the pack, raw
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  evidence.json                            every attestation beside the pack, checked at build time
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  attestations/…                           the attestation files and runner keys, to re-check
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>  by-digest/&lt;digest&gt;.tar.gz                each older version that some attestation names
 </span></code></pre></div>
 <p><code>index.json</code> also carries each pack's evidence summary (components with a passing
 build, distinct builds, distinct runners, invalid attestations) and its <code>older</code>

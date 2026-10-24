@@ -4,14 +4,14 @@ Pack digest: `sha256:075c30cc624fda7b44c574318d20224fc97184ed3505597bf0fe7616def
 
 ## Components
 
-- [parts/bibtex-export-v1.md](parts/bibtex-export-v1.md) (14 KB)
-- [parts/bibtex-import-v1.md](parts/bibtex-import-v1.md) (22 KB)
-- [parts/citation-key-v1.md](parts/citation-key-v1.md) (9 KB)
+- [parts/bibtex-export-v1.md](parts/bibtex-export-v1.md) (15 KB)
+- [parts/bibtex-import-v1.md](parts/bibtex-import-v1.md) (23 KB)
+- [parts/citation-key-v1.md](parts/citation-key-v1.md) (10 KB)
 - [parts/library-file-v1.md](parts/library-file-v1.md) (36 KB)
-- [parts/library-merge-v1.md](parts/library-merge-v1.md) (24 KB)
+- [parts/library-merge-v1.md](parts/library-merge-v1.md) (25 KB)
 - [parts/pdf-filing-v1.md](parts/pdf-filing-v1.md) (11 KB)
 - [parts/search-query-v1.md](parts/search-query-v1.md) (29 KB)
-- [parts/tidy-v1.md](parts/tidy-v1.md) (21 KB)
+- [parts/tidy-v1.md](parts/tidy-v1.md) (22 KB)
 
 ## AGENTS.md
 

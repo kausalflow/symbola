@@ -2,6 +2,8 @@
 
 Part of the pack at [../pack.md](../pack.md). Pack digest: `sha256:075c30cc624fda7b44c574318d20224fc97184ed3505597bf0fe7616defdfd10`.
 
+The contract folder, to check a build against: [search-query-v1.tar.gz](search-query-v1.tar.gz). Unpack it, then run `symbolon impl-init <build folder> --contract <contract folder>`, `symbolon keygen` once, and `symbolon attest <contract folder> <build folder>`.
+
 ## components/search-query/versions/1/examples.jsonl
 
 The first 3 of 84 lines. The rest is part of the spec too: read the whole file at [components/search-query/versions/1/examples.jsonl](../files/components/search-query/versions/1/examples.jsonl).
