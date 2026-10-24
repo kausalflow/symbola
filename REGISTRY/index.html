@@ -823,6 +823,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#publisher-and-support-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Publisher and support links
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#selling-a-pack" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1124,6 +1135,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#publisher-and-support-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Publisher and support links
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#selling-a-pack" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1329,11 +1351,29 @@ instead and skip unpacking. It holds everything that applies to the whole pack a
 links one <code>parts/</code> file per component, so the agent reads only the components it
 builds and no file is too big for one read. Data files such as <code>examples.jsonl</code>
 show their first lines in the part and link the raw file under <code>files/</code>.</p>
+<h2 id="publisher-and-support-links">Publisher and support links<a class="headerlink" href="#publisher-and-support-links" title="Permanent link">&para;</a></h2>
+<p>Every pack page says who publishes it and links their profile, the owner's GitHub
+page unless the manifest says otherwise. Publishers who want to be paid for their
+work can add up to five support links (Buy Me a Coffee, GitHub Sponsors, Ko-fi,
+and so on), which the page shows as buttons:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">[publisher]</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Acme Labs"</span><span class="w">                       </span><span class="c1"># defaults to the owner</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://acme.example"</span><span class="w">             </span><span class="c1"># defaults to https://github.com/&lt;owner&gt;</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">support</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Buy me a coffee"</span><span class="p">,</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"https://buymeacoffee.com/acme"</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"GitHub Sponsors"</span><span class="p">,</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"https://github.com/sponsors/acme"</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">]</span>
+</span></code></pre></div>
+<p>Links must be <code>https://</code>. Money goes straight to the publisher; the registry
+takes nothing and handles no payments.</p>
 <h2 id="selling-a-pack">Selling a pack<a class="headerlink" href="#selling-a-pack" title="Permanent link">&para;</a></h2>
+<p><strong>Not switched on.</strong> For now every pack in the registry is public and free, and
+publishers monetize through support links. The code below stays in place for a
+later stage.</p>
 <p>Add a price to the pack manifest:</p>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">[listing]</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">price</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1900</span><span class="w">        </span><span class="c1"># minor units: 19.00</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">currency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"eur"</span>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">[listing]</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">price</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1900</span><span class="w">        </span><span class="c1"># minor units: 19.00</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">currency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"eur"</span>
 </span></code></pre></div>
 <p>A priced pack previews only its brief: the site shows the brief, assumptions,
 obligations, manifest, evidence and sha256, and <code>pack.md</code> names the components
@@ -1342,7 +1382,7 @@ everything anyway. Its tarball is written to <code>--private-out</code> instead 
 public site and is served by the store, a Cloudflare Worker in
 <a href="https://github.com/kausalflow/symbolon/tree/main/store"><code>store/</code></a>. The pack page
 shows a Buy button; after paying through Stripe, the buyer gets a license token:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>symbolon pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>symbolon pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
 </span></code></pre></div>
 <p><code>site build</code> refuses a priced pack unless it is given <code>--private-out</code> and
 <code>--store-url</code>. Deployment steps are in <code>store/README.md</code>.</p>

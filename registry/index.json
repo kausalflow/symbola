@@ -101,6 +101,11 @@
       ],
       "price": null,
       "preview": "full",
+      "publisher": {
+        "name": "kausalflow",
+        "url": "https://github.com/kausalflow",
+        "support": []
+      },
       "evidence": {
         "attestations": 19,
         "invalid": 0,
