@@ -255,7 +255,7 @@ Creates a pack folder (by default `spec/`, next to your code) with a manifest, `
 symbolon site build [REGISTRY=packs] [--out site-registry] [--key KEY] [--base-url URL] [--private-out DIR --store-url URL]
 ```
 
-Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md`, `llms.txt` and raw files. With `--key`, signs each pack. A priced pack's tarball goes to `--private-out` for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See [Pack registry](REGISTRY.md#building-the-site).
+Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md` and `parts/`, `llms.txt` and raw files. With `--key`, signs each pack. A priced pack's tarball goes to `--private-out` for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See [Pack registry](REGISTRY.md#building-the-site).
 
 ## `pull`
 
