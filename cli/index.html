@@ -334,6 +334,8 @@
       
         
       
+        
+      
     
     
     
@@ -420,6 +422,33 @@
     
   
   Measuring ambiguity
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/extracting-a-pack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Extracting a pack
 
     
   </span>
@@ -699,6 +728,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code>diff</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extract" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>extract</code>
       </span>
     </span>
   </a>
@@ -1165,6 +1205,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#extract" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>extract</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#replicate" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1369,6 +1420,10 @@
 <td>Run several builds on one input pool and measure where they disagree</td>
 </tr>
 <tr>
+<td><a href="#extract"><code>extract</code></a></td>
+<td>Have a coding agent draft a spec pack from an existing product, then check the draft</td>
+</tr>
+<tr>
 <td><a href="#replicate"><code>replicate</code></a></td>
 <td>Hand a pack to outside coding agents, then test, attest and diff their builds</td>
 </tr>
@@ -1500,13 +1555,46 @@ directory (<code>rebuilds/go-1/search-query</code> is <code>go-1</code>).</p>
 </table>
 <p>Like <code>test</code>, it runs implementations in this process's environment, not a sandbox.
 See <a href="../guides/measuring-ambiguity/">Measuring ambiguity</a>.</p>
+<h2 id="extract"><code>extract</code><a class="headerlink" href="#extract" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbolon extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>                 [--agent COMMAND] [--hint TEXT] [--rounds 2] [--timeout 3600] [--no-oracle]
+</span></code></pre></div>
+<p>Hands <code>SOURCE</code> to an external coding agent, which drafts <code>ROOT/NAMESPACE/PRODUCT/versions/VERSION/</code>
+plus an oracle adapter per component and a <code>REVIEW.md</code>. The draft is then checked: the
+pack validates, every component validates, and the original product passes every
+component through its adapter. Failures go back to the agent for another round, up
+to <code>--rounds</code> runs in all. Component digests in <code>symbolon-pack.toml</code> are filled in
+for the agent. Symbolon never changes <code>SOURCE</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--agent</code></td>
+<td>The agent command; defaults to <code>$SYMBOLON_AGENT</code>, then Claude Code headless</td>
+</tr>
+<tr>
+<td><code>--hint</code></td>
+<td>Extra guidance for the agent, such as which parts of the product to cover</td>
+</tr>
+<tr>
+<td><code>--no-oracle</code></td>
+<td>Skip the oracle check, for products whose code cannot be called from an adapter</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../guides/extracting-a-pack/">Extracting a pack</a>.</p>
 <h2 id="replicate"><code>replicate</code><a class="headerlink" href="#replicate" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--component NAME ...]
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>                   [--reference DIR] [--holdout DIR] [--holdout-seed N] [--holdout-scale 5]
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>                   [--attest | --no-attest] [--key PATH] [--sandbox auto] [--jobs 1]
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>                   [--agent-timeout 3600] [--prompt FILE] [--pool FILE ...]
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>                   [--mutations 500] [--property-cases 50] [--search 300] [--seed 0]
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>                   [--max-ambiguity X] [-o replication] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--component NAME ...]
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>                   [--reference DIR] [--holdout DIR] [--holdout-seed N] [--holdout-scale 5]
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>                   [--attest | --no-attest] [--key PATH] [--sandbox auto] [--jobs 1]
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>                   [--agent-timeout 3600] [--prompt FILE] [--pool FILE ...]
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>                   [--mutations 500] [--property-cases 50] [--search 300] [--seed 0]
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>                   [--max-ambiguity X] [-o replication] [--json]
 </span></code></pre></div>
 <p>Gives a builder's copy of the pack at <code>PACK</code> to an outside coding agent once per
 build, then attests every component of every build, runs the holdout, and runs
@@ -1555,18 +1643,18 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 above <code>--max-ambiguity</code>. The agent runs with your permissions, outside the sandbox.
 See <a href="../guides/replicating-a-pack/">Replicating a pack</a>.</p>
 <h2 id="pack-validate"><code>pack validate</code><a class="headerlink" href="#pack-validate" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbolon pack validate PATH [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbolon pack validate PATH [--json]
 </span></code></pre></div>
 <p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections, assumptions and obligations, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbolon pack validate</code> checks</a>.</p>
 <h2 id="mutants"><code>mutants</code><a class="headerlink" href="#mutants" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbolon mutants PATH [--mutants DIR] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbolon mutants PATH [--mutants DIR] [--json]
 </span></code></pre></div>
 <p>Runs the spec against each mutant in <code>PATH/mutants/</code>, or in <code>DIR</code> (useful for
 measuring a contract without changing its digest), and lists the checks that
 kill each one. Ends with the checks that kill no mutant and the kill rate. Exits 1
 if a mutant survives without <code>SURVIVES</code>. See <a href="../CONTRACT_FORMAT/#mutants-mutantspy">Mutants</a>.</p>
 <h2 id="canary-plant"><code>canary plant</code><a class="headerlink" href="#canary-plant" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbolon canary plant PATH OUT [--seed N] [--record FILE]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>symbolon canary plant PATH OUT [--seed N] [--record FILE]
 </span></code></pre></div>
 <p>Copies the contract to <code>OUT</code> without <code>reference/</code> and <code>mutants/</code>, and changes one
 example's expected output (chosen by <code>--seed</code>) to a value that still matches the
@@ -1574,7 +1662,7 @@ output schema but contradicts the spec. Writes a private record, by default
 <code>OUT.canary.json</code>, next to the copy. Give the copy to a builder and keep the record.
 An honest build fails exactly that example.</p>
 <h2 id="canary-check"><code>canary check</code><a class="headerlink" href="#canary-check" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>symbolon canary check RECORD IMPL [--contract PATH] [--flags FILE] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>symbolon canary check RECORD IMPL [--contract PATH] [--flags FILE] [--json]
 </span></code></pre></div>
 <p>Runs the finished build on the canary input. The outcome is <code>gamed</code> if it returns
 the planted output (the build was fitted to the examples), <code>honest</code> if it returns
@@ -1582,7 +1670,7 @@ what the spec requires, and <code>other</code> otherwise. Also reports whether t
 flagged the canary example in <code>symbolon-flags.jsonl</code> next to the build. Exits 1 only
 for <code>gamed</code>. In a replication, drop gamed builds from the convergence evidence.</p>
 <h2 id="flag"><code>flag</code><a class="headerlink" href="#flag" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>symbolon flag REF REASON [--dir BUILD_DIR]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>symbolon flag REF REASON [--dir BUILD_DIR]
 </span></code></pre></div>
 <p>Appends <code>{"ref", "reason", "flagged_at"}</code> to <code>BUILD_DIR/symbolon-flags.jsonl</code>.
 <code>REF</code> is an obligation id, a check in pack form (<code>search-query#example:40</code>,
