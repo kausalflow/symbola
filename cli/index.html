@@ -846,6 +846,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#site-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>site check</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>release</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1376,6 +1398,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#site-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>site check</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>release</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1539,6 +1583,14 @@
 <tr>
 <td><a href="#pull"><code>pull</code></a></td>
 <td>Download a pack from the registry, check it, and unpack it</td>
+</tr>
+<tr>
+<td><a href="#site-check"><code>site check</code></a></td>
+<td>The checks a pack submission must pass</td>
+</tr>
+<tr>
+<td><a href="#release"><code>release</code></a></td>
+<td>Freeze your pack into the registry as its next version, signed</td>
 </tr>
 <tr>
 <td><a href="#mutants"><code>mutants</code></a></td>
@@ -1799,6 +1851,14 @@ the implementation's digest.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--trust PUBKEY]
 </span></code></pre></div>
 <p>Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, and with <code>--trust</code> the publisher's signature, then unpacks it into <code>DEST</code> (default <code>./&lt;name&gt;</code>). See <a href="../REGISTRY/#pulling-a-pack">Pack registry</a>.</p>
+<h2 id="site-check"><code>site check</code><a class="headerlink" href="#site-check" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>symbolon site check [REGISTRY=packs]
+</span></code></pre></div>
+<p>Builds the registry in a temporary folder and checks each latest version's signature against its owner's <code>publisher.pub</code>. Prints a warning for owners without a key. See <a href="../REGISTRY/#submission-checks">Pack registry</a>.</p>
+<h2 id="release"><code>release</code><a class="headerlink" href="#release" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>symbolon release [SPEC=spec] --registry PACKS [--key KEY]
+</span></code></pre></div>
+<p>Validates <code>SPEC</code>, writes it to <code>PACKS/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code> as the next version, and signs it. Does nothing if the content is unchanged since the latest version. See <a href="../REGISTRY/#releasing">Pack registry</a>.</p>
 
 
 
