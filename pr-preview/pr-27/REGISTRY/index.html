@@ -1327,13 +1327,13 @@ over the pack folder with the header <code>symbolon-pack-v1\n</code>.</p>
 <h2 id="the-site">The site<a class="headerlink" href="#the-site" title="Permanent link">&para;</a></h2>
 <p>The packs live in <a href="https://github.com/kausalflow/symbolon-registry">kausalflow/symbolon-registry</a>.
 The website is built from them by <code>spikinglabs/symbolon-store</code> and hosted on
-Cloudflare Pages at <a href="https://symbolon.pages.dev/">https://symbolon.pages.dev/</a>. It is an <a href="https://astro.build">Astro</a>
+Cloudflare Pages at <a href="https://symbola.sh/">https://symbola.sh/</a>. It is an <a href="https://astro.build">Astro</a>
 site over the files above, with <a href="https://pagefind.app">Pagefind</a> search built at the
 same time, so it needs no server. It adds a catalog page with search, a page per
 pack (brief, assumptions, obligations by status, evidence, publisher, download
 links, file tree), and a rendered view of every file under
 <code>packs/&lt;owner&gt;/&lt;name&gt;/view/&lt;file&gt;/</code>.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>site/build.sh OUT ORIGIN BASE     # in spikinglabs/symbolon-store, e.g. dist-site https://symbolon.pages.dev /
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>site/build.sh OUT ORIGIN BASE     # in spikinglabs/symbolon-store, e.g. dist-site https://symbola.sh /
 </span></code></pre></div>
 <p>clones the registry, runs <code>symbolon site build</code> over its packs, then <code>astro build</code>
 and <code>pagefind</code>, and copies the result to <code>OUT</code>. Cloudflare runs it on every push to
@@ -1349,7 +1349,7 @@ older version that some attestation names (the pack page links its digest). It d
 tarball, checks its sha256 against <code>latest.sha256</code> and <code>index.json</code>, unpacks it,
 and checks the unpacked folder's digest against <code>index.json</code>. These checks catch a
 broken download, not a dishonest host: the publisher is not verified until packs
-carry GitHub provenance. The registry defaults to <code>$SYMBOLON_REGISTRY</code>, or <a href="https://symbolon.pages.dev">https://symbolon.pages.dev</a>.</p>
+carry GitHub provenance. The registry defaults to <code>$SYMBOLON_REGISTRY</code>, or <a href="https://symbola.sh">https://symbola.sh</a>.</p>
 <p>An agent that only needs to read a pack can fetch <code>packs/&lt;owner&gt;/&lt;name&gt;/pack.md</code>
 instead and skip unpacking. It holds everything that applies to the whole pack and
 links one <code>parts/</code> file per component, so the agent reads only the components it
