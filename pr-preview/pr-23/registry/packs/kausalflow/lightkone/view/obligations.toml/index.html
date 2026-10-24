@@ -33,7 +33,7 @@ id = &quot;search.query-tokens&quot;
 statement = &quot;Terms split on whitespace; quotes make one word; an unknown field:value or unmatched quote is an ordinary word.&quot;
 status = &quot;decided&quot;
 source = &quot;extract&quot;
-checks = [&quot;search-query#example:8&quot;, &quot;search-query#example:9&quot;, &quot;search-query#example:21&quot;, &quot;search-query#example:22&quot;, &quot;search-query#example:23&quot;, &quot;search-query#example:27&quot;]
+checks = [&quot;search-query#example:8&quot;, &quot;search-query#example:9&quot;, &quot;search-query#example:21&quot;, &quot;search-query#example:22&quot;, &quot;search-query#example:23&quot;, &quot;search-query#example:27&quot;, &quot;search-query#example:85&quot;, &quot;search-query#example:86&quot;, &quot;search-query#example:87&quot;]
 
 [[obligation]]
 id = &quot;search.field-edge-cases&quot;
@@ -208,17 +208,17 @@ checks = [&quot;bibtex-import#test_braced_names_and_others_are_kept&quot;, &quot
 
 [[obligation]]
 id = &quot;import.identifiers&quot;
-statement = &quot;doi loses its resolver prefix; arxiv ids come from arxivid, arXiv eprints, arxiv.org URLs or new-style bare eprints, without version.&quot;
+statement = &quot;doi loses its resolver prefix and nothing else (a trailing slash stays); arxiv ids come from arxivid, arXiv eprints, arxiv.org URLs or new-style bare eprints, without version.&quot;
 status = &quot;decided&quot;
 source = &quot;extract&quot;
-checks = [&quot;bibtex-import#test_doi_loses_its_resolver_prefix&quot;, &quot;bibtex-import#test_arxiv_ids_are_found&quot;, &quot;bibtex-import#test_other_eprints_stay_in_fields&quot;, &quot;bibtex-import#example:16&quot;, &quot;bibtex-import#example:28&quot;, &quot;bibtex-import#example:33&quot;, &quot;bibtex-import#example:34&quot;]
+checks = [&quot;bibtex-import#test_doi_loses_its_resolver_prefix&quot;, &quot;bibtex-import#test_arxiv_ids_are_found&quot;, &quot;bibtex-import#test_other_eprints_stay_in_fields&quot;, &quot;bibtex-import#example:16&quot;, &quot;bibtex-import#example:28&quot;, &quot;bibtex-import#example:33&quot;, &quot;bibtex-import#example:34&quot;, &quot;bibtex-import#example:40&quot;]
 
 [[obligation]]
 id = &quot;import.draft-fields&quot;
-statement = &quot;year is the first four digits; venue is journal, else booktitle, else publisher; notes is annote, else note; empty abstract, doi and venue are absent.&quot;
+statement = &quot;year is the first four digits; venue is journal, else booktitle, else publisher; notes is annote when the entry has one (even empty), else note; empty abstract, doi and venue are absent.&quot;
 status = &quot;decided&quot;
 source = &quot;extract&quot;
-checks = [&quot;bibtex-import#example:4&quot;, &quot;bibtex-import#example:20&quot;, &quot;bibtex-import#example:23&quot;, &quot;bibtex-import#example:35&quot;, &quot;bibtex-import#example:37&quot;]
+checks = [&quot;bibtex-import#example:4&quot;, &quot;bibtex-import#example:20&quot;, &quot;bibtex-import#example:23&quot;, &quot;bibtex-import#example:35&quot;, &quot;bibtex-import#example:37&quot;, &quot;bibtex-import#example:41&quot;]
 
 [[obligation]]
 id = &quot;import.venue-empty-journal&quot;
@@ -312,7 +312,7 @@ id = &quot;filing.paperpile-layout&quot;
 statement = &quot;PDFs are filed as papers/All Papers/&lt;SURNAME&gt;/&lt;Who Year - Title&gt;.pdf, Paperpile&#39;s own layout, so a Paperpile folder can be copied in unchanged.&quot;
 status = &quot;decided&quot;
 source = &quot;oracle&quot;
-checks = [&quot;pdf-filing#test_pdf_is_the_file_under_papers&quot;, &quot;pdf-filing#test_folder_is_the_first_surname_in_capitals&quot;, &quot;pdf-filing#test_same_paper_same_place&quot;, &quot;pdf-filing#example:1&quot;, &quot;pdf-filing#example:2&quot;, &quot;pdf-filing#example:3&quot;, &quot;pdf-filing#example:7&quot;, &quot;pdf-filing#example:8&quot;, &quot;pdf-filing#example:9&quot;, &quot;pdf-filing#example:10&quot;, &quot;pdf-filing#example:16&quot;, &quot;pdf-filing#example:17&quot;]
+checks = [&quot;pdf-filing#test_pdf_is_the_file_under_papers&quot;, &quot;pdf-filing#test_folder_is_the_first_surname_in_capitals&quot;, &quot;pdf-filing#test_same_paper_same_place&quot;, &quot;pdf-filing#example:1&quot;, &quot;pdf-filing#example:2&quot;, &quot;pdf-filing#example:3&quot;, &quot;pdf-filing#example:7&quot;, &quot;pdf-filing#example:8&quot;, &quot;pdf-filing#example:9&quot;, &quot;pdf-filing#example:10&quot;, &quot;pdf-filing#example:16&quot;, &quot;pdf-filing#example:17&quot;, &quot;pdf-filing#example:20&quot;, &quot;pdf-filing#example:21&quot;]
 
 [[obligation]]
 id = &quot;filing.clean-names&quot;
@@ -356,7 +356,7 @@ id = &quot;merge.sets&quot;
 statement = &quot;tags and folders merge as sets: additions from either side are kept, removals from either side stick.&quot;
 status = &quot;decided&quot;
 source = &quot;oracle&quot;
-checks = [&quot;library-merge#test_tags_merge_as_sets&quot;, &quot;library-merge#example:6&quot;, &quot;library-merge#example:7&quot;, &quot;library-merge#example:8&quot;, &quot;library-merge#example:21&quot;]
+checks = [&quot;library-merge#test_tags_merge_as_sets&quot;, &quot;library-merge#example:6&quot;, &quot;library-merge#example:7&quot;, &quot;library-merge#example:8&quot;, &quot;library-merge#example:21&quot;, &quot;library-merge#example:22&quot;, &quot;library-merge#example:23&quot;]
 
 [[obligation]]
 id = &quot;merge.deletes&quot;
@@ -463,7 +463,7 @@ id = &quot;file.exact-text&quot;
 statement = &quot;library.json is written byte for byte as lightkone writes it: JSON with a one-space indent, JavaScript&#39;s key order, escaping and number printing.&quot;
 status = &quot;decided&quot;
 source = &quot;oracle&quot;
-checks = [&quot;library-file#test_layout_is_one_space_indented_json&quot;, &quot;library-file#example:4&quot;, &quot;library-file#example:9&quot;, &quot;library-file#example:18&quot;, &quot;library-file#example:19&quot;, &quot;library-file#example:20&quot;, &quot;library-file#example:24&quot;]
+checks = [&quot;library-file#test_layout_is_one_space_indented_json&quot;, &quot;library-file#example:4&quot;, &quot;library-file#example:9&quot;, &quot;library-file#example:18&quot;, &quot;library-file#example:19&quot;, &quot;library-file#example:20&quot;, &quot;library-file#example:24&quot;, &quot;library-file#example:55&quot;]
 
 [[obligation]]
 id = &quot;file.no-needless-write&quot;

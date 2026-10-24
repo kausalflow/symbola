@@ -9,9 +9,8 @@
       "authors": [
         "kausalflow"
       ],
-      "digest": "sha256:075c30cc624fda7b44c574318d20224fc97184ed3505597bf0fe7616defdfd10",
-      "tarball_sha256": "960a0524f2cd224316cd197bc448f325070d9c0ea919c5b982eea983b44a98f1",
-      "signed": false,
+      "digest": "sha256:ac9c6d266b365c7ca3bffe08678dc7e14309de3ac0ecff610caa16370d52120c",
+      "tarball_sha256": "d412d56b5a961f3a12be335a8d5cbfd72f8cfecf101e6a85f7794f7d546e54b3",
       "summary": {
         "obligations": 64,
         "by_status": {
@@ -32,10 +31,10 @@
         "assumptions": 4,
         "monitored_assumptions": 4,
         "components": 8,
-        "checks": 340,
-        "checks_tracing_to_an_obligation": 340
+        "checks": 350,
+        "checks_tracing_to_an_obligation": 350
       },
-      "summary_line": "64 obligations (64 decided, 0 default, 0 open) \u00b7 4 assumptions (4 monitored) \u00b7 340/340 checks trace to an obligation",
+      "summary_line": "64 obligations (64 decided, 0 default, 0 open) \u00b7 4 assumptions (4 monitored) \u00b7 350/350 checks trace to an obligation",
       "files": [
         "AGENTS.md",
         "BRIEF.md",
@@ -100,7 +99,29 @@
         "obligations.toml",
         "symbolon-pack.toml"
       ],
-      "price": null
+      "price": null,
+      "preview": "full",
+      "evidence": {
+        "attestations": 19,
+        "invalid": 0,
+        "on_latest": 12,
+        "components": 8,
+        "components_with_passing_build": 8,
+        "builds": [
+          "AI builder",
+          "go-1 rebuild",
+          "kausalflow/lightkone"
+        ],
+        "full_builds": [
+          "kausalflow/lightkone"
+        ],
+        "runners": [
+          "runner-a",
+          "runner-c"
+        ],
+        "newest": "2026-10-24T14:34:31Z"
+      },
+      "older": []
     }
   ]
 }
