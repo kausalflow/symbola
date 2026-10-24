@@ -11,7 +11,6 @@
       ],
       "digest": "sha256:075c30cc624fda7b44c574318d20224fc97184ed3505597bf0fe7616defdfd10",
       "tarball_sha256": "960a0524f2cd224316cd197bc448f325070d9c0ea919c5b982eea983b44a98f1",
-      "signed": false,
       "summary": {
         "obligations": 64,
         "by_status": {
@@ -100,7 +99,29 @@
         "obligations.toml",
         "symbolon-pack.toml"
       ],
-      "price": null
+      "price": null,
+      "preview": "full",
+      "evidence": {
+        "attestations": 19,
+        "invalid": 0,
+        "on_latest": 16,
+        "components": 8,
+        "components_with_passing_build": 8,
+        "builds": [
+          "AI builder",
+          "go-1 rebuild",
+          "kausalflow/lightkone"
+        ],
+        "full_builds": [
+          "kausalflow/lightkone"
+        ],
+        "runners": [
+          "runner-a",
+          "runner-c"
+        ],
+        "newest": "2026-10-24T12:43:22Z"
+      },
+      "older": []
     }
   ]
 }
