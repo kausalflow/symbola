@@ -7,7 +7,7 @@ from typer.testing import CliRunner
 from symbolon import keys
 from symbolon.cli import app
 from symbolon.pack import validate_pack
-from symbolon.registry import RegistryError, build_site, pack_digest, pull, scaffold_pack
+from symbolon.registry import RegistryError, build_site, check_registry, pack_digest, pull, release, scaffold_pack
 
 from .conftest import REPO
 
@@ -121,3 +121,52 @@ def test_cli_init_build_and_pull(registry, tmp_path):
                             "--dest", str(tmp_path / "lk")])
     assert r.exit_code == 0, r.output
     assert (tmp_path / "lk" / "AGENTS.md").is_file()
+
+
+@pytest.fixture
+def publisher(tmp_path):
+    return keys.generate(tmp_path / "keys" / "publisher.key")
+
+
+def test_release_freezes_signs_and_claims_the_owner(tmp_path, publisher):
+    spec = scaffold_pack("acme/demo", tmp_path / "spec")
+    reg = tmp_path / "packs"
+    r = release(spec, reg, publisher)
+    assert r.created and r.version == 1
+    assert (reg / "acme" / "publisher.pub").is_file()
+    assert (reg / "acme" / "demo" / "signatures" / "1.json").is_file()
+    assert pack_digest(reg / "acme" / "demo" / "versions" / "1") == pack_digest(spec) == r.digest
+    assert check_registry(reg) == []
+
+
+def test_release_of_unchanged_content_is_a_no_op(tmp_path, publisher):
+    spec = scaffold_pack("acme/demo", tmp_path / "spec")
+    reg = tmp_path / "packs"
+    release(spec, reg, publisher)
+    assert not release(spec, reg, publisher).created
+    (spec / "BRIEF.md").write_text((spec / "BRIEF.md").read_text() + "\nMore.\n")
+    r = release(spec, reg, publisher)
+    assert r.created and r.version == 2
+    assert 'version = 2' in (reg / "acme" / "demo" / "versions" / "2" / "symbolon-pack.toml").read_text()
+    assert check_registry(reg) == []
+
+
+def test_release_refuses_another_owners_key(tmp_path, publisher):
+    reg = tmp_path / "packs"
+    release(scaffold_pack("acme/demo", tmp_path / "spec"), reg, publisher)
+    intruder = keys.generate(tmp_path / "keys" / "intruder.key")
+    with pytest.raises(RegistryError, match="another key"):
+        release(scaffold_pack("acme/other", tmp_path / "spec2"), reg, intruder)
+
+
+def test_check_registry_rejects_an_edited_signed_version(tmp_path, publisher):
+    reg = tmp_path / "packs"
+    release(scaffold_pack("acme/demo", tmp_path / "spec"), reg, publisher)
+    brief = reg / "acme" / "demo" / "versions" / "1" / "BRIEF.md"
+    brief.write_text(brief.read_text() + "\nTampered.\n")
+    with pytest.raises(RegistryError, match="signs version 1"):
+        check_registry(reg)
+
+
+def test_check_registry_warns_about_unsigned_owners(registry):
+    assert check_registry(registry) == ["kausalflow/lightkone: unsigned; kausalflow/ has no publisher.pub"]

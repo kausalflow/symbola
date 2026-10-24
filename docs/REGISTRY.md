@@ -24,6 +24,41 @@ assumption.
 Holdout tests must stay **outside** the pack folder. `site build` refuses a pack that
 contains a `holdout` path.
 
+## Keeping a pack while you build
+
+The repository ships a Claude Code skill, [`skills/symbolon-pack/SKILL.md`](https://github.com/kausalflow/symbolon/blob/main/skills/symbolon-pack/SKILL.md).
+Copy it into your project's `.claude/skills/` (or point another coding tool at it
+from your `AGENTS.md`). It tells the agent to update `spec/` in the same change as
+the code whenever you make a decision a builder could not have guessed, state a
+fact about the world, or leave something open, and to run `pack validate` after
+each change.
+
+## Releasing
+
+```
+symbolon keygen                                        # once: your publisher key
+symbolon release spec --registry ../registry/packs     # in a clone of the registry
+```
+
+`release` validates the pack, sets its manifest version to the next free number,
+copies it to `packs/<owner>/<name>/versions/<n>/`, and writes
+`packs/<owner>/<name>/signatures/<n>.json`, a DSSE envelope over
+`{pack, version, digest}`. Releasing unchanged content does nothing. The first
+release under an owner writes `packs/<owner>/publisher.pub`; after that, only the
+same key can release under that owner. Then commit and open a pull request.
+
+## Submission checks
+
+```
+symbolon site check packs
+```
+
+CI runs this on every pull request. It builds the whole registry (so every latest
+version must pass `pack validate`, match its manifest id, and hold no holdout
+files) and, for owners with a `publisher.pub`, checks that the latest version's
+signature matches its digest. Owners without a key are reported as unsigned, a
+warning for now.
+
 ## Building the site
 
 ```

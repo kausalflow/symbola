@@ -20,6 +20,8 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 | [`pack init`](#pack-init) | Scaffold a spec pack that passes `pack validate` out of the box |
 | [`site build`](#site-build) | Write the static registry for the latest version of every pack |
 | [`pull`](#pull) | Download a pack from the registry, check it, and unpack it |
+| [`site check`](#site-check) | The checks a pack submission must pass |
+| [`release`](#release) | Freeze your pack into the registry as its next version, signed |
 | [`mutants`](#mutants) | Show which checks kill which mutants, and the kill rate |
 | [`canary plant`](#canary-plant) | Copy a contract for a builder with one example changed to contradict the spec |
 | [`canary check`](#canary-check) | Tell whether a build followed the spec or was fitted to the planted example |
@@ -262,3 +264,19 @@ symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--trust PUBKEY]
 ```
 
 Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, and with `--trust` the publisher's signature, then unpacks it into `DEST` (default `./<name>`). See [Pack registry](REGISTRY.md#pulling-a-pack).
+
+## `site check`
+
+```
+symbolon site check [REGISTRY=packs]
+```
+
+Builds the registry in a temporary folder and checks each latest version's signature against its owner's `publisher.pub`. Prints a warning for owners without a key. See [Pack registry](REGISTRY.md#submission-checks).
+
+## `release`
+
+```
+symbolon release [SPEC=spec] --registry PACKS [--key KEY]
+```
+
+Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next version, and signs it. Does nothing if the content is unchanged since the latest version. See [Pack registry](REGISTRY.md#releasing).

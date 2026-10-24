@@ -39,6 +39,8 @@ PACK_REF_RE = re.compile(r"^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$")
 SIGNATURE_FILE = "latest.sig.json"
 TARBALL_FILE = "latest.tar.gz"
 SHA_FILE = "latest.sha256"
+SIGNATURES_DIR = "signatures"
+PUBLISHER_KEY = "publisher.pub"
 
 
 class RegistryError(Exception):
@@ -285,6 +287,103 @@ def build_site(registry: Path, out: Path, key_path: Path | None = None, base_url
         + "".join(f"- [{e['id']}]({root_prefix}packs/{e['id']}/llms.txt): {e['title']} · {e['summary_line']}\n"
                   for e in entries))
     return built
+
+
+# ---------------------------------------------------------------- release
+
+@dataclass
+class Release:
+    id: str
+    version: int
+    digest: str
+    path: Path
+    created: bool
+
+
+def _set_version(manifest: Path, version: int) -> None:
+    text = manifest.read_text()
+    new, n = re.subn(r"(?m)^version\s*=\s*\d+\s*$", f"version = {version}", text, count=1)
+    if not n:
+        raise RegistryError(f"{manifest}: no 'version = <n>' line under [pack]")
+    manifest.write_text(new)
+
+
+def _verify_signature(pack_root: Path, version: int, digest: str, public: Path) -> None:
+    path = pack_root / SIGNATURES_DIR / f"{version}.json"
+    if not path.is_file():
+        raise RegistryError(f"{path}: missing; the owner has {PUBLISHER_KEY}, so every release must be signed")
+    try:
+        payload = json.loads(keys.verify_envelope(json.loads(path.read_text()), keys.load_public(public)))
+    except ValueError as e:
+        raise RegistryError(f"{path}: {e}") from None
+    if payload.get("version") != version or payload.get("digest") != digest:
+        raise RegistryError(f"{path}: signs version {payload.get('version')} {payload.get('digest')}, "
+                            f"but versions/{version} is {digest}")
+
+
+def release(spec: Path, registry: Path, key_path: Path) -> Release:
+    """Freeze a pack folder into the registry as its next version, signed by the publisher.
+
+    The spec folder's manifest is bumped to the new version first, so the spec and
+    the frozen copy share a digest and a second release of the same content is a no-op.
+    The first release under an owner records the publisher's public key next to its
+    packs; later releases must be signed by the same key.
+    """
+    spec, registry = Path(spec), Path(registry)
+    report = validate_pack(spec)
+    if not report.ok:
+        bad = "; ".join(f"{c.name}: {c.detail}" for c in report.checks if not c.ok)
+        raise RegistryError(f"pack validate fails: {bad}")
+    pack_id = _manifest(spec).get("id", "")
+    if not PACK_REF_RE.match(pack_id):
+        raise RegistryError(f"{PACK_MANIFEST_FILE}: id must look like 'owner/name', got {pack_id!r}")
+    owner, name = pack_id.split("/")
+    key = keys.load_private(key_path)
+    public = keys.public_path(Path(key_path))
+    owner_key = registry / owner / PUBLISHER_KEY
+    if owner_key.is_file() and keys.keyid(keys.load_public(owner_key)) != keys.keyid(key.public_key()):
+        raise RegistryError(f"{owner_key} belongs to another key; only the owner's key can release under {owner}/")
+    pack_root = registry / owner / name
+    current = latest_version(pack_root)
+    if current is not None:
+        n = int(current.name)
+        _set_version(spec / PACK_MANIFEST_FILE, n)
+        if pack_digest(spec) == pack_digest(current):
+            return Release(pack_id, n, pack_digest(current), current, False)
+    version = int(current.name) + 1 if current is not None else 1
+    _set_version(spec / PACK_MANIFEST_FILE, version)
+    target = pack_root / VERSIONS_DIR / str(version)
+    for path in _files(spec):
+        dest = target / path.relative_to(spec)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(path, dest)
+    digest = pack_digest(target)
+    payload = json.dumps({"pack": pack_id, "version": version, "digest": digest}, sort_keys=True).encode()
+    sig = pack_root / SIGNATURES_DIR / f"{version}.json"
+    sig.parent.mkdir(parents=True, exist_ok=True)
+    sig.write_text(json.dumps(keys.sign_envelope(payload, key), indent=2) + "\n")
+    if not owner_key.is_file():
+        shutil.copyfile(public, owner_key)
+    return Release(pack_id, version, digest, target, True)
+
+
+def check_registry(registry: Path) -> list[str]:
+    """What a submission must pass: every latest version builds, and is signed where its owner has a key.
+
+    Returns warnings for packs whose owner has not registered a key yet.
+    """
+    registry = Path(registry)
+    with tempfile.TemporaryDirectory() as tmp:
+        built = build_site(registry, Path(tmp) / "site")
+    warnings = []
+    for b in built:
+        owner, name = b.id.split("/")
+        owner_key = registry / owner / PUBLISHER_KEY
+        if owner_key.is_file():
+            _verify_signature(registry / owner / name, b.version, b.digest, owner_key)
+        else:
+            warnings.append(f"{b.id}: unsigned; {owner}/ has no {PUBLISHER_KEY}")
+    return warnings
 
 
 # ---------------------------------------------------------------- pull
