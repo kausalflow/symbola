@@ -99,7 +99,8 @@
         "components/tidy/versions/1/symbolon.toml",
         "obligations.toml",
         "symbolon-pack.toml"
-      ]
+      ],
+      "price": null
     }
   ]
 }

@@ -811,6 +811,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#selling-a-pack" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Selling a pack
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1090,6 +1101,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#selling-a-pack" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Selling a pack
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1263,6 +1285,21 @@ also requires a valid signature from that public key over the same digest and
 sha256. The registry defaults to <code>$SYMBOLON_REGISTRY</code>, or the kausalflow site.</p>
 <p>An agent that only needs to read a pack can fetch <code>packs/&lt;owner&gt;/&lt;name&gt;/pack.md</code>
 instead and skip unpacking.</p>
+<h2 id="selling-a-pack">Selling a pack<a class="headerlink" href="#selling-a-pack" title="Permanent link">&para;</a></h2>
+<p>Add a price to the pack manifest:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">[listing]</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">price</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1900</span><span class="w">        </span><span class="c1"># minor units: 19.00</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">currency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"eur"</span>
+</span></code></pre></div>
+<p>A priced pack keeps its full preview on the site (brief, obligations, files,
+<code>pack.md</code>, sha256), but its tarball is written to <code>--private-out</code> instead of the
+public site and is served by the store, a Cloudflare Worker in
+<a href="https://github.com/kausalflow/symbolon/tree/main/store"><code>store/</code></a>. The pack page
+shows a Buy button; after paying through Stripe, the buyer gets a license token:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>symbolon pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
+</span></code></pre></div>
+<p><code>site build</code> refuses a priced pack unless it is given <code>--private-out</code> and
+<code>--store-url</code>. Deployment steps are in <code>store/README.md</code>.</p>
 
 
 
