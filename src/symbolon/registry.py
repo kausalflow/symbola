@@ -63,6 +63,14 @@ title = "{name}"
 license = "Proprietary"
 authors = ["{author}"]
 
+# Who publishes this pack, shown on its registry page. The profile defaults to
+# your GitHub page; support links (Buy Me a Coffee, GitHub Sponsors, Ko-fi, ...)
+# are optional, at most five, https only.
+# [publisher]
+# name = "Your name"
+# url = "https://github.com/you"
+# support = [{{ label = "Buy me a coffee", url = "https://buymeacoffee.com/you" }}]
+
 # Component contracts, as "<namespace>/<name>@<version>" = "<digest>".
 # Add one with `symbolon init` under components/, then list its digest here.
 [components]
@@ -298,6 +306,42 @@ def listing_price(pack_dir: Path) -> dict | None:
     return {"amount": price, "currency": currency}
 
 
+MAX_SUPPORT_LINKS = 5
+
+
+def _https(value: object) -> bool:
+    return isinstance(value, str) and value.startswith("https://") and len(value) <= 300 and not any(
+        c.isspace() for c in value)
+
+
+def listing_publisher(pack_dir: Path, owner: str) -> dict:
+    """Who publishes a pack and where to support them, from `[publisher]` in its manifest.
+
+    The profile defaults to the owner's GitHub page. Support links are the
+    publisher's own (Buy Me a Coffee, GitHub Sponsors, Ko-fi, ...); the registry
+    only shows them.
+    """
+    with (Path(pack_dir) / PACK_MANIFEST_FILE).open("rb") as f:
+        pub = tomllib.load(f).get("publisher", {})
+    name = pub.get("name", owner)
+    url = pub.get("url", f"https://github.com/{owner}")
+    if not isinstance(name, str) or not 0 < len(name) <= 80:
+        raise RegistryError(f"{pack_dir}: [publisher] name must be a string of at most 80 characters")
+    if not _https(url):
+        raise RegistryError(f"{pack_dir}: [publisher] url must be an https:// link")
+    support = pub.get("support", [])
+    if not isinstance(support, list) or len(support) > MAX_SUPPORT_LINKS:
+        raise RegistryError(f"{pack_dir}: [publisher] support must be a list of at most {MAX_SUPPORT_LINKS} links")
+    links = []
+    for link in support:
+        label = link.get("label") if isinstance(link, dict) else None
+        if not isinstance(label, str) or not 0 < len(label) <= 40 or not _https(link.get("url")):
+            raise RegistryError(f"{pack_dir}: each [publisher] support link needs a label (at most 40 characters) "
+                                "and an https:// url")
+        links.append({"label": label, "url": link["url"]})
+    return {"name": name, "url": url, "support": links}
+
+
 def listing_preview(pack_dir: Path, price: dict | None) -> str:
     """How much of a pack the site shows: "full", or "brief" (the default for a priced pack)."""
     with (Path(pack_dir) / PACK_MANIFEST_FILE).open("rb") as f:
@@ -487,6 +531,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
             "digest": digest, "tarball_sha256": sha,
             "summary": report.summary, "summary_line": summary_line(report.summary),
             "files": listed, "price": price, "preview": preview,
+            "publisher": listing_publisher(version_dir, owner),
             "evidence": evidence["summary"], "older": older,
         })
         built.append(BuiltPack(pack_id, version, digest, sha))

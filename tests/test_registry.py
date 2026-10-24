@@ -216,6 +216,32 @@ def test_check_registry_warns_about_packs_without_recorded_digests(registry):
         "kausalflow/lightkone: no digests.txt, so edits to released versions are not caught"]
 
 
+def test_publisher_defaults_to_the_owner_and_shows_support_links(registry, tmp_path):
+    build_site(registry, tmp_path / "a")
+    (entry,) = json.loads((tmp_path / "a" / "index.json").read_text())["packs"]
+    assert entry["publisher"] == {"name": "kausalflow", "url": "https://github.com/kausalflow", "support": []}
+
+    manifest = registry / "kausalflow" / "lightkone" / "versions" / "2" / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text() + '\n[publisher]\nname = "Kausal Flow"\n'
+                        'support = [{ label = "Buy me a coffee", url = "https://buymeacoffee.com/kausal" }]\n')
+    build_site(registry, tmp_path / "b")
+    (entry,) = json.loads((tmp_path / "b" / "index.json").read_text())["packs"]
+    assert entry["publisher"]["name"] == "Kausal Flow"
+    assert entry["publisher"]["support"] == [{"label": "Buy me a coffee", "url": "https://buymeacoffee.com/kausal"}]
+
+
+@pytest.mark.parametrize("bad", [
+    'url = "http://example.com"',
+    'support = [{ label = "x", url = "javascript:alert(1)" }]',
+    'support = [{ url = "https://x.example" }]',
+])
+def test_bad_publisher_links_are_refused(registry, tmp_path, bad):
+    manifest = registry / "kausalflow" / "lightkone" / "versions" / "2" / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text() + f"\n[publisher]\n{bad}\n")
+    with pytest.raises(RegistryError, match="publisher"):
+        build_site(registry, tmp_path / "site")
+
+
 def _price(registry, amount=1900):
     manifest = registry / "kausalflow" / "lightkone" / "versions" / "2" / "symbolon-pack.toml"
     manifest.write_text(manifest.read_text() + f'\n[listing]\nprice = {amount}\ncurrency = "eur"\n')

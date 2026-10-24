@@ -141,7 +141,32 @@ links one `parts/` file per component, so the agent reads only the components it
 builds and no file is too big for one read. Data files such as `examples.jsonl`
 show their first lines in the part and link the raw file under `files/`.
 
+## Publisher and support links
+
+Every pack page says who publishes it and links their profile, the owner's GitHub
+page unless the manifest says otherwise. Publishers who want to be paid for their
+work can add up to five support links (Buy Me a Coffee, GitHub Sponsors, Ko-fi,
+and so on), which the page shows as buttons:
+
+```toml
+[publisher]
+name = "Acme Labs"                       # defaults to the owner
+url = "https://acme.example"             # defaults to https://github.com/<owner>
+support = [
+  { label = "Buy me a coffee", url = "https://buymeacoffee.com/acme" },
+  { label = "GitHub Sponsors", url = "https://github.com/sponsors/acme" },
+]
+```
+
+Links must be `https://`. Money goes straight to the publisher; the registry
+takes nothing and handles no payments.
+
 ## Selling a pack
+
+**Not switched on.** For now every pack in the registry is public and free, and
+publishers monetize through support links. The code below stays in place for a
+later stage.
+
 
 Add a price to the pack manifest:
 
