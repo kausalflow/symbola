@@ -1,4 +1,4 @@
-from symbolon.digest import contract_digest, contract_files
+from symbola.digest import contract_digest, contract_files
 
 
 def test_digest_is_stable(contract):

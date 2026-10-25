@@ -4,7 +4,7 @@
 changed so that it contradicts the spec, and writes a private record of
 the change outside the copy. A builder who follows the spec fails that one
 example; a builder who special-cases examples passes it. Either way the
-builder should report the contradiction with `symbolon flag`.
+builder should report the contradiction with `symbola flag`.
 
 `check` runs a finished build on the canary input and reads its flags.
 Nothing here executes contract code in this process; that goes through

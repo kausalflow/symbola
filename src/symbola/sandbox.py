@@ -33,7 +33,7 @@ import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
-import symbolon
+import symbola
 
 # Pinned by digest so every runner builds the same environment.
 BASE_IMAGE = "python:3.13-slim@sha256:cf50a4f6ac4f026458b08d5222023d700ac806410dff5e9ca8728fa44f2b850f"
@@ -69,7 +69,7 @@ class Workspace:
 
     @classmethod
     def create(cls, contract_dir: Path, impl_dir: Path) -> "Workspace":
-        root = Path(tempfile.mkdtemp(prefix="symbolon-run-"))
+        root = Path(tempfile.mkdtemp(prefix="symbola-run-"))
         ignore = shutil.ignore_patterns("__pycache__", "*.pyc", ".*")
         ws = cls(root, root / "contract", root / "impl", root / "out", root / "deps")
         shutil.copytree(contract_dir, ws.contract, ignore=ignore)
@@ -137,7 +137,7 @@ class ProcessSandbox(Sandbox):
             "arch": platform.machine(),
             "node": node_version(),
             "packages": package_versions(),
-            "symbolon": symbolon.__version__,
+            "symbolon": symbola.__version__,
         }
 
     def isolation(self, network: bool) -> dict:
@@ -158,7 +158,7 @@ class ProcessSandbox(Sandbox):
                 raise SandboxError("installing requirements.lock failed:\n" + _tail(proc))
 
         out = ws.out / "result.json"
-        cmd = [sys.executable, "-I", "-m", "symbolon.worker", "test",
+        cmd = [sys.executable, "-I", "-m", "symbola.worker", "test",
                str(ws.contract), str(out), str(ws.impl)]
         if lockfile:
             cmd += ["--deps", str(ws.deps)]
@@ -204,27 +204,27 @@ class ContainerSandbox(Sandbox):
             + f"RUN {cert}pip install {pins} {NODE_WHEEL}\n"
             + ("RUN rm /tmp/build-ca.pem\n" if cert else "") +
             "RUN ln -s \"$(python -c 'import nodejs_wheel, os; print(os.path.dirname(nodejs_wheel.__file__))')/bin/node\" /usr/local/bin/node\n"
-            "COPY symbolon /opt/symbolon/symbolon\n"
-            # A .pth file keeps symbolon importable under `python -I`.
-            "RUN echo /opt/symbolon > \"$(python -c 'import site; print(site.getsitepackages()[0])')/symbolon.pth\"\n"
+            "COPY symbola /opt/symbola/symbola\n"
+            # A .pth file keeps symbola importable under `python -I`.
+            "RUN echo /opt/symbola > \"$(python -c 'import site; print(site.getsitepackages()[0])')/symbola.pth\"\n"
         )
 
     def _package_files(self) -> list[Path]:
-        pkg = Path(symbolon.__file__).parent
+        pkg = Path(symbola.__file__).parent
         return sorted(p for p in pkg.rglob("*.py") if "__pycache__" not in p.parts)
 
     def image(self) -> str:
         h = hashlib.sha256(self._dockerfile().encode())
-        pkg = Path(symbolon.__file__).parent
+        pkg = Path(symbola.__file__).parent
         for p in self._package_files():
             h.update(p.relative_to(pkg).as_posix().encode() + b"\0" + p.read_bytes())
-        tag = f"symbolon-runner:{h.hexdigest()[:16]}"
+        tag = f"symbola-runner:{h.hexdigest()[:16]}"
         if subprocess.run([self.docker, "image", "inspect", tag], capture_output=True).returncode != 0:
             with tempfile.TemporaryDirectory() as ctx:
                 Path(ctx, "Dockerfile").write_text(self._dockerfile())
                 if os.environ.get("SYMBOLON_PIP_CERT"):
                     shutil.copy(os.environ["SYMBOLON_PIP_CERT"], Path(ctx, "build-ca.pem"))
-                dest = Path(ctx, "symbolon")
+                dest = Path(ctx, "symbola")
                 for p in self._package_files():
                     target = dest / p.relative_to(pkg)
                     target.parent.mkdir(parents=True, exist_ok=True)
@@ -258,7 +258,7 @@ class ContainerSandbox(Sandbox):
             "image_id": self._image_id,
             **self._container_info(image),
             "packages": package_versions(),
-            "symbolon": symbolon.__version__,
+            "symbolon": symbola.__version__,
         }
 
     def isolation(self, network: bool) -> dict:
@@ -269,7 +269,7 @@ class ContainerSandbox(Sandbox):
         }
 
     def _docker_run(self, args: list[str], timeout: int) -> subprocess.CompletedProcess:
-        name = f"symbolon-{uuid.uuid4().hex[:12]}"
+        name = f"symbola-{uuid.uuid4().hex[:12]}"
         try:
             return subprocess.run([self.docker, "run", "--rm", "--name", name] + args,
                                   capture_output=True, text=True, timeout=timeout)
@@ -312,7 +312,7 @@ class ContainerSandbox(Sandbox):
             "-v", f"{ws.impl}:/work/impl:ro",
             "-v", f"{ws.out}:/work/out",
         ]
-        worker = ["python", "-I", "-m", "symbolon.worker", "test",
+        worker = ["python", "-I", "-m", "symbola.worker", "test",
                   "/work/contract", "/work/out/result.json", "/work/impl"]
         if lockfile:
             cmd += ["-v", f"{ws.deps}:/work/deps:ro"]

@@ -5,11 +5,11 @@ import tarfile
 import pytest
 from typer.testing import CliRunner
 
-from symbolon.digest import contract_digest
-from symbolon.cli import app
-from symbolon.pack import validate_pack
-import symbolon.registry as registry_mod
-from symbolon.registry import RegistryError, build_site, check_registry, pack_digest, pack_ref, pull, release, scaffold_pack
+from symbola.digest import contract_digest
+from symbola.cli import app
+from symbola.pack import validate_pack
+import symbola.registry as registry_mod
+from symbola.registry import RegistryError, build_site, check_registry, pack_digest, pack_ref, pull, release, scaffold_pack
 
 from .conftest import REPO
 
@@ -74,7 +74,7 @@ def test_pack_md_is_split_into_parts_small_enough_for_one_read(site, tmp_path):
     tidy = (files / "parts" / "tidy-v1.md").read_text()
     assert "## components/tidy/versions/1/symbolon.toml" in tidy
     assert "(../files/components/tidy/versions/1/examples.jsonl)" in tidy
-    assert "[tidy-v1.tar.gz](tidy-v1.tar.gz)" in tidy and "symbolon keygen" in tidy
+    assert "[tidy-v1.tar.gz](tidy-v1.tar.gz)" in tidy and "symbola keygen" in tidy
     with tarfile.open(files / "parts" / "tidy-v1.tar.gz") as tar:
         tar.extractall(tmp_path / "tidy", filter="data")
     assert contract_digest(tmp_path / "tidy" / "tidy-v1") == contract_digest(
@@ -233,13 +233,13 @@ def test_pack_llms_txt_tells_an_agent_how_to_build_it(registry, tmp_path):
     build_site(registry, tmp_path / "site", "https://symbola.sh")
     llms = (tmp_path / "site" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
     for step in ("uv tool install git+https://github.com/kausalflow/symbolon", "Not `pip install symbolon`",
-                 "symbolon pull kausalflow/lightkone --dest spec", "spec/AGENTS.md",
-                 "symbolon impl-init impl/", "symbolon test spec/components/", "symbolon keygen",
+                 "symbola pull kausalflow/lightkone --dest spec", "spec/AGENTS.md",
+                 "symbola impl-init impl/", "symbola test spec/components/", "symbola keygen",
                  "`tidy`: `spec/components/tidy/versions/1`"):
         assert step in llms, step
     assert "Build this pack" in (tmp_path / "site" / "llms.txt").read_text()
     build_site(registry, tmp_path / "other", "http://localhost:8000")
-    assert "symbolon pull kausalflow/lightkone --dest spec --registry http://localhost:8000" in (
+    assert "symbola pull kausalflow/lightkone --dest spec --registry http://localhost:8000" in (
         tmp_path / "other" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
 
 
@@ -256,7 +256,7 @@ def test_cli_pull_takes_a_page_link_and_names_the_next_steps(registry, tmp_path)
     page = (tmp_path / "site").as_uri() + "/packs/kausalflow/lightkone/"
     r = runner.invoke(app, ["pull", page, "--dest", str(tmp_path / "lk")])
     assert r.exit_code == 0, r.output
-    assert "symbolon impl-init impl/" in r.output and "tidy" in r.output
+    assert "symbola impl-init impl/" in r.output and "tidy" in r.output
 
 
 def test_release_freezes_and_records_the_digest(tmp_path):

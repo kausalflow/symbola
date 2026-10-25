@@ -28,7 +28,7 @@ Software capabilities are the first vertical. A contract specifies a capability,
 
     ---
 
-    Every `symbolon` command and its options.
+    Every `symbola` command and its options.
 
     [:octicons-arrow-right-24: CLI](cli.md)
 
@@ -45,7 +45,7 @@ Software capabilities are the first vertical. A contract specifies a capability,
 ## The idea in one example
 
 ```console
-$ symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strptime
+$ symbola test contracts/core/date-parse/versions/1 examples/impls/date-parse-strptime
 ...
 ✗ test_iso_requires_two_digit_month_and_day
     AssertionError
@@ -56,7 +56,7 @@ $ symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-s
 
 FAIL  2 of 21 checks failed
 
-$ symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strict
+$ symbola test contracts/core/date-parse/versions/1 examples/impls/date-parse-strict
 PASS  21 checks
 ```
 
@@ -67,8 +67,8 @@ The first implementation looks right and passes the obvious examples, but it acc
 | | |
 | --- | --- |
 | **Contract format** | A directory with a manifest, a pydantic schema, examples and hypothesis properties. Identified by a SHA-256 digest of its contents. |
-| **Validation** | `symbolon validate` checks structure, schema drift, examples, and that the spec is not vacuous. |
-| **Testing** | `symbolon test` runs a contract's spec against an implementation in Python or any language that speaks a JSON line protocol. |
-| **Attestations** | `symbolon attest` runs the spec in a sandbox and writes a signed in-toto attestation; `symbolon verify --rerun` reproduces it. |
-| **Spec packs** | Product-level contracts: a brief, assumptions, obligations, and component contracts. `symbolon pack validate` checks them. |
+| **Validation** | `symbola validate` checks structure, schema drift, examples, and that the spec is not vacuous. |
+| **Testing** | `symbola test` runs a contract's spec against an implementation in Python or any language that speaks a JSON line protocol. |
+| **Attestations** | `symbola attest` runs the spec in a sandbox and writes a signed in-toto attestation; `symbola verify --rerun` reproduces it. |
+| **Spec packs** | Product-level contracts: a brief, assumptions, obligations, and component contracts. `symbola pack validate` checks them. |
 | **Seeds and a pilot** | Three seed contracts and the [lightkone pilot](lightkone-pilot.md), a spec pack extracted from a real product and rebuilt by an AI from the pack alone. |

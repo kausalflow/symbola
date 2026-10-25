@@ -18,7 +18,7 @@ jobs:
       - run: python -m build
       - name: Tag matches package version
         run: |
-          version=$(python -c "import sys; sys.path.insert(0, 'src'); import symbolon; print(symbolon.__version__)")
+          version=$(python -c "import sys; sys.path.insert(0, 'src'); import symbola; print(symbola.__version__)")
           test "${GITHUB_REF_NAME}" = "v${version}" || { echo "tag ${GITHUB_REF_NAME} != v${version}"; exit 1; }
       - uses: actions/upload-artifact@v4
         with:

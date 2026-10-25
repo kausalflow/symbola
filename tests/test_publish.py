@@ -1,4 +1,4 @@
-"""`symbolon login`, `logout` and `publish`, against a faked symbola.sh and GitHub."""
+"""`symbola login`, `logout` and `publish`, against a faked symbola.sh and GitHub."""
 
 import gzip
 import io
@@ -9,9 +9,9 @@ import urllib.parse
 import pytest
 from typer.testing import CliRunner
 
-from symbolon import publish as pub
-from symbolon.cli import app
-from symbolon.registry import scaffold_pack
+from symbola import publish as pub
+from symbola.cli import app
+from symbola.registry import scaffold_pack
 
 SITE = "https://symbola.test"
 
@@ -60,7 +60,7 @@ def fake(monkeypatch, tmp_path):
     f = Fake()
     monkeypatch.setattr(pub.urllib.request, "urlopen", f)
     monkeypatch.setattr(pub.time, "sleep", lambda s: None)
-    monkeypatch.setattr("symbolon.cli.time.sleep", lambda s: None)
+    monkeypatch.setattr("symbola.cli.time.sleep", lambda s: None)
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
     monkeypatch.delenv("SYMBOLON_PUBLISH_TOKEN", raising=False)
     return f

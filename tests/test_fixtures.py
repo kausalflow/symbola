@@ -2,9 +2,9 @@ import json
 
 import pytest
 
-from symbolon.digest import contract_digest
-from symbolon.spec import SpecError, load_examples
-from symbolon.validate import validate
+from symbola.digest import contract_digest
+from symbola.spec import SpecError, load_examples
+from symbola.validate import validate
 
 from .conftest import REPO
 

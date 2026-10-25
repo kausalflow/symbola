@@ -3,8 +3,8 @@ import json
 import pytest
 from typer.testing import CliRunner
 
-from symbolon.canary import FLAGS_FILE, add_flag, check, plant
-from symbolon.cli import app
+from symbola.canary import FLAGS_FILE, add_flag, check, plant
+from symbola.cli import app
 
 runner = CliRunner()
 

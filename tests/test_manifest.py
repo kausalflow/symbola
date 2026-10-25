@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from symbolon.manifest import Manifest
+from symbola.manifest import Manifest
 
 BASE = {
     "contract": {

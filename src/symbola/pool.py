@@ -1,4 +1,4 @@
-"""Input pools for `symbolon diff`, and running every implementation on them.
+"""Input pools for `symbola diff`, and running every implementation on them.
 
 This executes contract and implementation code, so like spec.py it is only
 imported inside the worker subprocess.

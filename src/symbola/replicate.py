@@ -1,4 +1,4 @@
-"""`symbolon replicate`: rebuild a pack with outside coding agents and measure the result.
+"""`symbola replicate`: rebuild a pack with outside coding agents and measure the result.
 
 Symbolon does not write code. Replication hands a builder's copy of a spec
 pack to an external coding agent (Claude Code by default; any agent CLI
@@ -8,7 +8,7 @@ through `agent.py`), several times, then checks what came back:
    sandbox when a runner key is given;
 2. each build runs the publisher's holdout when there is one: a different
    property seed, more generated cases, and examples the builder never saw;
-3. `symbolon diff` runs per component across the builds that passed, with
+3. `symbola diff` runs per component across the builds that passed, with
    the original product as the reference when there is one, so splits show
    where the pack leaves a decision open (design v0.5, section 5.3).
 
@@ -59,9 +59,9 @@ Build each of these components into its own directory under `$build/`:
 $components
 
 Each build directory needs a `symbolon-impl.toml`. Create it with
-`symbolon impl-init $build/<name> --contract <spec>` and edit it if you do not
-write Python (the pack's AGENTS.md, or `symbolon impl-init --help`, says how).
-Check your work with `symbolon test <spec> $build/<name>` until it passes.
+`symbola impl-init $build/<name> --contract <spec>` and edit it if you do not
+write Python (the pack's AGENTS.md, or `symbola impl-init --help`, says how).
+Check your work with `symbola test <spec> $build/<name>` until it passes.
 
 Write `$build/NOTES.md` with your questions about unclear parts and the reading
 you chose for each. Record every such choice in `$build/readings.toml` as well:
@@ -79,10 +79,10 @@ would answer differently. They are run on every build, so be concrete. Probes
 may name fixtures like the examples do, written in TOML as `{ "$fixture" = "<file>" }`.
 
 If the spec contradicts itself, run
-`symbolon flag <component>#example:<line> "<what disagrees, and the reading you chose>" --dir $build/<component>`
+`symbola flag <component>#example:<line> "<what disagrees, and the reading you chose>" --dir $build/<component>`
 and carry on; do not code around it.
 
-You are done when `symbolon test` passes for every component. Your builds will
+You are done when `symbola test` passes for every component. Your builds will
 also be checked on inputs you have not seen.
 """
 
@@ -101,7 +101,7 @@ This copy of the pack has no examples and no properties: each component's
 description (in its `symbolon.toml`), its schema, and the pack's brief,
 assumptions and obligations are the whole specification. The `checks` listed in
 `obligations.toml` refer to tests you do not have; read the statements instead.
-`symbolon test` cannot run on this copy, so write your own tests from the
+`symbola test` cannot run on this copy, so write your own tests from the
 descriptions, and treat every rule a description states as exact.
 
 Build each of these components into its own directory under `$build/`:
@@ -109,8 +109,8 @@ Build each of these components into its own directory under `$build/`:
 $components
 
 Each build directory needs a `symbolon-impl.toml`. Create it with
-`symbolon impl-init $build/<name> --contract <spec>` and edit it if you do not
-write Python (the pack's AGENTS.md, or `symbolon impl-init --help`, says how).
+`symbola impl-init $build/<name> --contract <spec>` and edit it if you do not
+write Python (the pack's AGENTS.md, or `symbola impl-init --help`, says how).
 
 Write `$build/NOTES.md` with your questions about unclear parts and the reading
 you chose for each. Record every such choice in `$build/readings.toml` as well:
@@ -127,7 +127,7 @@ Give each reading one to three probes: inputs that the readings you considered
 would answer differently. They are run on every build, so be concrete.
 
 If the spec contradicts itself, run
-`symbolon flag <obligation id> "<what disagrees, and the reading you chose>" --dir $build/<component>`
+`symbola flag <obligation id> "<what disagrees, and the reading you chose>" --dir $build/<component>`
 and carry on; do not code around it.
 
 You are done when every component does what its description says. Your builds
@@ -199,7 +199,7 @@ def finish_manifest(impl_dir: Path, *, builder_digest: str, published_digest: st
         text = text.replace(builder_digest, published_digest)
         changes.append("re-pinned to the published contract digest")
     if "generator" not in tomllib.loads(text):
-        text = (text.rstrip("\n") + "\n\n# Added by symbolon replicate.\n[generator]\n"
+        text = (text.rstrip("\n") + "\n\n# Added by symbola replicate.\n[generator]\n"
                 f"model = {_toml_str(agent)}\nfamily = {_toml_str(agent)}\n"
                 f"prompt_digest = {_toml_str(prompt_digest)}\n")
         changes.append("added [generator]")
@@ -372,7 +372,7 @@ def replicate(pack_dir: Path, run_dir: Path, agents: list[AgentCommand], opts: O
     checked = validate_pack(pack_dir)
     if not checked.ok:
         problems = "; ".join(f"{c.name}: {c.detail}" for c in checked.checks if not c.ok)
-        raise ReplicateError(f"the pack is not valid ({problems}); run `symbolon pack validate`")
+        raise ReplicateError(f"the pack is not valid ({problems}); run `symbola pack validate`")
     available = _component_dirs(pack_dir)
     wanted = opts.components or list(available)
     unknown = [c for c in wanted if c not in available]

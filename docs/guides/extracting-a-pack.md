@@ -1,6 +1,6 @@
 # Extracting a pack
 
-`symbolon extract` turns a product you already built into a draft spec pack. It
+`symbola extract` turns a product you already built into a draft spec pack. It
 follows design v0.5, sections 5.1 and 5.2: an AI reads the product and drafts a
 minimal pack, and the original product is the oracle the draft must pass.
 
@@ -10,7 +10,7 @@ agent you already use, then checks what the agent leaves behind.
 ## Run it
 
 ```bash
-symbolon extract ~/code/lightkone --pack kausalflow/lightkone \
+symbola extract ~/code/lightkone --pack kausalflow/lightkone \
   --hint "Cover search, BibTeX import and export, and the library file."
 ```
 
@@ -29,8 +29,8 @@ Symbolon never changes. When it finishes you have:
 After each agent run, `extract` fills in the component digests in
 `symbolon-pack.toml` and checks:
 
-1. `symbolon pack validate` passes on the draft.
-2. `symbolon validate` passes on every component.
+1. `symbola pack validate` passes on the draft.
+2. `symbola validate` passes on every component.
 3. The original passes every component, through `oracle/<name>/` (skip with `--no-oracle`).
 4. `REVIEW.md` exists.
 
@@ -54,7 +54,7 @@ directory, and exits 0 when done. In order, `extract` uses:
 3. Claude Code headless: `claude -p --permission-mode acceptEdits --allowedTools Read,Write,Edit,Glob,Grep,Bash`
 
 The default lets the agent run shell commands without asking, since it must run
-`symbolon` and the product's code to record examples. Run it on a machine or
+`symbola` and the product's code to record examples. Run it on a machine or
 container where that is acceptable.
 
 The prompt is also written to a file. A command can name it as `{prompt_file}`
@@ -72,5 +72,5 @@ cat > codex-agent.sh <<'SH'
 exec codex exec --full-auto "$(cat "$SYMBOLON_PROMPT_FILE")"
 SH
 chmod +x codex-agent.sh
-symbolon extract ./product --pack acme/product --agent ./codex-agent.sh
+symbola extract ./product --pack acme/product --agent ./codex-agent.sh
 ```

@@ -1,4 +1,4 @@
-"""`symbolon extract`: draft a spec pack from software someone already built.
+"""`symbola extract`: draft a spec pack from software someone already built.
 
 Symbolon does not read the code itself. An external coding agent (see agent.py)
 reads the product and writes the draft; this module sets up the folder, hands
@@ -46,7 +46,7 @@ title = "TODO: one line on what the product is"
 license = "TODO"
 authors = ["TODO"]
 
-# Recomputed by `symbolon extract` from components/; no need to edit by hand.
+# Recomputed by `symbola extract` from components/; no need to edit by hand.
 [components]
 '''
 
@@ -97,17 +97,17 @@ This is a Symbolon spec pack. Build from it; do not look for the original source
    description and an example seem to disagree, the example is what the original does.
 
 **Harness.** An implementation is a directory with `symbolon-impl.toml`
-(`symbolon impl-init <dir> --contract components/<name>/versions/<n>`). In Python, define
+(`symbola impl-init <dir> --contract components/<name>/versions/<n>`). In Python, define
 `run(input)` returning the contract's output; in any other language, a program
 that reads one JSON input per line on stdin and writes `{{"output": ...}}` per line.
 
-**Done** means `symbolon attest components/<name>/versions/<n> <impl-dir>` reports PASSED
+**Done** means `symbola attest components/<name>/versions/<n> <impl-dir>` reports PASSED
 for every component. Don't special-case the examples: the properties generate
 other inputs, and the publisher keeps a holdout. Write questions about unclear
 parts, and the reading you chose, in `NOTES.md` next to your build.
 
 **If the spec contradicts itself**, don't code around it. Run
-`symbolon flag <component>#example:<line> "<what disagrees, and the reading you chose>" --dir <impl-dir>`,
+`symbola flag <component>#example:<line> "<what disagrees, and the reading you chose>" --dir <impl-dir>`,
 build the reading you think is right, and carry on.
 '''
 
@@ -160,7 +160,7 @@ Each `{components}/<name>/{versions}/1/` has:
                    [requires] network/credentials/state/permissions = [];
                    [spec] seed = 0, max_examples = 200. Unknown keys are errors.
   schema.py        pydantic models `Input` and `Output`
-  schema/*.json    generated: run `symbolon schema <dir>`
+  schema/*.json    generated: run `symbola schema <dir>`
   examples.jsonl   one {{"input": ..., "output": ...}} or {{"input": ..., "raises": "ValueError"}}
                    per line. RECORD outputs by running the original code through your
                    oracle adapter; never write them from your reading of the code.
@@ -175,12 +175,12 @@ Contracts are language-neutral: inputs and outputs are plain JSON values.
 ## Oracle adapters
 
 `{oracle}/<name>/` is an implementation directory with `symbolon-impl.toml`
-(create it with `symbolon impl-init {oracle}/<name> --contract <component dir>`).
+(create it with `symbola impl-init {oracle}/<name> --contract <component dir>`).
 For Python, the manifest's entrypoint file defines `run(input)` and calls the
 original code. For any other language, set language = "command" and
 command = [...]: a program that reads one JSON input per line on stdin and writes
 {{"output": ...}} or {{"error": {{"type": "ValueError", "message": "..."}}}} per line.
-Re-run `symbolon impl-init` after changing a contract, since it pins the digest.
+Re-run `symbola impl-init` after changing a contract, since it pins the digest.
 
 ## Assumptions
 
@@ -213,10 +213,10 @@ When you are unsure what the publisher wants, choose `default` and ask in {revie
 
 ## Check your work before you finish
 
-  symbolon schema <component dir>
-  symbolon validate <component dir>              every component must be valid
-  symbolon test <component dir> {oracle}/<name>   the original must pass its own spec
-  symbolon pack validate {pack}
+  symbola schema <component dir>
+  symbola validate <component dir>              every component must be valid
+  symbola test <component dir> {oracle}/<name>   the original must pass its own spec
+  symbola pack validate {pack}
 
 Digests in {manifest} are filled in after you finish, so `pack validate` may
 report digest mismatches while you work; everything else must pass.

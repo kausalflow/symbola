@@ -5,11 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from symbolon import keys
-from symbolon.attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
-from symbolon.digest import contract_digest, implementation_digest
-from symbolon.implementation import check_lockfile, load_impl_manifest
-from symbolon.sandbox import ContainerSandbox, ProcessSandbox, SandboxUnavailable
+from symbola import keys
+from symbola.attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
+from symbola.digest import contract_digest, implementation_digest
+from symbola.implementation import check_lockfile, load_impl_manifest
+from symbola.sandbox import ContainerSandbox, ProcessSandbox, SandboxUnavailable
 
 from .conftest import REPO
 

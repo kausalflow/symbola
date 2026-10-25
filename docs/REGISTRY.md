@@ -1,7 +1,7 @@
 # Pack registry
 
 The registry is a static website. A folder of packs (`packs/<owner>/<name>/versions/<n>/`)
-is turned into plain files that any web host can serve, and `symbolon pull` reads
+is turned into plain files that any web host can serve, and `symbola pull` reads
 them. There is no server. Only the **latest** version of each pack is published;
 older versions stay in the registry's folders and git history so that attestations
 naming them can still be re-checked.
@@ -9,8 +9,8 @@ naming them can still be re-checked.
 ## Making a pack
 
 ```
-symbolon pack init acme/invoice-desk          # creates spec/ next to your code
-symbolon pack validate spec
+symbola pack init acme/invoice-desk          # creates spec/ next to your code
+symbola pack validate spec
 ```
 
 `pack init` writes a manifest, a `BRIEF.md` with the three required headings, an
@@ -38,8 +38,8 @@ each change.
 Sign in at <https://symbola.sh/publish/> with GitHub, or from a terminal:
 
 ```
-symbolon login              # GitHub device sign-in; saves a token in ~/.config/symbolon/
-symbolon publish spec       # validates locally, uploads, and follows the request
+symbola login              # GitHub device sign-in; saves a token in ~/.config/symbolon/
+symbola publish spec       # validates locally, uploads, and follows the request
 ```
 
 Your GitHub login is your namespace, so you publish `<login>/<name>`; organisations
@@ -51,14 +51,14 @@ put a token in `SYMBOLON_PUBLISH_TOKEN` instead of running `login`.
 
 The account page (<https://symbola.sh/account/>) lists your packs and requests,
 edits your publisher profile and support links, revokes CLI tokens, and asks for
-a pack to be removed. `symbolon logout` forgets the local token.
+a pack to be removed. `symbola logout` forgets the local token.
 
 Publishing by pull request, below, still works and needs no account.
 
 ## Releasing
 
 ```
-symbolon release spec --registry ../symbolon-registry/packs   # in a clone of kausalflow/symbolon-registry
+symbola release spec --registry ../symbolon-registry/packs   # in a clone of kausalflow/symbolon-registry
 ```
 
 `release` validates the pack, sets its manifest version to the next free number,
@@ -75,7 +75,7 @@ Ed25519 keys are only for runners that sign attestations.
 ## Submission checks
 
 ```
-symbolon site check packs
+symbola site check packs
 ```
 
 CI runs this on every pull request. It builds the whole registry (so every latest
@@ -87,7 +87,7 @@ that digest, so a released version cannot be edited in place. Packs without a
 ## Building the site
 
 ```
-symbolon site build packs --out site-registry [--base-url https://…/registry]
+symbola site build packs --out site-registry [--base-url https://…/registry]
 ```
 
 For each pack, it validates the latest version (the build fails if any pack is
@@ -101,7 +101,7 @@ packs/<owner>/<name>/
   latest.sha256                            sha256 of the tarball
   pack.md                                  brief, assumptions, obligations, manifest, and a list of the parts
   parts/<component>-v<n>.md                one component's contract, schemas and tests
-  parts/<component>-v<n>.tar.gz            that component's contract folder, for `symbolon attest`
+  parts/<component>-v<n>.tar.gz            that component's contract folder, for `symbola attest`
   llms.txt                                 build steps for a coding agent, then the pack's files
   files/…                                  every file of the pack, raw
   evidence.json                            every attestation beside the pack, checked at build time
@@ -119,7 +119,7 @@ free plan), and the list above grows with every file of every pack. With
 `pack.md` and `llms.txt` stay in `--out`; everything else is written to `DIR`, to
 upload to a bucket served at `URL`. Links in `pack.md`, the parts and `llms.txt`
 then point straight at `URL`, `index.json` names it as `files_url`, and
-`symbolon pull` downloads from there. The site can redirect the old paths to the
+`symbola pull` downloads from there. The site can redirect the old paths to the
 bucket so older CLIs keep working.
 
 ## Evidence
@@ -150,7 +150,7 @@ links, file tree), and a rendered view of every file under
 site/build.sh OUT ORIGIN BASE     # in spikinglabs/symbolon-store, e.g. dist-site https://symbola.sh /
 ```
 
-clones the registry, runs `symbolon site build` over its packs, then `astro build`
+clones the registry, runs `symbola site build` over its packs, then `astro build`
 and `pagefind`, and copies the result to `OUT`. Cloudflare runs it on every push to
 the site's repository, and the registry's CI triggers it after every merge to its
 `main`. Both repositories pin the CLI they use in `.symbolon-version`, so a CLI
@@ -159,13 +159,13 @@ change reaches the registry and the site when those pins move.
 ## Pulling a pack
 
 ```
-symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--digest DIGEST]
+symbola pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--digest DIGEST]
 ```
 
-`pull` also takes the pack's page link (`symbolon pull https://symbola.sh/packs/acme/invoice-desk/`),
+`pull` also takes the pack's page link (`symbola pull https://symbola.sh/packs/acme/invoice-desk/`),
 and then pulls from the registry that serves the page. It prints the commands to start
 building. `pull` takes no version: the registry serves only the latest. The one exception is
-re-checking evidence: `symbolon pull <id> --digest <pack digest>` downloads an
+re-checking evidence: `symbola pull <id> --digest <pack digest>` downloads an
 older version that some attestation names (the pack page links its digest). It downloads the
 tarball, checks its sha256 against `latest.sha256` and `index.json`, unpacks it,
 and checks the unpacked folder's digest against `index.json`. These checks catch a
@@ -226,7 +226,7 @@ public site and is served by the store, a Cloudflare Worker in
 shows a Buy button; after paying through Stripe, the buyer gets a license token:
 
 ```
-symbolon pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
+symbola pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
 ```
 
 `site build` refuses a priced pack unless it is given `--private-out` and

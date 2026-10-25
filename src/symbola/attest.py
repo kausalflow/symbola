@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-import symbolon
+import symbola
 
 from . import keys
 from .digest import contract_digest, hex_of, implementation_digest
@@ -102,7 +102,7 @@ def run_attestation(contract_dir: Path, impl_dir: Path, sandbox: Sandbox, key) -
             "warnedTests": [],
             "failedTests": failed,
             "symbolon": {
-                "version": symbolon.__version__,
+                "version": symbola.__version__,
                 "evidence": "observed" if network else "reproducible",
                 "spec": {"seed": manifest.spec.seed, "max_examples": manifest.spec.max_examples},
                 "failures": details,

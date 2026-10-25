@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from symbolon.digest import contract_digest
-from symbolon.implementation import load_impl_manifest
-from symbolon.spec import CommandImpl
-from symbolon.validate import check_impl
+from symbola.digest import contract_digest
+from symbola.implementation import load_impl_manifest
+from symbola.spec import CommandImpl
+from symbola.validate import check_impl
 
 from .conftest import REPO
 

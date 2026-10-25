@@ -1,4 +1,4 @@
-"""The `symbolon` command line."""
+"""The `symbola` command line."""
 
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ def init(
     for rel in ["symbolon.toml", "schema.py", "schema/input.json", "schema/output.json",
                 "examples.jsonl", "properties.py", "reference/impl.py"]:
         typer.echo(f"    {rel}")
-    typer.echo(f"\nNext: edit the files, then run `symbolon validate {target}`")
+    typer.echo(f"\nNext: edit the files, then run `symbola validate {target}`")
 
 
 @app.command(name="validate")
@@ -500,7 +500,7 @@ def replicate(
         try:
             opts.key = keys.load_private(key)
         except FileNotFoundError:
-            _line(False, f"no runner key at {key}", "run `symbolon keygen`, or pass --no-attest to test without signing")
+            _line(False, f"no runner key at {key}", "run `symbola keygen`, or pass --no-attest to test without signing")
             raise typer.Exit(1)
     try:
         if attest_builds:
@@ -560,7 +560,7 @@ def pack_init(
     for rel in ["symbolon-pack.toml", "BRIEF.md", "obligations.toml", "assumptions/replace-me.toml",
                 "components/", "AGENTS.md"]:
         typer.echo(f"    {rel}")
-    typer.echo(f"\nNext: replace the placeholders, then run `symbolon pack validate {target}`")
+    typer.echo(f"\nNext: replace the placeholders, then run `symbola pack validate {target}`")
 
 
 site_app = typer.Typer(no_args_is_help=True, help="Build the static pack registry.")
@@ -618,7 +618,7 @@ def release(
         _line(True, f"{r.id} version {r.version} already has this content; nothing to release", r.digest)
         return
     _line(True, f"{r.id} version {r.version} written to {r.path}", r.digest)
-    typer.echo("\nNext: run `symbolon site check` in the registry clone, then commit and open a pull request:")
+    typer.echo("\nNext: run `symbola site check` in the registry clone, then commit and open a pull request:")
     typer.echo(f"    git checkout -b release/{r.id.replace('/', '-')}-{r.version} && git add -A "
                f"&& git commit -m 'Release {r.id} version {r.version}' && gh pr create --fill")
 
@@ -629,9 +629,9 @@ SITE_OPTION = typer.Option(DEFAULT_SITE, "--site", envvar="SYMBOLON_SITE", help=
 @app.command()
 def login(
     site: str = SITE_OPTION,
-    name: str = typer.Option("symbolon CLI", help="A name for this token, shown on your account page."),
+    name: str = typer.Option("symbola CLI", help="A name for this token, shown on your account page."),
 ) -> None:
-    """Sign in to the registry website with GitHub, so `symbolon publish` can upload."""
+    """Sign in to the registry website with GitHub, so `symbola publish` can upload."""
     site = site.rstrip("/")
     try:
         client_id, code = start_login(site)
@@ -646,7 +646,7 @@ def login(
 
 @app.command()
 def logout(site: str = SITE_OPTION) -> None:
-    """Forget the token `symbolon login` saved. Revoke it on your account page to disable it everywhere."""
+    """Forget the token `symbola login` saved. Revoke it on your account page to disable it everywhere."""
     site = site.rstrip("/")
     _line(True, f"signed out of {site}" if logout_site(site) else f"was not signed in to {site}")
 
@@ -714,7 +714,7 @@ def pull(
     typer.echo(f"\nNext: build from {target / 'AGENTS.md'}, one folder per component, running its checks as you go:")
     if comps:
         c, n = comps[0], comps[0].split("/")[1]
-        typer.echo(f"  symbolon impl-init impl/{n} --contract {target / c}\n  symbolon test {target / c} impl/{n}")
+        typer.echo(f"  symbola impl-init impl/{n} --contract {target / c}\n  symbola test {target / c} impl/{n}")
         typer.echo(f"Components: {', '.join(x.split('/')[1] for x in comps)}")
 
 
@@ -822,7 +822,7 @@ def canary_plant(
     _line(True, f"builder copy {out}", "without reference/ and mutants/")
     _line(True, f"canary at examples.jsonl line {rec['line']}", f"{rec['original']} -> {rec['canary']}")
     _line(True, f"private record {rec['record']}")
-    typer.echo("\nGive the copy to the builder and keep the record. Then run `symbolon canary check`.")
+    typer.echo("\nGive the copy to the builder and keep the record. Then run `symbola canary check`.")
 
 
 @canary_app.command(name="check")

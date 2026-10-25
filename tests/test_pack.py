@@ -4,8 +4,8 @@ import shutil
 import pytest
 from typer.testing import CliRunner
 
-from symbolon.cli import app
-from symbolon.pack import component_name, summary_line, validate_pack
+from symbola.cli import app
+from symbola.pack import component_name, summary_line, validate_pack
 
 from .conftest import REPO
 

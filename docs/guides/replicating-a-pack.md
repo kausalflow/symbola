@@ -1,7 +1,7 @@
 # Replicating a pack
 
 A pack is good enough when independent builders, given only the pack, make
-builds that pass it and behave the same. `symbolon replicate` runs that test.
+builds that pass it and behave the same. `symbola replicate` runs that test.
 It does not write code. It hands the pack to outside coding agents, such as
 Claude Code, and then checks what they made, the way the lightkone pilots did by
 hand (design v0.5, section 5.3).
@@ -9,9 +9,9 @@ hand (design v0.5, section 5.3).
 ## Run it
 
 ```bash
-symbolon keygen                                   # once: the runner key for attestations
+symbola keygen                                   # once: the runner key for attestations
 cd symbolon-registry/packs/kausalflow/lightkone   # a clone of kausalflow/symbolon-registry
-symbolon replicate versions/1 --builds 3 \
+symbola replicate versions/1 --builds 3 \
   --agent claude="claude -p --permission-mode acceptEdits --allowedTools Read,Write,Edit,Glob,Grep,Bash" \
   --agent other="my-agent --task-file {prompt_file}" \
   --reference oracle --holdout oracle/holdout -o replication-1
@@ -22,7 +22,7 @@ For each build, `replicate`:
 1. makes a work directory with the builder's copy of the pack in `pack/` (without
    `reference/` or `mutants/`) and an empty `build/`;
 2. runs the agent there with a prompt that says which components to build into
-   `build/<component>/`, how to check them with `symbolon test`, and where to write
+   `build/<component>/`, how to check them with `symbola test`, and where to write
    `NOTES.md`, `readings.toml` and flags;
 3. re-pins each `symbolon-impl.toml` the agent wrote to the published contract
    digest (the builder's copy differs only by the files left out) and adds a
@@ -33,7 +33,7 @@ For each build, `replicate`:
    `--holdout-scale` times the generated cases, and the publisher's
    `<component>.jsonl` examples, which the builder never saw.
 
-Then, per component, it runs [`symbolon diff`](measuring-ambiguity.md) across the
+Then, per component, it runs [`symbola diff`](measuring-ambiguity.md) across the
 builds that passed, with `--reference` as the original product when there is one.
 
 Builds take turns among the `--agent`s, so `--builds 3` with two agents makes

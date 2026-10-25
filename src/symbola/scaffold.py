@@ -1,4 +1,4 @@
-"""`symbolon init`: scaffold a contract that validates out of the box.
+"""`symbola init`: scaffold a contract that validates out of the box.
 
 The scaffold is a tiny working capability (uppercase ASCII text) so authors
 start from a contract that passes every check and edit it into their own.
@@ -35,7 +35,7 @@ max_examples = 200
 '''
 
 SCHEMA = '''\
-"""Interface for {id}. After editing, run `symbolon schema .` to regenerate schema/*.json."""
+"""Interface for {id}. After editing, run `symbola schema .` to regenerate schema/*.json."""
 
 from pydantic import BaseModel, ConfigDict
 
@@ -62,7 +62,7 @@ PROPERTIES = '''\
 """Behavioral properties for {id}.
 
 Each test_* function takes `impl` first. `impl` accepts an Input and returns an
-Output. Hypothesis settings (seed, example budget) come from symbolon.toml, so
+Output. Hypothesis settings (seed, example budget) come from symbola.toml, so
 do not use @settings here.
 """
 

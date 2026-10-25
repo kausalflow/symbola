@@ -7,11 +7,11 @@ This repository covers **MVP steps 1 and 2**: the contract format with `init`, `
 ## Install
 
 ```bash
-uv tool install symbola      # or: pipx install symbola
-symbolon --help
+uv tool install git+https://github.com/kausalflow/symbolon   # or: pipx install git+https://github.com/kausalflow/symbolon
+symbola --help
 ```
 
-The PyPI package is `symbola`; the command is `symbolon`. `pip install symbolon` is an unrelated project that also installs a `symbolon` command, so if you have both, run `symbola` instead (same CLI).
+The package and command are `symbola` (after [symbola.sh](https://symbola.sh)). `pip install symbolon` is an unrelated project.
 
 ## Quick start
 
@@ -20,16 +20,16 @@ From a clone of this repository:
 ```bash
 pip install -e ".[dev]"
 
-symbolon init acme/shout                      # scaffold a contract that already validates
-symbolon validate contracts/acme/shout/versions/1      # check it and print its digest
+symbola init acme/shout                      # scaffold a contract that already validates
+symbola validate contracts/acme/shout/versions/1      # check it and print its digest
 
-symbolon validate contracts/core/date-parse/versions/1
-symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strptime   # fails: too lenient
-symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strict     # passes
+symbola validate contracts/core/date-parse/versions/1
+symbola test contracts/core/date-parse/versions/1 examples/impls/date-parse-strptime   # fails: too lenient
+symbola test contracts/core/date-parse/versions/1 examples/impls/date-parse-strict     # passes
 
-symbolon keygen                                                                 # this runner's signing key
-symbolon attest contracts/core/date-parse/versions/1 examples/impls/date-parse-strict -o att.json
-symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
+symbola keygen                                                                 # this runner's signing key
+symbola attest contracts/core/date-parse/versions/1 examples/impls/date-parse-strict -o att.json
+symbola verify att.json --trust ~/.config/symbolon/runner.pub \
   --contract contracts/core/date-parse/versions/1 --impl examples/impls/date-parse-strict --rerun
 ```
 
@@ -37,22 +37,22 @@ symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
 
 | Command | What it does |
 | --- | --- |
-| `symbolon init <namespace/name>` | Scaffold a contract that passes `validate` out of the box |
-| `symbolon validate <dir>` | Check structure, schema drift, examples, reference, spec vacuity and mutants; print the digest |
-| `symbolon schema <dir>` | Regenerate `schema/*.json` from `schema.py` |
-| `symbolon test <dir> <impl.py>` | Run the contract's examples and properties against an implementation |
-| `symbolon digest <dir>` | Print the contract's content digest |
-| `symbolon impl-init <dir> --contract <dir>` | Write an implementation manifest pinned to the contract's digest |
-| `symbolon keygen` | Create this runner's Ed25519 signing key |
-| `symbolon attest <contract> <impl>` | Run the spec in a sandbox; write a signed in-toto attestation |
-| `symbolon verify <attestation>` | Check signature, trust, digests; `--rerun` reproduces it locally |
-| `symbolon diff <contract> <impl> <impl>...` | Run several builds on one input pool; report where they disagree, the ambiguity estimate, and the obligations each split traces to |
-| `symbolon extract <source> --pack <ns/product>` | Have a coding agent (Claude Code by default) draft a spec pack from an existing product; check it against the original |
-| `symbolon replicate <pack>` | Hand a pack to outside coding agents (Claude Code by default), then attest, holdout-test and diff the builds they make |
-| `symbolon pack validate <dir>` | Check a spec pack's brief, assumptions and obligations; report obligations by status |
-| `symbolon mutants <dir>` | Show which checks kill which mutants, and the contract's kill rate |
-| `symbolon canary plant <dir> <out>` / `canary check` | Give a builder a copy with one contradictory example; catch builds fitted to the examples |
-| `symbolon flag <ref> <reason>` | Report a contradiction in the spec instead of coding around it |
+| `symbola init <namespace/name>` | Scaffold a contract that passes `validate` out of the box |
+| `symbola validate <dir>` | Check structure, schema drift, examples, reference, spec vacuity and mutants; print the digest |
+| `symbola schema <dir>` | Regenerate `schema/*.json` from `schema.py` |
+| `symbola test <dir> <impl.py>` | Run the contract's examples and properties against an implementation |
+| `symbola digest <dir>` | Print the contract's content digest |
+| `symbola impl-init <dir> --contract <dir>` | Write an implementation manifest pinned to the contract's digest |
+| `symbola keygen` | Create this runner's Ed25519 signing key |
+| `symbola attest <contract> <impl>` | Run the spec in a sandbox; write a signed in-toto attestation |
+| `symbola verify <attestation>` | Check signature, trust, digests; `--rerun` reproduces it locally |
+| `symbola diff <contract> <impl> <impl>...` | Run several builds on one input pool; report where they disagree, the ambiguity estimate, and the obligations each split traces to |
+| `symbola extract <source> --pack <ns/product>` | Have a coding agent (Claude Code by default) draft a spec pack from an existing product; check it against the original |
+| `symbola replicate <pack>` | Hand a pack to outside coding agents (Claude Code by default), then attest, holdout-test and diff the builds they make |
+| `symbola pack validate <dir>` | Check a spec pack's brief, assumptions and obligations; report obligations by status |
+| `symbola mutants <dir>` | Show which checks kill which mutants, and the contract's kill rate |
+| `symbola canary plant <dir> <out>` / `canary check` | Give a builder a copy with one contradictory example; catch builds fitted to the examples |
+| `symbola flag <ref> <reason>` | Report a contradiction in the spec instead of coding around it |
 
 ## Seed contracts
 

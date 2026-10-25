@@ -14,8 +14,8 @@ product, each with a check. You keep it in `spec/` next to the code. Format:
 If there is no `spec/` folder and the user wants a pack:
 
 ```
-symbolon pack init <owner>/<name>
-symbolon pack validate spec
+symbola pack init <owner>/<name>
+symbola pack validate spec
 ```
 
 Then replace the placeholders in `spec/BRIEF.md`, `spec/obligations.toml` and
@@ -35,8 +35,8 @@ Update the pack in the same change as the code, and only for these:
 - **The user leaves something deliberately undecided.** Add an obligation with
   `status = "open"` and no checks.
 - **A component's behaviour gets a contract.** Scaffold it with
-  `symbolon init <namespace>/<name> --root spec/components`, then list its
-  digest (`symbolon digest <dir>`) under `[components]` in
+  `symbola init <namespace>/<name> --root spec/components`, then list its
+  digest (`symbola digest <dir>`) under `[components]` in
   `spec/symbolon-pack.toml`.
 
 Do not record what the code merely happens to do, choices every competent
@@ -47,17 +47,17 @@ Tests meant to catch builds tuned to the visible checks are holdout tests. Keep
 them outside `spec/` (for example `.symbolon/holdout/`); a pack containing a
 `holdout` path is refused by the registry.
 
-After every change to `spec/`, run `symbolon pack validate spec` and fix what it
+After every change to `spec/`, run `symbola pack validate spec` and fix what it
 reports.
 
 ## Releasing
 
 When the user asks to release:
 
-1. `symbolon pack validate spec` must pass.
+1. `symbola pack validate spec` must pass.
 2. In a clone of the registry repository (github.com/kausalflow/symbolon-registry):
-   `symbolon release spec --registry <clone>/packs`
-3. In the clone: `symbolon site check packs`, then commit and open a pull
+   `symbola release spec --registry <clone>/packs`
+3. In the clone: `symbola site check packs`, then commit and open a pull
    request. Tell the user the PR link.
 
 `release` is a no-op when nothing changed since the last version. Each release
