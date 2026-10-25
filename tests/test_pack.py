@@ -161,29 +161,42 @@ def test_cli(pack):
     assert result.exit_code == 1 and "pack is not valid" in result.output
 
 
-def test_statistical_obligation_needs_its_test(pack):
+def make_statistical(pack, prop="test_terms_are_conjunctive"):
+    """Declare one search-query property statistical and refresh the pack's digest for it."""
+    from symbola.digest import contract_digest
+    contract = pack / "components" / "search-query" / "versions" / "1"
+    manifest = contract / "symbolon.toml"
+    manifest.write_text(manifest.read_text() + f"\n[spec.statistical.{prop}]\nat_least = 0.9\n")
+    pack_manifest = pack / "symbolon-pack.toml"
+    lines = [f'"lightkone/search-query@1" = "{contract_digest(contract)}"' if l.startswith('"lightkone/search-query@1"') else l
+             for l in pack_manifest.read_text().splitlines()]
+    pack_manifest.write_text("\n".join(lines) + "\n")
+
+
+def test_statistical_obligation_needs_a_statistical_check(pack):
     add(pack, id="search.extra", statement="x", status="decided", exactness="statistical",
-        checks=["search-query#example:1"], samples=200)
-    assert "needs alpha, tolerance" in failed(validate_pack(pack))["every obligation is checked, open, or explained"]
+        checks=["search-query#example:1"])
+    assert "must be a property listed under [spec.statistical]" in failed(validate_pack(pack))["every obligation is checked, open, or explained"]
 
 
 def test_statistical_obligation(pack):
+    make_statistical(pack)
     add(pack, id="search.extra", statement="x", status="default", exactness="statistical",
-        checks=["search-query#example:1"], samples=200, alpha=0.01, tolerance=0.02)
+        checks=["search-query#example:1", "search-query#test_terms_are_conjunctive"])
     report = validate_pack(pack)
     assert report.ok, failed(report)
     assert report.summary["by_exactness"]["statistical"] == 1
+    assert report.summary["statistical_checks"] == 1
 
 
 def test_open_obligation_is_free_not_statistical(pack):
-    add(pack, id="search.extra", statement="x", status="open", exactness="statistical",
-        samples=200, alpha=0.01, tolerance=0.02)
+    add(pack, id="search.extra", statement="x", status="open", exactness="statistical")
     assert "cannot also be statistical" in failed(validate_pack(pack))["every obligation is checked, open, or explained"]
 
 
-def test_exact_obligation_takes_no_sample_size(pack):
+def test_obligations_no_longer_take_sample_sizes(pack):
     add(pack, id="search.extra", statement="x", status="decided", checks=["search-query#example:1"], samples=10)
-    assert "only apply to exactness" in failed(validate_pack(pack))["every obligation is checked, open, or explained"]
+    assert "samples" in failed(validate_pack(pack))["obligations.toml is valid"]
 
 
 def test_component_name_skips_the_versions_folder(tmp_path):

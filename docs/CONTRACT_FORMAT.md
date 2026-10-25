@@ -48,6 +48,12 @@ max_examples = 200              # hypothesis examples per property
 float_rel_tol = 1e-9            # tolerance when comparing numbers in examples
 timeout_seconds = 120           # per validate or test run
 
+[spec.statistical.test_noise_has_the_stated_spread]   # optional, one table per statistical property
+at_least = 0.97                 # the mean of what the property returns must not be below this
+at_most = 1.03                  # ...nor above this; give either or both
+samples = 100                   # seeds per run (default 100)
+alpha = 0.01                    # accepted false-alarm rate (default 0.01)
+
 [runtime]
 python = ">=3.11"
 ```
@@ -111,6 +117,30 @@ When many examples need the same sample data, such as a library of papers, put i
 ## Properties: `properties.py`
 
 Every function named `test_*` is a property. Its first parameter must be `impl`. `impl` takes an `Input` (or a dict) and returns a validated `Output`, so an implementation that returns the wrong shape fails every property. Use hypothesis `@given` freely. Do not use `@settings`, because seed and budget come from the manifest so runs are reproducible.
+
+### Statistical properties
+
+Some behaviour holds for the distribution of outputs, not for each one: a noise
+source has a stated spread, a sampler picks each option about equally often, a
+summarizer names every person in at least nine runs out of ten. A property
+listed under `[spec.statistical]` checks such a rule. It takes `(impl, seed)`,
+has no `@given`, and returns a number for one run (a bool counts as 0 or 1):
+
+```python
+def test_noise_has_the_stated_spread(impl, seed):
+    out = impl(Input(seed=seed, std=2.0, steps=5000))
+    return statistics.stdev(out.values) / 2.0
+```
+
+The runner calls it with seeds `seed`, `seed + 1`, ... (`samples` of them) and
+fails it only when the mean of the returned numbers is, at false-alarm rate
+`alpha`, below `at_least` or above `at_most`. A correct implementation therefore
+fails at most `alpha` of the time, and the result shows the interval it saw, so
+you can tell how small a violation the check could catch: raise `samples` to
+narrow it. Pass the seed into the implementation when the contract has one, so
+the result can be repeated; an implementation with no seed, such as one that
+calls a model, still gets a fresh run each time. All of this runs on your own
+machine inside `symbola test`; it needs no extra builds.
 
 ## Mutants: `mutants/*.py`
 

@@ -135,12 +135,13 @@ left open and replication then decided counts as `replication`.
 | Exactness | Meaning | Extra fields |
 | --- | --- | --- |
 | `exact` | Every output must satisfy it; one violating output fails it | None |
-| `statistical` | The output distribution must satisfy it, for software that is random by design, such as a summarizer that calls a model | `samples` (runs per check), `alpha` (accepted false-alarm rate), `tolerance` (its share of the disagreement budget) |
+| `statistical` | The output distribution must satisfy it, for software that is random by design, such as a simulator with noise or a summarizer that calls a model | At least one of its checks is a statistical property (see [Statistical properties](CONTRACT_FORMAT.md#statistical-properties)) |
 
 An `open` obligation is the free case: it constrains nothing, so it takes no
 exactness. The terms follow the kit paper (*The Probabilistic Minimal Reproduction
-Kit*, section 5.4). The runner does not yet repeat statistical checks; until it
-does, the fields record what a check must do.
+Kit*, section 5.4). How many runs and which false-alarm rate belong to the check,
+under `[spec.statistical]` in its contract, so `symbola test` can run a contract
+on its own.
 
 ## What `symbola pack validate` checks
 
@@ -152,8 +153,8 @@ does, the fields record what a check must do.
 6. Every `decided` or `default` obligation has checks or an `unchecked` reason (not
    both), every `open` one has neither, every constraint has a reason, every check
    exists, and every assumption it names exists.
-7. A `statistical` obligation is not `open` and gives `samples`, `alpha` and
-   `tolerance`; an exact one gives none of them.
+7. A `statistical` obligation is not `open`, and when it has checks, at least one
+   is a statistical property.
 8. Unchecked obligations are at most `max_unchecked` of the decided and default ones.
 
 It then reports obligations by status, source and exactness, assumptions and how many are

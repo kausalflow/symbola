@@ -19,6 +19,7 @@ import inspect
 import io
 import json
 import math
+import statistics
 import sys
 import traceback
 from dataclasses import asdict, dataclass, field
@@ -28,7 +29,7 @@ from typing import Any, Callable
 
 from pydantic import BaseModel, ValidationError
 
-from .manifest import Manifest
+from .manifest import Manifest, Statistical
 
 
 @dataclass
@@ -435,6 +436,9 @@ def run_properties(contract: LoadedContract, impl: BoundImpl, props: list[tuple[
     cfg = contract.manifest.spec
     results = []
     for name, fn in props:
+        if name in cfg.statistical:
+            results.append(run_statistical(name, fn, impl, cfg.statistical[name], cfg.seed))
+            continue
         test = fn
         if hasattr(fn, "hypothesis"):
             if getattr(fn, "_hypothesis_internal_use_settings", settings.default) is not settings.default:
@@ -467,6 +471,47 @@ def run_properties(contract: LoadedContract, impl: BoundImpl, props: list[tuple[
         else:
             results.append(CheckResult(name, True))
     return results
+
+
+def run_statistical(name: str, fn: Callable, impl: BoundImpl, stat: Statistical, base_seed: int) -> CheckResult:
+    """Run a statistical property once per seed and test the mean of what it returns.
+
+    It fails only when the evidence says the mean is outside [at_least, at_most]:
+    the one-sided bound at level alpha (split between the two sides when both are
+    given) lies beyond the limit. So a correct implementation fails with
+    probability at most alpha, and the interval in the detail says how small a
+    violation the check could have seen.
+    """
+    if hasattr(fn, "hypothesis"):
+        return CheckResult(name, False, "a statistical property takes (impl, seed); do not use @given on it")
+    values = []
+    for seed in range(base_seed, base_seed + stat.samples):
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                value = fn(impl, seed)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except BaseException as e:
+            return CheckResult(name, False, f"seed {seed}: {_describe(e)}")
+        if isinstance(value, bool) or (isinstance(value, (int, float)) and math.isfinite(value)):
+            values.append(float(value))
+        else:
+            return CheckResult(name, False, f"seed {seed}: returned {value!r}; return a finite number or a bool")
+    n = len(values)
+    mean = statistics.fmean(values)
+    se = statistics.stdev(values) / math.sqrt(n)
+    sides = (stat.at_least is not None) + (stat.at_most is not None)
+    z = statistics.NormalDist().inv_cdf(1 - stat.alpha / sides)
+    lo, hi = mean - z * se, mean + z * se
+    if stat.at_least is not None and stat.at_most is not None:
+        band = f"between {stat.at_least:g} and {stat.at_most:g}"
+    elif stat.at_least is not None:
+        band = f"at least {stat.at_least:g}"
+    else:
+        band = f"at most {stat.at_most:g}"
+    ok = not (stat.at_least is not None and hi < stat.at_least) and not (stat.at_most is not None and lo > stat.at_most)
+    detail = f"mean {mean:.4g} over {n} seeds, interval {lo:.4g} to {hi:.4g} (alpha {stat.alpha:g}); must be {band}"
+    return CheckResult(name, ok, detail)
 
 
 def run_spec(contract: LoadedContract, fn: Callable, *, properties_only: bool = False) -> SpecResult:
