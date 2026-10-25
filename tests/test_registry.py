@@ -232,7 +232,7 @@ def test_cli_init_build_and_pull(registry, tmp_path):
 def test_pack_llms_txt_tells_an_agent_how_to_build_it(registry, tmp_path):
     build_site(registry, tmp_path / "site", "https://symbola.sh")
     llms = (tmp_path / "site" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
-    for step in ("uv tool install git+https://github.com/kausalflow/symbola", "Not `pip install symbolon`", "run `symbola <command>` instead",
+    for step in ("uv tool install symbola", "Not `pip install symbolon`", "run `symbola <command>` instead",
                  "symbola pull kausalflow/lightkone --dest spec", "spec/AGENTS.md",
                  "symbola impl-init impl/", "symbola test spec/components/", "symbola keygen",
                  "`tidy`: `spec/components/tidy/versions/1`"):

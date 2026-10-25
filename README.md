@@ -7,7 +7,7 @@ This repository covers **MVP steps 1 and 2**: the contract format with `init`, `
 ## Install
 
 ```bash
-uv tool install git+https://github.com/kausalflow/symbola   # or: pipx install git+https://github.com/kausalflow/symbola
+uv tool install symbola      # or: pipx install symbola
 symbola --help
 ```
 
