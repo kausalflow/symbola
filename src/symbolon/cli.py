@@ -21,7 +21,7 @@ from .manifest import ID_RE, load_manifest
 from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_site, publish as publish_pack, \
     request_state, start_login
 from .pack import component_name, report_json, summary_line, validate_pack
-from .registry import RegistryError, build_site, check_registry, components_of, pack_ref, pull as pull_pack, release as release_pack, scaffold_pack
+from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, pull as pull_pack, release as release_pack, scaffold_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
@@ -687,7 +687,7 @@ def publish(
 @app.command()
 def pull(
     pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk', or its page link. Only the latest version is served."),
-    registry: str = typer.Option("https://symbola.sh",
+    registry: str = typer.Option(DEFAULT_REGISTRY,
                                  envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
     dest: Path | None = typer.Option(None, help="Where to unpack; defaults to ./<name>."),
     token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid pack."),

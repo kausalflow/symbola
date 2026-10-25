@@ -245,6 +245,7 @@ def _component_key(rel: str) -> str | None:
 
 
 INSTALL = "uv tool install git+https://github.com/kausalflow/symbolon"
+DEFAULT_REGISTRY = "https://symbola.sh"
 
 
 def components_of(version_dir: Path) -> list[str]:
@@ -253,9 +254,11 @@ def components_of(version_dir: Path) -> list[str]:
                   for m in Path(version_dir).glob(f"{COMPONENTS_DIR}/*/{VERSIONS_DIR}/*/symbolon.toml"))
 
 
-def build_steps(pack_id: str, page: str, components: list[str], price: dict | None = None) -> str:
+def build_steps(pack_id: str, page: str, components: list[str], price: dict | None = None,
+                registry: str = "") -> str:
     """Build instructions for a coding agent that was handed only the pack's page link."""
-    token = " --token <license>" if price else ""
+    token = (f" --registry {registry}" if registry.rstrip("/") not in ("", DEFAULT_REGISTRY) else "") \
+        + (" --token <license>" if price else "")
     first = components[0] if components else f"{COMPONENTS_DIR}/<name>/{VERSIONS_DIR}/1"
     name = first.split("/")[1]
     listed = "".join(f"- `{c.split('/')[1]}`: `spec/{c}`\n" for c in components)
@@ -591,7 +594,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
             f"Version {version}, digest {digest}. {summary_line(report.summary)}.\n\n"
-            + build_steps(pack_id, page, components_of(version_dir), price)
+            + build_steps(pack_id, page, components_of(version_dir), price, base_url)
             + "## Read it online\n\n"
             f"Start with {site_prefix}/pack.md (brief, assumptions, "
             + (f"obligations, and links to one file per component under {files_prefix}/parts/), or {download}.\n\n"

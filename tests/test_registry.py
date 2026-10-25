@@ -238,6 +238,9 @@ def test_pack_llms_txt_tells_an_agent_how_to_build_it(registry, tmp_path):
                  "`tidy`: `spec/components/tidy/versions/1`"):
         assert step in llms, step
     assert "Build this pack" in (tmp_path / "site" / "llms.txt").read_text()
+    build_site(registry, tmp_path / "other", "http://localhost:8000")
+    assert "--registry http://localhost:8000 --dest spec" in (
+        tmp_path / "other" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
 
 
 def test_pack_ref_takes_an_id_or_a_page_link():
