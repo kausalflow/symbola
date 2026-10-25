@@ -545,7 +545,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         (bulk / EVIDENCE_FILE).write_text(json.dumps(evidence, indent=2) + "\n")
         listed = [p.relative_to(version_dir).as_posix() for p in public]
         download = (f"buy it for {price['amount'] / 100:.2f} {price['currency'].upper()} and pull it with "
-                    f"`symbolon pull {pack_id} --token <license>`" if price else f"download {files_prefix}/{TARBALL_FILE}")
+                    f"`symbolon pull {pack_id} --token <license>`" if price else f"download {site_prefix}/{TARBALL_FILE}")
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
             f"Version {version}, digest {digest}. Start with {site_prefix}/pack.md (brief, assumptions, "
@@ -723,7 +723,14 @@ def pull(pack_id: str, registry: str, dest: Path, token: str | None = None,
             raise RegistryError(f"{pack_id} is priced but the registry names no store")
         tarball = _fetch(f"{index['store']}/download/{pack_id}", token)
     else:
-        tarball = _fetch(prefix + TARBALL_FILE)
+        # The site's own path first: symbola.sh counts the download there, then redirects to the
+        # bucket. A static copy of a bucket-backed site has no such path, so fall back to the bucket.
+        try:
+            tarball = _fetch(f"{base}packs/{pack_id}/{TARBALL_FILE}")
+        except RegistryError:
+            if not index.get("files_url"):
+                raise
+            tarball = _fetch(prefix + TARBALL_FILE)
     sha = hashlib.sha256(tarball).hexdigest()
     listed = _fetch(prefix + SHA_FILE).decode().split()[0]
     if sha != listed or sha != entry["tarball_sha256"]:
