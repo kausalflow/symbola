@@ -20,7 +20,7 @@ from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_site, publish as publish_pack, \
     request_state, start_login
-from .pack import component_name, report_json, summary_line, validate_pack
+from .pack import PRODUCT_FILE, component_name, report_json, summary_line, validate_pack
 from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, pull as pull_pack, release as release_pack, scaffold_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
 from .sandbox import SandboxError, select
@@ -711,6 +711,9 @@ def pull(
     typer.echo("  (the publisher is not verified yet: packs get GitHub provenance when they move to GitHub Releases)")
     _line(True, f"{got.id} version {got.version} unpacked into {target}")
     comps = components_of(target)
+    if (target / PRODUCT_FILE).is_file():
+        typer.echo(f"\nThis is a product pack: build the product {target / PRODUCT_FILE} describes, "
+                   "with the components as its core.")
     typer.echo(f"\nNext: build from {target / 'AGENTS.md'}, one folder per component, running its checks as you go:")
     if comps:
         c, n = comps[0], comps[0].split("/")[1]

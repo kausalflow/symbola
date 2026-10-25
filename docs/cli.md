@@ -192,7 +192,7 @@ See [Replicating a pack](guides/replicating-a-pack.md).
 symbola pack validate PATH [--json]
 ```
 
-`PATH` is the pack directory holding `symbolon-pack.toml`. Checks the manifest, component digests, `BRIEF.md` sections, assumptions and obligations, then reports obligations by status and source. It does not run contract code; run `validate` on each component for that. See [What `symbola pack validate` checks](PACK_FORMAT.md#what-symbolon-pack-validate-checks).
+`PATH` is the pack directory holding `symbolon-pack.toml`. Checks the manifest, component digests, `BRIEF.md` sections (and `PRODUCT.md`'s, if present), assumptions and obligations, then reports obligations by status and source. It does not run contract code; run `validate` on each component for that. See [What `symbola pack validate` checks](PACK_FORMAT.md#what-symbolon-pack-validate-checks).
 
 ## `mutants`
 

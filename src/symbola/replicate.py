@@ -53,6 +53,8 @@ You are building software from a Symbolon spec pack, in a clean room: build only
 from the pack. It is in `$pack/`. Start with `$pack/AGENTS.md` if it exists, then
 `$pack/BRIEF.md`, `$pack/assumptions/` and `$pack/obligations.toml`. Do not look for
 the original product's source, and do not read anything outside this directory.
+This run checks the components: if the pack has a `PRODUCT.md`, read it for context
+but build only the components below, not the whole product.
 
 Build each of these components into its own directory under `$build/`:
 
@@ -96,6 +98,8 @@ You are building software from a Symbolon spec pack, in a clean room: build only
 from the pack. It is in `$pack/`. Start with `$pack/AGENTS.md` if it exists, then
 `$pack/BRIEF.md`, `$pack/assumptions/` and `$pack/obligations.toml`. Do not look for
 the original product's source, and do not read anything outside this directory.
+This run checks the components: if the pack has a `PRODUCT.md`, read it for context
+but build only the components below, not the whole product.
 
 This copy of the pack has no examples and no properties: each component's
 description (in its `symbolon.toml`), its schema, and the pack's brief,

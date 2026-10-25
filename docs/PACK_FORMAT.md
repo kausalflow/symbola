@@ -24,6 +24,7 @@ the product; leave codebase-only choices to the codebase's own guidance.
 packs/<namespace>/<product>/versions/<version>/
   symbolon-pack.toml    manifest: pack id, version, license, component digests (required)
   BRIEF.md              purpose, non-goals, priorities, who resolves gaps (required)
+  PRODUCT.md            the whole product a build delivers (optional; makes it a product pack)
   obligations.toml      the decisions a build must keep (required)
   assumptions/*.toml    what must hold about the world, one file each
   components/<name>/versions/<version>/   capability contracts
@@ -49,6 +50,31 @@ Prose for people and agents. It must have these headings (any level, any case):
 - **Non-goals**: what the product deliberately does not do.
 - **Priorities**: the order in which goals win when they conflict.
 - **Who resolves gaps**: who answers questions the pack does not settle.
+
+## `PRODUCT.md`
+
+The components are the parts of a product whose behaviour must come out exactly;
+they are not the product. A coding agent asked to build the product from components
+alone invents everything around them (the first lightkone field test built a demo
+page, not the app). `PRODUCT.md` says what a build of the whole product is, for
+people and agents. It must have these headings (any level, any case):
+
+- **Shape**: what kind of program it is, where it runs, what it needs, and the
+  choices users would notice (a static web app with no server, a CLI, a service).
+- **Surfaces**: every screen, command, endpoint and file users touch, one line each.
+- **Flows**: the main things users do, each as steps and the outcome they see,
+  naming the components each step uses.
+
+Optional headings such as **Interfaces** (outside services, plugin or storage
+interfaces) and **Order** (what to build first when a build cannot do it all)
+help. Like the rest of the pack it is minimal: what a good builder could not
+guess, not layout or styling. Requirements in it that a build must keep and no
+check covers yet can be `unchecked` obligations.
+
+A pack with `PRODUCT.md` is a **product pack**: its build is the product, with the
+components as its core, and it is done when every flow works and every component
+passes. A pack without it is a **component library**: its build is the components.
+`symbola replicate` always builds the components only, so it costs the same either way.
 
 ## `assumptions/<name>.toml`
 
@@ -120,7 +146,7 @@ does, the fields record what a check must do.
 
 1. `symbolon-pack.toml`, `BRIEF.md` and `obligations.toml` exist.
 2. Every component listed in the manifest is present with the same digest, and none is unlisted.
-3. `BRIEF.md` has the three required sections.
+3. `BRIEF.md` has the three required sections, and `PRODUCT.md`, if present, has its three.
 4. Every assumption file is well-formed, with a unique id.
 5. Every obligation is well-formed, with a unique id.
 6. Every `decided` or `default` obligation has checks or an `unchecked` reason (not
