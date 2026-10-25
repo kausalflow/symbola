@@ -27,6 +27,9 @@ jobs:
           mkdir -p site/registry
           printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=%s/"><link rel="canonical" href="%s/"><a href="%s/">The pack registry moved here.</a>\n' \
             https://symbola.sh https://symbola.sh https://symbola.sh > site/registry/index.html
+      # The site is already built: stop GitHub Pages from running Jekyll over the branch, which
+      # fails on "{{" in pack files kept by PR previews and then serves nothing new.
+      - run: touch site/.nojekyll
       # Publish to the gh-pages branch, leaving PR previews in place.
       - uses: JamesIves/github-pages-deploy-action@v4
         with:

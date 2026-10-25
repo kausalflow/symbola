@@ -8,6 +8,7 @@ from typer.testing import CliRunner
 from symbolon.digest import contract_digest
 from symbolon.cli import app
 from symbolon.pack import validate_pack
+import symbolon.registry as registry_mod
 from symbolon.registry import RegistryError, build_site, check_registry, pack_digest, pull, release, scaffold_pack
 
 from .conftest import REPO
@@ -184,7 +185,8 @@ def test_files_out_keeps_the_site_to_a_few_files_per_pack(registry, tmp_path):
     assert "](https://files.symbola.sh/packs/kausalflow/lightkone/files/" in part
     llms = (pack_site / "llms.txt").read_text()
     assert "https://symbola.sh/packs/kausalflow/lightkone/pack.md" in llms
-    assert "https://files.symbola.sh/packs/kausalflow/lightkone/latest.tar.gz" in llms
+    # The tarball link stays on the site, which counts the download and redirects to the bucket.
+    assert "https://symbola.sh/packs/kausalflow/lightkone/latest.tar.gz" in llms
 
 
 def test_pull_downloads_from_the_files_url(registry, tmp_path):
@@ -192,6 +194,18 @@ def test_pull_downloads_from_the_files_url(registry, tmp_path):
     build_site(registry, site, files_out=files, files_url=files.as_uri())
     got = pull("kausalflow/lightkone", str(site), tmp_path / "lk")
     assert got.version == 2 and pack_digest(tmp_path / "lk") == got.digest
+
+
+def test_pull_tries_the_site_path_for_the_tarball_first(registry, tmp_path, monkeypatch):
+    site, files = tmp_path / "site", tmp_path / "files"
+    build_site(registry, site, files_out=files, files_url=files.as_uri())
+    shutil.copy(files / "packs" / "kausalflow" / "lightkone" / "latest.tar.gz", site / "packs" / "kausalflow" / "lightkone")
+    fetched = []
+    real = registry_mod._fetch
+    monkeypatch.setattr(registry_mod, "_fetch", lambda url, token=None: fetched.append(url) or real(url, token))
+    pull("kausalflow/lightkone", str(site), tmp_path / "lk")
+    tarballs = [u for u in fetched if u.endswith("latest.tar.gz")]
+    assert tarballs == [(site / "packs" / "kausalflow" / "lightkone" / "latest.tar.gz").as_uri()]
 
 
 def test_files_out_needs_a_files_url(registry, tmp_path):
