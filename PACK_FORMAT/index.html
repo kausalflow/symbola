@@ -708,6 +708,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-a-pack-specifies" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What a pack specifies
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#layout" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -762,6 +773,17 @@
   
     <nav class="md-nav" aria-label="obligations.toml">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unchecked-obligations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Unchecked obligations
+      </span>
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#exact-and-statistical-obligations" class="md-nav__link">
@@ -1020,6 +1042,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-a-pack-specifies" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What a pack specifies
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#layout" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1074,6 +1107,17 @@
   
     <nav class="md-nav" aria-label="obligations.toml">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unchecked-obligations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Unchecked obligations
+      </span>
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#exact-and-statistical-obligations" class="md-nav__link">
@@ -1202,6 +1246,11 @@ spell out what any good builder would do anyway. It holds the points where good
 builders would choose differently and the publisher would reject one choice, the
 facts about the world no builder can infer, and a check for each. See design v0.5,
 section 4.</p>
+<h2 id="what-a-pack-specifies">What a pack specifies<a class="headerlink" href="#what-a-pack-specifies" title="Permanent link">&para;</a></h2>
+<p>What the product does at the surfaces people use (API, file formats, command line,
+results), not how it is built. Drive the product as a user does rather than through
+internal seams; check properties rather than exact output unless the exact output is
+the product; leave codebase-only choices to the codebase's own guidance.</p>
 <h2 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>packs/&lt;namespace&gt;/&lt;product&gt;/versions/&lt;version&gt;/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  symbolon-pack.toml    manifest: pack id, version, license, component digests (required)
@@ -1244,6 +1293,7 @@ a build that passes the pack is correct under these assumptions.</p>
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">exactness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"exact"</span><span class="w">                    </span><span class="c1"># exact | statistical (default exact)</span>
 </span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">assumes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"K-..."</span><span class="p">]</span><span class="w">                    </span><span class="c1"># optional</span>
 </span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">checks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"search-query#test_only_the_last_year_filter_counts"</span><span class="p">,</span><span class="w"> </span><span class="s2">"search-query#example:40"</span><span class="p">]</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">unchecked</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">""</span><span class="w">                         </span><span class="c1"># see "Unchecked obligations" below</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -1271,6 +1321,12 @@ a build that passes the pack is correct under these assumptions.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="unchecked-obligations">Unchecked obligations<a class="headerlink" href="#unchecked-obligations" title="Permanent link">&para;</a></h3>
+<p>A required behaviour no example or property can express yet is <code>decided</code> (or
+<code>default</code>) with no checks and an <code>unchecked</code> reason naming the check it would need,
+such as <code>unchecked = "a session check: run to t1 then t2, compared with one run to t2"</code>.
+Builders treat it as required; <code>pack validate</code> counts it as debt and fails above
+<code>[pack] max_unchecked</code> (a share of decided and default obligations, default 0.1).</p>
 <p>A check is <code>&lt;component&gt;#example:&lt;line&gt;</code> (a 1-based line of that component's
 <code>examples.jsonl</code>) or <code>&lt;component&gt;#&lt;test function&gt;</code> (a property in its
 <code>properties.py</code>). Obligation ids are the single id scheme for tracing checks to
@@ -1313,10 +1369,12 @@ does, the fields record what a check must do.</p>
 <li><code>BRIEF.md</code> has the three required sections.</li>
 <li>Every assumption file is well-formed, with a unique id.</li>
 <li>Every obligation is well-formed, with a unique id.</li>
-<li>Every <code>decided</code> or <code>default</code> obligation has checks, every <code>open</code> one has none,
-   every constraint has a reason, every check exists, and every assumption it names exists.</li>
+<li>Every <code>decided</code> or <code>default</code> obligation has checks or an <code>unchecked</code> reason (not
+   both), every <code>open</code> one has neither, every constraint has a reason, every check
+   exists, and every assumption it names exists.</li>
 <li>A <code>statistical</code> obligation is not <code>open</code> and gives <code>samples</code>, <code>alpha</code> and
    <code>tolerance</code>; an exact one gives none of them.</li>
+<li>Unchecked obligations are at most <code>max_unchecked</code> of the decided and default ones.</li>
 </ol>
 <p>It then reports obligations by status, source and exactness, assumptions and how many are
 monitored, and how many of the components' checks trace to an obligation. It does

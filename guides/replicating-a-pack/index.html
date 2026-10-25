@@ -540,6 +540,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#prose-only-builds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Prose-only builds
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#which-agent-runs" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -981,6 +992,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#prose-only-builds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Prose-only builds
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#which-agent-runs" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1125,6 +1147,10 @@ builds that passed, with <code>--reference</code> as the original product when t
 <p>Builds take turns among the <code>--agent</code>s, so <code>--builds 3</code> with two agents makes
 <code>claude-1</code>, <code>other-2</code> and <code>claude-3</code>. Different agent families make a better
 ensemble than one agent run three times, because they share fewer defaults.</p>
+<h2 id="prose-only-builds">Prose-only builds<a class="headerlink" href="#prose-only-builds" title="Permanent link">&para;</a></h2>
+<p><code>--prose-only N</code> gives the last N builds (named <code>&lt;agent&gt;-&lt;n&gt;-prose</code>) the pack without
+<code>examples.jsonl</code> or <code>properties.py</code>; they are still judged by the full spec. A component
+that fails only prose-only has a rule its description does not carry: fix the description.</p>
 <h2 id="which-agent-runs">Which agent runs<a class="headerlink" href="#which-agent-runs" title="Permanent link">&para;</a></h2>
 <p>Any command line that reads a prompt on stdin and works in its current directory.
 The prompt is also written to <code>.symbolon/prompt.md</code>, and <code>{prompt_file}</code> and

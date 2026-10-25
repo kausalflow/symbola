@@ -1750,7 +1750,7 @@ for the agent. Symbolon never changes <code>SOURCE</code>.</p>
 </table>
 <p>See <a href="../guides/extracting-a-pack/">Extracting a pack</a>.</p>
 <h2 id="replicate"><code>replicate</code><a class="headerlink" href="#replicate" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--component NAME ...]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--prose-only 0] [--component NAME ...]
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>                   [--reference DIR] [--holdout DIR] [--holdout-seed N] [--holdout-scale 5]
 </span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>                   [--attest | --no-attest] [--key PATH] [--sandbox auto] [--jobs 1]
 </span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>                   [--agent-timeout 3600] [--prompt FILE] [--pool FILE ...]
@@ -1773,6 +1773,10 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 <tr>
 <td><code>--agent</code></td>
 <td>The agent command, <code>NAME=COMMAND</code> or a bare <code>COMMAND</code> named after its program; repeat for several, and builds take turns. Default <code>$SYMBOLON_AGENT</code>, then Claude Code headless</td>
+</tr>
+<tr>
+<td><code>--prose-only</code></td>
+<td>How many of the builds, the last ones, get the pack without any <code>examples.jsonl</code> or <code>properties.py</code>: they are judged by the full spec, so they show whether the descriptions alone carry it</td>
 </tr>
 <tr>
 <td><code>--reference</code></td>
