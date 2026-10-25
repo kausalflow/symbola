@@ -273,7 +273,8 @@ def build_steps(pack_id: str, page: str, components: list[str], price: dict | No
         + (f"2. Download the pack: `symbola pull {pack_id} --dest spec{token}`"
            + (" (the user buys a license on the pack page first).\n" if price else ".\n"))
         + "3. Read `spec/AGENTS.md` and follow it. Build only from `spec/`: don't look for the original "
-        "product's source, the registry repository (it holds holdout tests) or other builds.\n"
+        "product's source, the registry repository (it holds holdout tests) or other builds. Packs released "
+        "before the rename say `symbolon <command>`: run `symbola <command>` instead.\n"
         "4. Build each component in its own folder and run its checks as you go, fixing what fails:\n\n"
         f"       symbola impl-init impl/{name} --contract spec/{first}\n"
         f"       symbola test spec/{first} impl/{name}\n\n"
