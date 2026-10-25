@@ -1351,6 +1351,14 @@ invalid) and writes:</p>
 <p><code>index.json</code> also carries each pack's evidence summary (components with a passing
 build, distinct builds, distinct runners, invalid attestations) and its <code>older</code>
 attested versions.</p>
+<p>Static hosts cap the number of files per site (Cloudflare Pages: 20,000 on the
+free plan), and the list above grows with every file of every pack. With
+<code>--files-out DIR --files-url URL</code>, only <code>index.json</code>, <code>llms.txt</code> and each pack's
+<code>pack.md</code> and <code>llms.txt</code> stay in <code>--out</code>; everything else is written to <code>DIR</code>, to
+upload to a bucket served at <code>URL</code>. Links in <code>pack.md</code>, the parts and <code>llms.txt</code>
+then point straight at <code>URL</code>, <code>index.json</code> names it as <code>files_url</code>, and
+<code>symbolon pull</code> downloads from there. The site can redirect the old paths to the
+bucket so older CLIs keep working.</p>
 <h2 id="evidence">Evidence<a class="headerlink" href="#evidence" title="Permanent link">&para;</a></h2>
 <p>Attestations sit beside the pack in <code>packs/&lt;owner&gt;/&lt;name&gt;/attestations/</code>, with
 the runners' public keys as <code>*.pub</code>. For each one, <code>site build</code> checks the
