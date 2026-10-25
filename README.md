@@ -7,7 +7,7 @@ This repository covers **MVP steps 1 and 2**: the contract format with `init`, `
 ## Install
 
 ```bash
-uv tool install git+https://github.com/kausalflow/symbolon   # or: pipx install git+https://github.com/kausalflow/symbolon
+uv tool install git+https://github.com/kausalflow/symbola   # or: pipx install git+https://github.com/kausalflow/symbola
 symbola --help
 ```
 
@@ -83,4 +83,4 @@ Sandbox tests run for each sandbox available on the machine: container tests nee
 
 ## Releasing
 
-Bump `__version__` in `src/symbolon/__init__.py`, merge, then publish a GitHub release tagged `v<version>` (for example `v0.1.0`). The `Publish to PyPI` workflow builds the package and uploads it to PyPI as `symbola` through trusted publishing.
+Bump `__version__` in `src/symbola/__init__.py`, merge, then publish a GitHub release tagged `v<version>` (for example `v0.1.0`). The `Publish to PyPI` workflow builds the package and uploads it to PyPI as `symbola` through trusted publishing.

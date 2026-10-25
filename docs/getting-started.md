@@ -5,7 +5,7 @@
 Symbolon needs Python 3.11 or newer. The package and command are `symbola`.
 
 ```bash
-uv tool install git+https://github.com/kausalflow/symbolon   # or: pipx install git+https://github.com/kausalflow/symbolon
+uv tool install git+https://github.com/kausalflow/symbola   # or: pipx install git+https://github.com/kausalflow/symbola
 symbola --help
 ```
 
@@ -14,8 +14,8 @@ Not `pip install symbolon`: that name is an unrelated project.
 To run the examples below, work from a clone:
 
 ```bash
-git clone https://github.com/kausalflow/symbolon
-cd symbolon
+git clone https://github.com/kausalflow/symbola
+cd symbola
 pip install -e ".[dev]"
 symbola --help
 ```

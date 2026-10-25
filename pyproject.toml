@@ -35,9 +35,9 @@ docs = ["zensical>=0.0.71"]
 
 [project.urls]
 Homepage = "https://symbola.sh"
-Documentation = "https://kausalflow.github.io/symbolon/"
-Source = "https://github.com/kausalflow/symbolon"
-Issues = "https://github.com/kausalflow/symbolon/issues"
+Documentation = "https://kausalflow.github.io/symbola/"
+Source = "https://github.com/kausalflow/symbola"
+Issues = "https://github.com/kausalflow/symbola/issues"
 
 [project.scripts]
 symbola = "symbola.cli:app"

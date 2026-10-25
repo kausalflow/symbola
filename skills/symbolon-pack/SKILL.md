@@ -7,7 +7,7 @@ description: Keep a Symbolon spec pack current while building a product, and rel
 
 A spec pack records the decisions another builder would need to rebuild this
 product, each with a check. You keep it in `spec/` next to the code. Format:
-`docs/PACK_FORMAT.md` in the symbolon repository.
+`docs/PACK_FORMAT.md` in the symbola repository.
 
 ## Start
 

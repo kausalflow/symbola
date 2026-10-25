@@ -245,9 +245,9 @@ def _component_key(rel: str) -> str | None:
     return parts[1]
 
 
-INSTALL = "uv tool install git+https://github.com/kausalflow/symbolon"
+INSTALL = "uv tool install git+https://github.com/kausalflow/symbola"
 DEFAULT_REGISTRY = "https://symbola.sh"
-CLI_DOCS = "https://kausalflow.github.io/symbolon/cli/"
+CLI_DOCS = "https://kausalflow.github.io/symbola/cli/"
 
 
 def components_of(version_dir: Path) -> list[str]:
@@ -269,7 +269,7 @@ def build_steps(pack_id: str, page: str, components: list[str], price: dict | No
         f"For coding agents whose user shared {page} and wants it built. Run these steps yourself; "
         "ask the user only for the language if they have not named one.\n\n"
         f"1. Install the Symbola CLI (Python 3.11+): `{INSTALL}` (or `pipx install "
-        "git+https://github.com/kausalflow/symbolon`). Not `pip install symbolon`: that PyPI name is another project.\n"
+        "git+https://github.com/kausalflow/symbola`). Not `pip install symbolon`: that PyPI name is another project.\n"
         + (f"2. Download the pack: `symbola pull {pack_id} --dest spec{token}`"
            + (" (the user buys a license on the pack page first).\n" if price else ".\n"))
         + "3. Read `spec/AGENTS.md` and follow it. Build only from `spec/`: don't look for the original "
