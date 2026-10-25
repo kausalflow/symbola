@@ -34,6 +34,7 @@ forked_from = "sha256:..."      # optional: digest of the parent contract
 
 [entrypoint]
 function = "run"                # name of the function implementations must define
+driver = "function"             # or "cli": implementations are programs; see Command lines
 
 [requires]                      # what an implementation needs from the world
 network = []                    # allowed hosts; empty means no network
@@ -62,6 +63,16 @@ Unknown keys are errors, so a typo cannot silently change a contract's meaning.
 An implementation is a Python file that defines the entrypoint function. It receives the input as plain JSON values (a dict matching `schema/input.json`) and returns plain JSON values matching `schema/output.json`. It reports invalid input by raising an exception, normally `ValueError`. Because implementations exchange only JSON values, any tool or model can produce one without importing Symbolon.
 
 `symbola test` accepts a single file. `symbola attest` needs an implementation directory with a manifest and optional lockfile; see [ATTESTATION.md](ATTESTATION.md).
+
+### Command lines
+
+With `driver = "cli"`, an implementation is the real program (`language = "command"`, `command = ["./mytool"]`), not an adapter. `Input` has `argv` and optionally `files` (name -> text) and `stdin`. For each call symbola writes `files` into an empty scratch directory, runs `command + argv` there with `stdin`, and collects
+
+```json
+{"exit_code": 0, "stdout": "...", "stderr": "...", "files": {"out/a.csv": "..."}}
+```
+
+where `files` holds every file the call created or changed. If the contract has `observe.py`, its `observe(input, result)` turns this into the output that examples and properties see, for example the exit code, the JSON keys printed and the files written. Without it, the output is the result itself. The reduction is part of the contract, so every build is compared the same way. Mutants are still Python functions that return the output.
 
 ## Examples: `examples.jsonl`
 

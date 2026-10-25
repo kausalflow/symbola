@@ -81,6 +81,19 @@ def check(root: Path) -> list[CheckResult]:
         return fail(name, f"{type(e).__name__}: {e}")
     checks.append(CheckResult(name, True))
 
+    if manifest.entrypoint.driver == "cli":
+        name = "cli driver: Input has argv, observe.py loads"
+        missing = {"argv"} - set(contract.Input.model_fields)
+        extra = set(contract.Input.model_fields) - {"argv", "files", "stdin"}
+        if missing or extra:
+            return fail(name, "a cli contract's Input has argv, and optionally files and stdin; "
+                              + (f"missing {sorted(missing)}" if missing else f"unknown {sorted(extra)}"))
+        try:
+            contract.observer()
+        except Exception as e:
+            return fail(name, f"{type(e).__name__}: {e}")
+        checks.append(CheckResult(name, True))
+
     name = "schema/*.json matches schema.py"
     stale = []
     for rel, text in generated_schemas(contract).items():

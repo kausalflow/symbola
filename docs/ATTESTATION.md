@@ -44,7 +44,7 @@ license = "MIT"
 authors = ["..."]
 ```
 
-The program is started once per run and speaks a line protocol: one JSON value per line.
+The program is started once per run and speaks a line protocol: one JSON value per line. (A contract with `driver = "cli"` instead runs the program once per call with the call's arguments; see [Command lines](CONTRACT_FORMAT.md#command-lines).)
 
 - **Request** (stdin): the input object, exactly as `schema/input.json` describes it.
 - **Reply** (stdout): `{"output": <output object>}`, or `{"error": {"type": "ValueError", "message": "..."}}`.
