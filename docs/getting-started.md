@@ -2,7 +2,16 @@
 
 ## Install
 
-Symbolon needs Python 3.11 or newer.
+Symbolon needs Python 3.11 or newer. The PyPI package is `symbola`; the command is `symbolon`.
+
+```bash
+uv tool install symbola      # or: pipx install symbola
+symbolon --help
+```
+
+Not `pip install symbolon`: that name is an unrelated project, which also installs a `symbolon` command. If you have both, run `symbola` instead (same CLI).
+
+To run the examples below, work from a clone:
 
 ```bash
 git clone https://github.com/kausalflow/symbolon

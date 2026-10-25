@@ -3,12 +3,25 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "symbolon"
-version = "0.1.0"
-description = "Trustable contracts between agents: checkable specs, verifiable evidence."
+# The PyPI name "symbolon" belongs to an unrelated project, so the distribution
+# is "symbola" (after symbola.sh). The module and command stay `symbolon`.
+name = "symbola"
+dynamic = ["version"]
+description = "Spec packs for coding agents: checkable specs, verifiable evidence."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
+keywords = ["specification", "contracts", "coding-agents", "conformance", "attestation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Testing",
+]
 dependencies = [
     "pydantic>=2.6",
     "hypothesis>=6.100",
@@ -20,8 +33,20 @@ dependencies = [
 dev = ["pytest>=8"]
 docs = ["zensical>=0.0.71"]
 
+[project.urls]
+Homepage = "https://symbola.sh"
+Documentation = "https://kausalflow.github.io/symbolon/"
+Source = "https://github.com/kausalflow/symbolon"
+Issues = "https://github.com/kausalflow/symbolon/issues"
+
 [project.scripts]
 symbolon = "symbolon.cli:app"
+# Same CLI under the distribution name, for anyone who also has the unrelated
+# PyPI "symbolon" package installed (both claim the `symbolon` command).
+symbola = "symbolon.cli:app"
+
+[tool.setuptools.dynamic]
+version = { attr = "symbolon.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]

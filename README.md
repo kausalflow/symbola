@@ -4,7 +4,18 @@ Trustable contracts between agents. A contract is a precise, content-addressed p
 
 This repository covers **MVP steps 1 and 2**: the contract format with `init`, `validate`, and `test`, and signed attestations with `attest` and `verify`, run in a container or process sandbox.
 
+## Install
+
+```bash
+uv tool install symbola      # or: pipx install symbola
+symbolon --help
+```
+
+The PyPI package is `symbola`; the command is `symbolon`. `pip install symbolon` is an unrelated project that also installs a `symbolon` command, so if you have both, run `symbola` instead (same CLI).
+
 ## Quick start
+
+From a clone of this repository:
 
 ```bash
 pip install -e ".[dev]"
@@ -69,3 +80,7 @@ pytest
 ```
 
 Sandbox tests run for each sandbox available on the machine: container tests need a Docker daemon, process tests need unprivileged user namespaces. Others are skipped.
+
+## Releasing
+
+Bump `__version__` in `src/symbolon/__init__.py`, merge, then publish a GitHub release tagged `v<version>` (for example `v0.1.0`). The `Publish to PyPI` workflow builds the package and uploads it to PyPI as `symbola` through trusted publishing.
