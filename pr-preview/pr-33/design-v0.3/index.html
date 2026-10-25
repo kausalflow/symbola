@@ -1,0 +1,2175 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Trustable contracts between agents: checkable specs, verifiable evidence.">
+      
+      
+      
+        <link rel="canonical" href="https://kausalflow.github.io/symbolon/pr-preview/pr-33/design-v0.3/">
+      
+      
+      
+        <link rel="prev" href="../lightkone-pilot/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.72">
+    
+    
+      
+        <title>Design notes (v0.3) - Symbolon</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.4ab2de0c.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.b60ce83d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="Symbolon" class="md-header__button md-logo" aria-label="Symbolon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Symbolon
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Design notes (v0.3)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715M16 12a4 4 0 0 0-4-4M19 5l-1.256 1.256M20 12h2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/kausalflow/symbolon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kausalflow/symbolon
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="Symbolon" class="md-nav__button md-logo" aria-label="Symbolon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    Symbolon
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/kausalflow/symbolon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kausalflow/symbolon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting started
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Concepts
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Guides
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Guides
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/writing-a-contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Writing a contract
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/measuring-ambiguity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Measuring ambiguity
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/extracting-a-pack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Extracting a pack
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/replicating-a-pack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Replicating a pack
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Reference
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Reference
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  CLI
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRACT_FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Contract format
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ATTESTATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Implementations and attestations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACK_FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Spec pack format
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REGISTRY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Pack registry
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Examples
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_6">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Examples
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seed-contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Seed contracts
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lightkone-pilot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Lightkone pilot
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Design notes (v0.3)
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Design notes (v0.3)
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#changes-since-v02" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Changes since v0.2
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Summary
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Problem
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-thesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. Thesis
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-core-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4. Core model
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Core model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.1 Primitives
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-contract-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.2 Contract kinds
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-evidence-strength" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.3 Evidence strength
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.4 Ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-first-vertical-software-capability-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5. First vertical: software capability contracts
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. First vertical: software capability contracts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-capability-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.1 Capability contract
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.2 Implementation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-attestation-and-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.3 Attestation and reproducibility
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-regenerability" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.4 Regenerability
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.5 Resolution
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-product-contracts-phase-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6. Product contracts (phase 2)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Product contracts (phase 2)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.1 Structure
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-making-a-spec-replicable-by-any-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.2 Making a spec replicable by any AI
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-what-a-spec-cannot-guarantee" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.3 What a spec cannot guarantee
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-customization" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.4 Customization
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-spec-lifecycle-extract-find-download-revise-publish" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.5 Spec lifecycle: extract, find, download, revise, publish
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#66-authoring-protocol-for-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.6 Authoring protocol for AI
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7. Architecture
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        8. Governance
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        9. Users
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-product-surfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        10. Product surfaces
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-mvp-scope-phase-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        11. MVP scope (phase 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-business-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        12. Business model
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        13. Non-goals
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-risks-and-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        14. Risks and open questions
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-longer-term-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        15. Longer-term direction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        16. Naming
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        17. Glossary
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#changes-since-v02" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Changes since v0.2
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Summary
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Problem
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-thesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. Thesis
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-core-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4. Core model
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Core model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.1 Primitives
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-contract-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.2 Contract kinds
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-evidence-strength" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.3 Evidence strength
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4.4 Ranking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-first-vertical-software-capability-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5. First vertical: software capability contracts
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. First vertical: software capability contracts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-capability-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.1 Capability contract
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.2 Implementation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-attestation-and-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.3 Attestation and reproducibility
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-regenerability" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.4 Regenerability
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5.5 Resolution
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-product-contracts-phase-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6. Product contracts (phase 2)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Product contracts (phase 2)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.1 Structure
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-making-a-spec-replicable-by-any-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.2 Making a spec replicable by any AI
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-what-a-spec-cannot-guarantee" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.3 What a spec cannot guarantee
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-customization" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.4 Customization
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-spec-lifecycle-extract-find-download-revise-publish" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.5 Spec lifecycle: extract, find, download, revise, publish
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#66-authoring-protocol-for-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6.6 Authoring protocol for AI
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7. Architecture
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        8. Governance
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        9. Users
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-product-surfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        10. Product surfaces
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-mvp-scope-phase-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        11. MVP scope (phase 1)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-business-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        12. Business model
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        13. Non-goals
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-risks-and-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        14. Risks and open questions
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-longer-term-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        15. Longer-term direction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        16. Naming
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        17. Glossary
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+  
+    <a href="https://github.com/kausalflow/symbolon/edit/main/docs/design-v0.3.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="symbolon-product-design-document">Symbolon — Product Design Document<a class="headerlink" href="#symbolon-product-design-document" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Draft v0.3 (formerly Strand)
+<strong>Date:</strong> 2026-10-21
+<strong>One-liner:</strong> Trustable contracts between agents: a commitment anyone can check, backed by evidence anyone can verify. Software capabilities are the first vertical.</p>
+<p><em>The name.</em> A symbolon was an ancient Greek token broken in two. Each party kept one half, and matching the halves proved the agreement. It is also the root of the word "symbol." Here, the contract is one half and the evidence that someone kept it is the other.</p>
+<h3 id="changes-since-v02">Changes since v0.2<a class="headerlink" href="#changes-since-v02" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Vision broadened.</strong> Contracts are now commitments between any parties, such as agents, software, services, and the humans they act for. Software capability contracts, the whole of v0.2, become the first vertical and the MVP (sections 1, 3, 4, 9).</li>
+<li><strong>One general model.</strong> Every contract kind uses the same primitives: parties, obligations, evidence, ledger, trust set, and counterexample. Only how the evidence is collected differs by kind (4.2, 4.3).</li>
+<li><strong>Product contracts and a business model.</strong> Specs and conformance suites become something you can sell, including to enterprises, while attestations stay public and unbuyable (6, 12).</li>
+<li><strong>Spec lifecycle and AI authoring protocol.</strong> Authors extract a spec from software they built. Users find, download, and fork it, and AI revises it under an enforced authoring protocol. Only a human key publishes (6.5, 6.6).</li>
+<li><strong>Governance section.</strong> This covers who stores contracts, who may change them, and how disputes resolve (8).</li>
+<li><strong>Standards reuse.</strong> Attestations use the in-toto format and Sigstore-style signing and transparency instead of a custom format (7).</li>
+<li><strong>Renamed.</strong> "Strand" collides with AWS Strands Agents.</li>
+</ul>
+<hr />
+<h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">&para;</a></h2>
+<p>Agents increasingly act for people and for each other. They call tools, run code they generated, hire other agents, and spend money on someone's behalf. Each of these is an implicit promise: this tool parses dates correctly, this agent will only touch the files I allowed, this service deletes my data after 30 days. Today none of those promises is written down in a checkable form, and none leaves verifiable evidence that it was kept.</p>
+<p>Symbolon makes them explicit. A <strong>contract</strong> is a versioned, content-addressed statement of obligations between parties. An <strong>attestation</strong> is signed evidence that a specific party met those obligations in a specific case. A public <strong>ledger</strong> accumulates attestations and verified violations, so trust is earned from a record rather than asserted. Parties agree on contract digests, not on code, vendors, or reputations.</p>
+<p>The first vertical is software capabilities. Here the obligations can be checked before execution by running a spec against an implementation in a sandbox. That is the most testable kind of promise, and it is where agents already rebuild things constantly.</p>
+<h2 id="2-problem">2. Problem<a class="headerlink" href="#2-problem" title="Permanent link">&para;</a></h2>
+<p><strong>Promises between agents are implicit.</strong> When agent A delegates to agent B, uses tool C, or relies on service D, the expectations are buried in prompts, docs, or terms of service. They cannot be compared, checked, or enforced.</p>
+<p><strong>There is no portable track record.</strong> An agent, a tool, or an implementation that behaved well yesterday leaves no evidence a stranger can verify today. Code generated fresh for each call has no history at all.</p>
+<p><strong>Coordination fails silently.</strong> Two agents interoperate only if they agree on behavior. When nobody declares that behavior, divergence stays invisible until something breaks.</p>
+<p><strong>Single points of trust are fragile.</strong> Ecosystems that depend on one implementation or one vendor inherit its failures, as in the left-pad incident or a compromised package. Contracts with many independently attested implementations do not.</p>
+<p>Existing pieces each cover a slice. Tool and MCP registries cover discovery. Pact covers API contracts between services. SLSA, in-toto, and Sigstore cover build provenance. Tessl covers specs as the source of code. None of them combines a checkable obligation, independent evidence, and a public record of violations for agent-to-agent trust.</p>
+<h2 id="3-thesis">3. Thesis<a class="headerlink" href="#3-thesis" title="Permanent link">&para;</a></h2>
+<p>What can be regenerated cheaply, like code, glue, and even whole agents, should be treated as disposable. What cannot be regenerated is <strong>access</strong> (credentials, legal agreements), <strong>state</strong> (data, histories), and <strong>track record</strong> (evidence that promises were kept). The durable asset is the promise and its evidence.</p>
+<p>Trust between agents should therefore rest on three things: a precise promise, evidence that does not depend on trusting the party making the promise, and a public record of every verified violation.</p>
+<h2 id="4-core-model">4. Core model<a class="headerlink" href="#4-core-model" title="Permanent link">&para;</a></h2>
+<h3 id="41-primitives">4.1 Primitives<a class="headerlink" href="#41-primitives" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Primitive</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Contract</strong></td>
+<td>Immutable, content-addressed set of obligations. It has roles (who promises and who relies), an interface, and a spec saying how each obligation is checked.</td>
+</tr>
+<tr>
+<td><strong>Party</strong></td>
+<td>Anything that can hold a key and take a role: an implementation, an agent, a service, a runner, a human principal.</td>
+</tr>
+<tr>
+<td><strong>Obligation</strong></td>
+<td>A checkable predicate. Example: "for every valid input, output matches the schema and properties"; "no network call outside the declared hosts"; "every write emits an audit event".</td>
+</tr>
+<tr>
+<td><strong>Evidence / attestation</strong></td>
+<td>A signed statement that a party met (or violated) obligations in a specific case, in in-toto format.</td>
+</tr>
+<tr>
+<td><strong>Ledger</strong></td>
+<td>The append-only record per contract and per party: attestations, verified counterexamples, deprecations, successor links.</td>
+</tr>
+<tr>
+<td><strong>Trust set</strong></td>
+<td>The verifier keys a caller accepts evidence from.</td>
+</tr>
+<tr>
+<td><strong>Counterexample</strong></td>
+<td>A concrete, reproducible case where a party violated an obligation. It is the only accepted form of complaint.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-contract-kinds">4.2 Contract kinds<a class="headerlink" href="#42-contract-kinds" title="Permanent link">&para;</a></h3>
+<p>All kinds share the primitives. They differ in <strong>when</strong> and <strong>how</strong> evidence is produced, and that sets the order of the roadmap.</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Example</th>
+<th>Evidence</th>
+<th>Verifiability</th>
+<th>Phase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Capability</strong></td>
+<td>Parse dates across locales</td>
+<td>Pre-execution: spec run against implementation in sandbox</td>
+<td>Strong, reproducible</td>
+<td>1 (MVP)</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>A full app with features, security and audit requirements</td>
+<td>Pre-execution: composed capability contracts plus end-to-end acceptance, security, and audit suites</td>
+<td>Strong for what is tested</td>
+<td>2</td>
+</tr>
+<tr>
+<td><strong>Interaction</strong></td>
+<td>Agent A and agent B exchange messages in a defined protocol</td>
+<td>Recorded transcripts checked against the protocol, both parties co-signing</td>
+<td>Medium</td>
+<td>3</td>
+</tr>
+<tr>
+<td><strong>Mandate</strong></td>
+<td>Agent acts for a human within scope, spend, and data limits</td>
+<td>Runtime receipts from an enforcing gateway, plus audit</td>
+<td>Medium; depends on the enforcement point</td>
+<td>3</td>
+</tr>
+<tr>
+<td><strong>Service</strong></td>
+<td>Hosted service promises data retention, latency, uptime</td>
+<td>Runtime monitoring by third-party verifiers</td>
+<td>Weaker; observational</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<p>The rule for ordering: start where evidence is strongest and the cost of a wrong verdict is lowest. Earn the right to the harder kinds with a working counterexample loop.</p>
+<h3 id="43-evidence-strength">4.3 Evidence strength<a class="headerlink" href="#43-evidence-strength" title="Permanent link">&para;</a></h3>
+<p>Not all evidence is equal, so attestations declare their kind and callers weigh them:</p>
+<ol>
+<li><strong>Reproducible:</strong> any verifier given the same digests gets the same result. Capability and product contracts with pure specs.</li>
+<li><strong>Co-signed:</strong> both parties sign the same record. Interaction contracts.</li>
+<li><strong>Enforced:</strong> a trusted enforcement point signs what it allowed and blocked. Mandate contracts.</li>
+<li><strong>Observed:</strong> a third party saw it happen, but cannot replay it. Service contracts and anything with network access.</li>
+</ol>
+<h3 id="44-ranking">4.4 Ranking<a class="headerlink" href="#44-ranking" title="Permanent link">&para;</a></h3>
+<p>Wherever several parties can fulfil the same contract, ranking uses only published evidence:</p>
+<ol>
+<li>number of distinct trusted verifiers that attested the party;</li>
+<li>verified counterexamples against it (fewer is better);</li>
+<li>age of its first trusted attestation.</li>
+</ol>
+<p>Raw attestation count is never an input, because it is free to inflate. There is no sponsored placement and no opaque score, and money never buys evidence.</p>
+<h2 id="5-first-vertical-software-capability-contracts">5. First vertical: software capability contracts<a class="headerlink" href="#5-first-vertical-software-capability-contracts" title="Permanent link">&para;</a></h2>
+<p>This section carries v0.2 forward. Section numbers in brackets refer to v0.2, where the detail is unchanged.</p>
+<h3 id="51-capability-contract">5.1 Capability contract<a class="headerlink" href="#51-capability-contract" title="Permanent link">&para;</a></h3>
+<p>Identified by digest: SHA-256 over a deterministic archive of the contract directory. The alias is <code>namespace/name@version</code>. Namespaces are bound to a publisher key, and versions are integers; any change to the schema or spec bumps the version.</p>
+<p>It contains a JSON Schema interface (canonical; pydantic is authoring sugar), an entrypoint signature (MVP: synchronous <code>run(input) -&gt; output</code>), and a behavioral spec. The spec has three parts: examples as data, derandomized hypothesis properties, and an optional reference implementation used only as an oracle. It also declares external requirements (credentials by name, network hosts, state, permissions), a regenerability class, and provenance including the license. [v0.2 4.1]</p>
+<h3 id="52-implementation">5.2 Implementation<a class="headerlink" href="#52-implementation" title="Permanent link">&para;</a></h3>
+<p>A directory of source code, a manifest naming the target contract digest, and a pinned lockfile. Its identity is the digest of all three. Generated implementations record the generator in the manifest. [v0.2 4.2]</p>
+<h3 id="53-attestation-and-reproducibility">5.3 Attestation and reproducibility<a class="headerlink" href="#53-attestation-and-reproducibility" title="Permanent link">&para;</a></h3>
+<p>The runner executes the spec against the implementation in a sandbox: no network unless declared, resource limits, a pinned environment digest, and derandomized tests. Both the implementation and the contract's test code are untrusted and run inside the sandbox. The result is an in-toto attestation signed by the runner. Each attestation carries the contract and implementation digests, test results with seed and budget, a resource profile, the environment digest, and runner and submitter identity. [v0.2 4.3, 4.4]</p>
+<h3 id="54-regenerability">5.4 Regenerability<a class="headerlink" href="#54-regenerability" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Disposable:</strong> any trusted-attested implementation is acceptable, and callers may regenerate at will.</li>
+<li><strong>Pinned:</strong> callers converge on one implementation digest chosen by ranking; generation is allowed only when none exists.</li>
+<li><strong>Sovereign:</strong> reserved. It is effectively a service contract and comes in phase 4. [v0.2 4.7]</li>
+</ul>
+<h3 id="55-resolution">5.5 Resolution<a class="headerlink" href="#55-resolution" title="Permanent link">&para;</a></h3>
+<p><code>resolve(contract, version)</code> returns a local path plus the backing attestation. Loading the code is a separate, explicit step under the caller's policy. For disposable contracts with nothing attested, resolution generates an implementation, attests it, and caches it. Expected latency is under a second when cached, and tens of seconds to minutes for generate-then-attest. [v0.2 4.8]</p>
+<h2 id="6-product-contracts-phase-2">6. Product contracts (phase 2)<a class="headerlink" href="#6-product-contracts-phase-2" title="Permanent link">&para;</a></h2>
+<p>A product contract specifies a whole application well enough that any capable AI can build it, a buyer can customize it, and anyone can check the result. The motivating case is a project like lightkone: rebuilding it from scratch today takes many rounds of human iteration.</p>
+<h3 id="61-structure">6.1 Structure<a class="headerlink" href="#61-structure" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Composition:</strong> a graph of capability contracts, referenced by digest.</li>
+<li><strong>Acceptance suite:</strong> end-to-end scenarios over the composed product.</li>
+<li><strong>Security suite:</strong> a full role × action authorization matrix, with each cell tested. It also includes input fuzzing, a declared network allowlist checked in the sandbox, a dependency policy, and a threat model where each threat maps to at least one test.</li>
+<li><strong>Audit suite:</strong> required audit events as testable obligations. Example: "every state-changing request emits an event with actor, action, target and timestamp."</li>
+<li><strong>Non-functional notes:</strong> UX, performance, and operations guidance that is not yet testable, clearly marked as such.</li>
+</ul>
+<h3 id="62-making-a-spec-replicable-by-any-ai">6.2 Making a spec replicable by any AI<a class="headerlink" href="#62-making-a-spec-replicable-by-any-ai" title="Permanent link">&para;</a></h3>
+<p>A spec is only as good as its weakest untested behavior. The method for closing the gap:</p>
+<ol>
+<li>Two or three different AI systems build independently from the spec.</li>
+<li>Each build runs the full suites.</li>
+<li>Wherever builds pass but behave differently, the spec is missing an obligation. Add a test that pins the intended behavior.</li>
+<li>Repeat until independent builds converge.</li>
+</ol>
+<p>The convergence result is published evidence of spec quality: the number of independent builds that pass, and the remaining known divergences.</p>
+<h3 id="63-what-a-spec-cannot-guarantee">6.3 What a spec cannot guarantee<a class="headerlink" href="#63-what-a-spec-cannot-guarantee" title="Permanent link">&para;</a></h3>
+<p>UX quality, performance under real load, and novel vulnerabilities outside the tested threat model. A product contract states this plainly, and passing it means "meets every tested obligation", nothing more.</p>
+<h3 id="64-customization">6.4 Customization<a class="headerlink" href="#64-customization" title="Permanent link">&para;</a></h3>
+<p>Buyers fork with lineage. Their changes become new contract versions, and conformance to the parent contract's suites can still be checked and attested.</p>
+<h3 id="65-spec-lifecycle-extract-find-download-revise-publish">6.5 Spec lifecycle: extract, find, download, revise, publish<a class="headerlink" href="#65-spec-lifecycle-extract-find-download-revise-publish" title="Permanent link">&para;</a></h3>
+<p>The loop a person runs, with AI doing most of the work:</p>
+<ol>
+<li><strong>Extract.</strong> An author points Symbolon at software they built. An AI reads the code and observes its behavior, then proposes a product contract: the composition, the schemas, the examples, and the acceptance, security, and audit suites. The original software is the reference oracle. The spec must pass against it, and it must fail the vacuity stubs. The author reviews it and publishes.</li>
+<li><strong>Find.</strong> Users search the registry by capability, contract kind, and evidence. Results show convergence results, counterexample counts, lineage, and license, never a popularity score.</li>
+<li><strong>Download.</strong> <code>pull</code> fetches the contract by digest with its suites and evidence, and verifies signatures locally. Any AI tool can build from it, and the build is checked with <code>attest</code>.</li>
+<li><strong>Revise.</strong> A user forks and asks an AI to change the spec, for example to add a feature or tighten security. The AI must follow the authoring protocol (6.6).</li>
+<li><strong>Publish.</strong> The new version passes <code>validate</code>, and the convergence loop if it is a product contract. It carries a changelog and lineage to its parent, and is signed by the human owner of the namespace. AI may draft and check a version, but only a human key can publish it.</li>
+</ol>
+<h3 id="66-authoring-protocol-for-ai">6.6 Authoring protocol for AI<a class="headerlink" href="#66-authoring-protocol-for-ai" title="Permanent link">&para;</a></h3>
+<p>The guidelines AI follows are themselves a published, versioned contract: the <strong>authoring protocol</strong>. They are machine-readable rules, not prose advice. Symbolon serves it to any AI as an MCP server or agent skill, and <code>validate</code> enforces it, so a version that breaks the rules cannot be published whichever AI wrote it.</p>
+<p>The protocol requires that:</p>
+<ul>
+<li>every new or changed behavior comes with at least one example or property that pins it down;</li>
+<li>a revision never deletes an existing test without a recorded reason, and deleting one makes the change breaking;</li>
+<li>every security-relevant feature updates the authorization matrix and threat model;</li>
+<li>every state-changing feature declares its audit events;</li>
+<li>the changelog states, per change, whether behavior changed, and which tests prove it;</li>
+<li>the spec passes against the reference implementation and fails the vacuity stubs;</li>
+<li>for product contracts, the convergence loop (6.2) ran, and its result is attached.</li>
+</ul>
+<p>Because the protocol is a contract, it has its own versions and its own counterexamples. If a spec that followed it still turns out to be weak, that counts against the protocol, and its next version tightens the rules.</p>
+<h2 id="7-architecture">7. Architecture<a class="headerlink" href="#7-architecture" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Contract store</strong></td>
+<td>Immutable contracts addressed by digest, with aliases. A git repository at first.</td>
+</tr>
+<tr>
+<td><strong>Verifiers</strong></td>
+<td>Produce evidence. For capability and product contracts, these are sandboxed attestation runners. Later kinds add transcript checkers, enforcement gateways, and monitors. Each verifier has a published key.</td>
+</tr>
+<tr>
+<td><strong>Ledger</strong></td>
+<td>Append-only record of attestations and counterexamples. It mirrors to a Sigstore-style transparency log so that history cannot be rewritten quietly.</td>
+</tr>
+<tr>
+<td><strong>Resolver</strong></td>
+<td>Selects a party for a contract using the caller's trust set and the ranking rules. For capability contracts, it falls back to generation when allowed.</td>
+</tr>
+<tr>
+<td><strong>Counterexample service</strong></td>
+<td>Accepts violation reports, replays them through a verifier, and records the result.</td>
+</tr>
+</tbody>
+</table>
+<p>Formats reuse standards: JSON Schema for interfaces, in-toto statements for attestations, Ed25519 or Sigstore keyless signing, and SHA-256 content addressing. The novelty is in what gets signed and how the record is used, not in the cryptography.</p>
+<h2 id="8-governance">8. Governance<a class="headerlink" href="#8-governance" title="Permanent link">&para;</a></h2>
+<p><strong>Storage.</strong> Publishers sign contracts with their namespace key and push them to the registry. Contracts are content-addressed, so anyone may mirror them, and a mirror is verifiable. Storage is not a trust point.</p>
+<p><strong>Change.</strong> Only the namespace key holder can publish new versions. Nobody can amend a published contract.</p>
+<p><strong>Disputes.</strong> The spec is the only arbiter.</p>
+<ul>
+<li>If a counterexample makes the current spec fail, it is objectively valid. It is recorded against the party, and against the verifier that attested it.</li>
+<li>If the spec passes it, it is a proposal. The author may adopt it in a new version, or anyone may fork with it. Adoption follows evidence.</li>
+<li>Symbolon does not adjudicate intent.</li>
+</ul>
+<p><strong>Registry operator.</strong> Handles only namespace disputes (squatting, abandoned namespaces) and legal takedowns, under a published policy. Every action is logged in the ledger. Federation (section 15) removes the single operator.</p>
+<h2 id="9-users">9. Users<a class="headerlink" href="#9-users" title="Permanent link">&para;</a></h2>
+<p><strong>Phase 1:</strong> agent developers who want capabilities without hard dependencies; agents as runtime callers of <code>resolve</code>; contract authors.
+<strong>Phase 2:</strong> product teams and enterprises that buy or commission product contracts to build and customize applications with their own AI tools.
+<strong>Phase 3 and later:</strong> operators of multi-agent systems who need agents to keep promises to each other and to the humans they act for.</p>
+<p>Non-users for now: end consumers and anyone whose primary need is credential management.</p>
+<h2 id="10-product-surfaces">10. Product surfaces<a class="headerlink" href="#10-product-surfaces" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>CLI and Python package (phase 1):</strong> <code>init</code>, <code>validate</code> (including the vacuity check), <code>attest</code>, <code>resolve</code>, <code>publish</code>, <code>report</code>, and later <code>fork</code>. [v0.2 6.1]</li>
+<li><strong>Registry:</strong> a git repository first, with layout <code>contracts/</code>, <code>ledger/</code>, <code>implementations/</code>, <code>attestations/</code>, <code>verifiers/</code>. A hosted index and API come later. [v0.2 6.2]</li>
+<li><strong>Runtime library:</strong> <code>resolve()</code> with an in-process cache, a configurable trust set, and an optional local runner. [v0.2 6.3]</li>
+<li><strong>Contract studio (phase 2):</strong> tooling for authoring product contracts and running the multi-AI convergence loop in 6.2. Adds <code>extract</code> (spec from existing software), <code>search</code>, and <code>pull</code> (6.5).</li>
+<li><strong>Authoring protocol server (phase 2):</strong> an MCP server or agent skill that hands any AI the authoring protocol and checks drafts against it (6.6).</li>
+</ul>
+<h2 id="11-mvp-scope-phase-1">11. MVP scope (phase 1)<a class="headerlink" href="#11-mvp-scope-phase-1" title="Permanent link">&para;</a></h2>
+<p>Unchanged from v0.2 section 8:</p>
+<ol>
+<li>Contract format, <code>init</code>, <code>validate</code>, and three seed contracts (<code>core/date-parse</code>, <code>core/csv-to-records</code>, <code>core/unit-convert</code>).</li>
+<li>Implementation format and <code>attest</code> with a container sandbox and in-toto output.</li>
+<li>End-to-end slice: one implementation attested on two machines with identical results.</li>
+<li>Git registry, <code>publish</code>, lookup-only <code>resolve</code> with a trust set.</li>
+<li>Generate-then-attest for disposable contracts.</li>
+<li>10 to 20 pure seed contracts; counterexample reporting.</li>
+</ol>
+<p>Success: an outside agent resolves a seed contract and gets a working implementation; a third-party runner reproduces the attestation; at least one outside developer chooses <code>resolve</code> over in-house generation and can say why.</p>
+<h2 id="12-business-model">12. Business model<a class="headerlink" href="#12-business-model" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Free:</strong> public contracts, public attestations, the open-source CLI and runner.</li>
+<li><strong>Paid, phase 1 to 2:</strong> private registries and a hosted canonical runner (metered attestation).</li>
+<li><strong>Paid, phase 2:</strong> product contracts. Buyers pay for the conformance suites, convergence evidence, and maintained updates. The prose spec copies as easily as code; the suites and the ongoing record are the product.</li>
+<li><strong>Enterprise:</strong> private namespaces, commissioned product contracts, on-premises runners.</li>
+</ul>
+<p><strong>Invariant:</strong> evidence is never for sale. Ranking stays purely evidence-based and fully published, regardless of who pays for what.</p>
+<h2 id="13-non-goals">13. Non-goals<a class="headerlink" href="#13-non-goals" title="Permanent link">&para;</a></h2>
+<p>Symbolon is not a credential manager, a package manager replacement, an agent framework, a general code-generation product, or a legal contract platform. It does not host long-running customer services. It does not verify properties beyond what a contract's spec states. Payments between agents are out of scope; mandate contracts may describe spend limits, but Symbolon does not move money.</p>
+<h2 id="14-risks-and-open-questions">14. Risks and open questions<a class="headerlink" href="#14-risks-and-open-questions" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>The spec is the real product.</strong> Weak specs attest bad implementations. Mitigations: the vacuity check, reference oracles, the counterexample loop, and multi-AI convergence (6.2).</li>
+<li><strong>Tests do not cover security.</strong> State it plainly. Product contracts narrow the gap through explicit security suites, but cannot close it.</li>
+<li><strong>Malicious contracts and verifiers.</strong> Contract code runs sandboxed. Verifiers are weighted by trust set and penalized by verified counterexamples.</li>
+<li><strong>Scope creep.</strong> The broader vision is a direction, not the MVP. Phase gates: move to the next contract kind only after the previous one shows a working counterexample loop and outside adoption.</li>
+<li><strong>Weaker evidence in later phases.</strong> Interaction, mandate, and service contracts rely on co-signed, enforced, or observed evidence. Callers must see the evidence strength, never a single green check.</li>
+<li><strong>Spec piracy.</strong> Specs are easy to copy. The paid value is the maintained suites, the evidence, and the updates, so treat the prose as marketing.</li>
+<li><strong>Demand.</strong> Agents may prefer to generate and test locally. The MVP demand test checks this before anything else scales.</li>
+<li><strong>Name.</strong> Trademark and domain checks still to do (see section 16).</li>
+</ul>
+<h2 id="15-longer-term-direction">15. Longer-term direction<a class="headerlink" href="#15-longer-term-direction" title="Permanent link">&para;</a></h2>
+<p>Contracts that compose across kinds. For example, a product contract whose deployment carries a mandate contract for the agents operating it. Other directions: cross-language implementations, record/replay so networked capabilities become reproducible, federation of registries and verifiers across organizations, and a standard way for agents to present their ledger history to each other before collaborating.</p>
+<h2 id="16-naming">16. Naming<a class="headerlink" href="#16-naming" title="Permanent link">&para;</a></h2>
+<p>"Strand" is retired because of AWS Strands Agents. Symbolon was chosen on 2026-10-21. Quick web checks on 2026-10-21 (not trademark or domain searches):</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Meaning</th>
+<th>Collision found</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Symbolon</strong> (chosen 2026-10-21)</td>
+<td>Greek token split between two parties; matching halves proves the agreement</td>
+<td>None notable in software or AI</td>
+</tr>
+<tr>
+<td><strong>Chirograph</strong></td>
+<td>Medieval deed written twice on one sheet and cut apart; the matching cut proves authenticity</td>
+<td>None in software</td>
+</tr>
+<tr>
+<td><strong>Syngraph</strong></td>
+<td>Greek for a written contract signed by both parties</td>
+<td>None notable</td>
+</tr>
+<tr>
+<td>Tessera</td>
+<td>Roman token of a pact</td>
+<td>Taken: Google's transparency-log library, same space</td>
+</tr>
+<tr>
+<td>Countersign</td>
+<td>Second signature confirming a first</td>
+<td>Taken: an existing npm MCP package</td>
+</tr>
+<tr>
+<td>Warrant</td>
+<td>Guarantee</td>
+<td>Taken: an authorization startup</td>
+</tr>
+<tr>
+<td>Surety</td>
+<td>Guarantee of another's obligation</td>
+<td>Crowded by surety-bond insurance software</td>
+</tr>
+</tbody>
+</table>
+<h2 id="17-glossary">17. Glossary<a class="headerlink" href="#17-glossary" title="Permanent link">&para;</a></h2>
+<p><strong>Contract.</strong> An immutable, content-addressed set of obligations between roles, with a spec saying how each is checked.
+<strong>Party.</strong> A key-holding participant: implementation, agent, service, verifier, or human principal.
+<strong>Obligation.</strong> A checkable predicate within a contract.
+<strong>Attestation.</strong> Signed evidence that a party met or violated obligations, with a declared evidence strength.
+<strong>Evidence strength.</strong> Reproducible, co-signed, enforced, or observed.
+<strong>Ledger.</strong> The append-only record of attestations and verified counterexamples.
+<strong>Counterexample.</strong> A reproducible case of a violated obligation; the only accepted form of complaint.
+<strong>Trust set.</strong> The verifier keys a caller accepts.
+<strong>Capability / product / interaction / mandate / service contract.</strong> The contract kinds, in roadmap order.
+<strong>Resolve.</strong> For capability contracts: return an attested implementation, generating one if permitted.
+<strong>Vacuity check.</strong> Validation proving a spec rejects trivial implementations.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../lightkone-pilot/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Lightkone pilot">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Lightkone pilot
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 kausalflow
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.annotate","content.code.copy","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"redirect":null,"search":"../assets/javascripts/workers/search.c47bb847.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.10ee5ab6.min.js"></script>
+      
+    
+  </body>
+</html>
