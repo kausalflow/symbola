@@ -865,6 +865,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#results-milestone-4-replicate-over-the-whole-pack" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Results (milestone 4: replicate over the whole pack)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#results-milestone-3-the-first-replicate-runs" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1007,6 +1018,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         What the pack covers
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results-milestone-4-replicate-over-the-whole-pack" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Results (milestone 4: replicate over the whole pack)
       </span>
     </span>
   </a>
@@ -1234,6 +1256,57 @@
 </tbody>
 </table>
 <p><code>symbolon pack validate packs/kausalflow/lightkone/versions/1</code> reports 64 obligations (all decided) and 4 assumptions, and every one of the components' 340 checks traces to an obligation.</p>
+<h2 id="results-milestone-4-replicate-over-the-whole-pack">Results (milestone 4: replicate over the whole pack)<a class="headerlink" href="#results-milestone-4-replicate-over-the-whole-pack" title="Permanent link">&para;</a></h2>
+<p><code>symbolon replicate</code> gave all eight components to three Claude Code builds: Sonnet, Opus and Haiku. Lightkone was the reference and the holdout was on. All three builders wrote Python, and their logs show no reads outside the builder's copy. The builds took 11, 16 and 21 minutes and cost $1.76, $5.13 and $1.15 in agent time.</p>
+<p>Every build passed every component and every holdout: 24 of 24 on both. They still differ. <code>diff</code> found 27 splits, 15 of them in <code>bibtex-import</code>. Builders' probes found 12 of the 27. <code>bibtex-export</code> and <code>citation-key</code> converged.</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Splits</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One build differs from lightkone and the other two, on well-formed input; the checks of a decided obligation miss it</td>
+<td>9</td>
+<td>Opus keeps duplicate tags when merging (<code>merge.sets</code>). Haiku does not treat U+FEFF as whitespace in filing and search. Haiku strips a DOI's trailing <code>/</code> and a page range's letters. Sonnet takes <code>annote</code> over <code>note</code>. Sonnet and Haiku print large numbers in <code>library.json</code> differently from JavaScript. Haiku reads <code>"a b"c</code> differently</td>
+</tr>
+<tr>
+<td>One build differs on truncated or broken BibTeX</td>
+<td>9</td>
+<td>Unclosed <code>\emph{</code>, a field cut off after <code>=</code></td>
+</tr>
+<tr>
+<td>All three builds agree and lightkone differs</td>
+<td>3</td>
+<td><strong>Lightkone's <code>tidy</code> crashes (TypeError) on a paper with no <code>authors</code></strong>, although the contract's <code>Input</code> accepts one. On two broken BibTeX inputs, lightkone keeps a stray <code>"</code> in a venue, or returns an entry from an unclosed <code>{{</code></td>
+</tr>
+<tr>
+<td>Allowed by the pack</td>
+<td>1</td>
+<td><code>year:2.017e3</code>: the contract leaves number spellings other than digits and a fraction unspecified</td>
+</tr>
+<tr>
+<td>Ordering of rare symbols in title sort (format tier)</td>
+<td>1</td>
+<td>Opus's collation differs on symbols such as <code>⯛</code> and <code>ѽ</code></td>
+</tr>
+</tbody>
+</table>
+<p>The row where all builds agree against lightkone is what replication alone cannot show: there is no disagreement among the builds to find. Only the reference shows it. The milestone 1 to 3 builds never reached the <code>tidy</code> crash, because no example has a paper without authors.</p>
+<p>The weaker builder needed more from the pack. Haiku's splits were on Unicode whitespace and DOI and page normalisation, points Sonnet and Opus got right from the description. Opus, the strongest model, had most of the <code>bibtex-import</code> and <code>library-merge</code> splits: it read more into the text than the examples pinned. A pack that converges for one builder may not converge for another (design v0.5, "minimal for whom").</p>
+<p>Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. The pack now lives in kausalflow/symbolon-registry. The change is <a href="https://github.com/kausalflow/symbolon-registry/pull/5">symbolon-registry#5</a>. It records examples from lightkone and adds them to the obligations that missed these points:</p>
+<ul>
+<li><code>merge.sets</code>: a tag listed twice is kept once.</li>
+<li><code>filing.paperpile-layout</code>: U+FEFF is whitespace.</li>
+<li><code>search.query-tokens</code>: a quoted phrase ends at its closing quote. Search whitespace was already pinned by <code>search.whitespace</code>.</li>
+<li><code>import.identifiers</code>: a DOI keeps its trailing slash.</li>
+<li><code>import.draft-fields</code>: <code>annote</code> wins whenever the entry has one, even when it is empty, and pages keep their letters.</li>
+<li><code>file.exact-text</code>: numbers print as JavaScript prints them.</li>
+</ul>
+<p>Lightkone passes the five changed contracts and is re-attested on them by <code>runner-c</code>. The <code>tidy</code> crash is filed as <a href="https://github.com/kausalflow/lightkone/issues/54">kausalflow/lightkone#54</a>. The pack will record an example once lightkone is fixed.</p>
 <h2 id="results-milestone-3-the-first-replicate-runs">Results (milestone 3: the first <code>replicate</code> runs)<a class="headerlink" href="#results-milestone-3-the-first-replicate-runs" title="Permanent link">&para;</a></h2>
 <p><code>symbolon replicate</code> handed <code>search-query</code> and <code>citation-key</code> to two Claude Code builds, one on Sonnet and one on Opus, with lightkone as the reference and the publisher's holdout. Each agent got only the builder's copy of <code>versions/1/</code>. Their logs show no reads outside it. Both chose Python. The runs cost $1.41 and $1.56 in agent time, and each took under eight minutes.</p>
 <table>
