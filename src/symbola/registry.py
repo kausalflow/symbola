@@ -39,7 +39,7 @@ from pathlib import Path
 
 from . import keys
 from .digest import contract_files, hex_of, tree_digest
-from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
+from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, PRODUCT_FILE, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
                    VERSIONS_DIR, summary_line, validate_pack)
 
 PACK_HEADER = b"symbolon-pack-v1\n"
@@ -129,8 +129,11 @@ This is a Symbolon spec pack. If you are building from it:
    `unchecked` ones are required although no check covers them yet.
 4. Each component's specification is under `components/<name>/versions/<n>/`.
 
+If `PRODUCT.md` exists, build the whole product it describes, with the components as its core.
+
 **Done** means `symbola attest components/<name>/versions/<n> <impl-dir>` passes
-for every component. The publisher keeps a holdout, so don't special-case examples.
+for every component and, for a product pack, every flow in `PRODUCT.md` works.
+The publisher keeps a holdout, so don't special-case examples.
 
 If you are the publisher's coding agent, keep this pack current while you build:
 when the user makes a choice you could not have guessed, add it to
@@ -257,8 +260,12 @@ def components_of(version_dir: Path) -> list[str]:
 
 
 def build_steps(pack_id: str, page: str, components: list[str], price: dict | None = None,
-                registry: str = "") -> str:
-    """Build instructions for a coding agent that was handed only the pack's page link."""
+                registry: str = "", product: bool = False) -> str:
+    """Build instructions for a coding agent that was handed only the pack's page link.
+
+    A product pack (one with PRODUCT.md) is built as the whole product, with the
+    components as its core; otherwise the build is the components alone.
+    """
     token = (f" --registry {registry}" if registry.rstrip("/") not in ("", DEFAULT_REGISTRY) else "") \
         + (" --token <license>" if price else "")
     first = components[0] if components else f"{COMPONENTS_DIR}/<name>/{VERSIONS_DIR}/1"
@@ -275,7 +282,10 @@ def build_steps(pack_id: str, page: str, components: list[str], price: dict | No
         + "3. Read `spec/AGENTS.md` and follow it. Build only from `spec/`: don't look for the original "
         "product's source, the registry repository (it holds holdout tests) or other builds. Packs released "
         "before the rename say `symbolon <command>`: run `symbola <command>` instead.\n"
-        "4. Build each component in its own folder and run its checks as you go, fixing what fails:\n\n"
+        + ("   This is a product pack: `spec/PRODUCT.md` describes the whole product (its shape, surfaces and "
+           "flows). Build that product, in the user's stack, with the components below as its core. "
+           "Don't build a demo page around the components instead.\n" if product else "")
+        + "4. Build each component in its own folder and run its checks as you go, fixing what fails:\n\n"
         f"       symbola impl-init impl/{name} --contract spec/{first}\n"
         f"       symbola test spec/{first} impl/{name}\n\n"
         "   In Python, define `run(input)` in `impl.py`: it takes and returns a dict, and raises `ValueError` "
@@ -288,7 +298,9 @@ def build_steps(pack_id: str, page: str, components: list[str], price: dict | No
         f"`symbola attest spec/{first} impl/{name} -o attestations/{name}.json`. On macOS, attest needs Docker "
         "running and accepts Python, Node or a static Linux binary (for Go, `GOOS=linux`); "
         "`symbola test` runs the same checks without it.\n\n"
-        "You are done when attest reports PASSED for every component. Write open questions and the readings you "
+        + ("You are done when every flow in `spec/PRODUCT.md` works in the product you built and attest reports "
+           "PASSED for every component. " if product else "You are done when attest reports PASSED for every component. ")
+        + "Write open questions and the readings you "
         f"chose in `NOTES.md`. Every command is described at {CLI_DOCS}.\n\n"
         + (f"Components:\n\n{listed}\n" if listed else "")
     )
@@ -311,7 +323,7 @@ def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bo
     files = f"{here}files/"
     top = f"{site_prefix}pack.md" if site_prefix else "../pack.md"
     part_files = files if files_prefix else "../files/"
-    order = {"AGENTS.md": 0, BRIEF_FILE: 1, OBLIGATIONS_FILE: 3, PACK_MANIFEST_FILE: 4}
+    order = {"AGENTS.md": 0, BRIEF_FILE: 1, PRODUCT_FILE: 1.5, OBLIGATIONS_FILE: 3, PACK_MANIFEST_FILE: 4}
     core, components = [], {}
     for path in _files(root):
         key = _component_key(path.relative_to(root).as_posix())
@@ -600,7 +612,8 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
             f"Version {version}, digest {digest}. {summary_line(report.summary)}.\n\n"
-            + build_steps(pack_id, page, components_of(version_dir), price, base_url)
+            + build_steps(pack_id, page, components_of(version_dir), price, base_url,
+                          product=(version_dir / PRODUCT_FILE).is_file())
             + "## Read it online\n\n"
             f"Start with {site_prefix}/pack.md (brief, assumptions, "
             + (f"obligations, and links to one file per component under {files_prefix}/parts/), or {download}.\n\n"

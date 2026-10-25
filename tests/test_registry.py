@@ -243,6 +243,25 @@ def test_pack_llms_txt_tells_an_agent_how_to_build_it(registry, tmp_path):
         tmp_path / "other" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
 
 
+def test_product_pack_is_built_as_the_product(registry, tmp_path):
+    v2 = registry / "kausalflow" / "lightkone" / "versions" / "2"
+    build_site(registry, tmp_path / "plain", "https://symbola.sh")
+    llms = (tmp_path / "plain" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
+    assert "PRODUCT.md" not in llms and "You are done when attest reports PASSED for every component." in llms
+    (v2 / "PRODUCT.md").write_text("# Lightkone\n\n## Shape\n\nA web app.\n\n## Surfaces\n\n## Flows\n")
+    build_site(registry, tmp_path / "site", "https://symbola.sh")
+    site = tmp_path / "site" / "packs" / "kausalflow" / "lightkone"
+    llms = (site / "llms.txt").read_text()
+    assert "This is a product pack: `spec/PRODUCT.md` describes the whole product" in llms
+    assert "every flow in `spec/PRODUCT.md` works" in llms
+    pack_md = (site / "pack.md").read_text()
+    assert pack_md.index("## BRIEF.md") < pack_md.index("## PRODUCT.md") < pack_md.index("## obligations.toml")
+    r = runner.invoke(app, ["pull", "kausalflow/lightkone", "--registry", str(tmp_path / "site"),
+                            "--dest", str(tmp_path / "lk")])
+    assert r.exit_code == 0, r.output
+    assert "This is a product pack" in r.output
+
+
 def test_pack_ref_takes_an_id_or_a_page_link():
     assert pack_ref("kausalflow/lightkone") == ("kausalflow/lightkone", None)
     for link in ("https://symbola.sh/packs/kausalflow/lightkone/", "https://symbola.sh/packs/kausalflow/lightkone",
