@@ -752,6 +752,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#productmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>PRODUCT.md</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#assumptionsnametoml" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1086,6 +1097,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#productmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>PRODUCT.md</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#assumptionsnametoml" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1255,10 +1277,11 @@ the product; leave codebase-only choices to the codebase's own guidance.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>packs/&lt;namespace&gt;/&lt;product&gt;/versions/&lt;version&gt;/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  symbolon-pack.toml    manifest: pack id, version, license, component digests (required)
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  BRIEF.md              purpose, non-goals, priorities, who resolves gaps (required)
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  obligations.toml      the decisions a build must keep (required)
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  assumptions/*.toml    what must hold about the world, one file each
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  components/&lt;name&gt;/versions/&lt;version&gt;/   capability contracts
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  AGENTS.md             short guide for coding agents
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  PRODUCT.md            the whole product a build delivers (optional; makes it a product pack)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  obligations.toml      the decisions a build must keep (required)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  assumptions/*.toml    what must hold about the world, one file each
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  components/&lt;name&gt;/versions/&lt;version&gt;/   capability contracts
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  AGENTS.md             short guide for coding agents
 </span></code></pre></div>
 <h2 id="selling-listing">Selling: <code>[listing]</code><a class="headerlink" href="#selling-listing" title="Permanent link">&para;</a></h2>
 <p>An optional table in <code>symbolon-pack.toml</code> prices the pack:</p>
@@ -1274,6 +1297,28 @@ the product; leave codebase-only choices to the codebase's own guidance.</p>
 <li><strong>Priorities</strong>: the order in which goals win when they conflict.</li>
 <li><strong>Who resolves gaps</strong>: who answers questions the pack does not settle.</li>
 </ul>
+<h2 id="productmd"><code>PRODUCT.md</code><a class="headerlink" href="#productmd" title="Permanent link">&para;</a></h2>
+<p>The components are the parts of a product whose behaviour must come out exactly;
+they are not the product. A coding agent asked to build the product from components
+alone invents everything around them (the first lightkone field test built a demo
+page, not the app). <code>PRODUCT.md</code> says what a build of the whole product is, for
+people and agents. It must have these headings (any level, any case):</p>
+<ul>
+<li><strong>Shape</strong>: what kind of program it is, where it runs, what it needs, and the
+  choices users would notice (a static web app with no server, a CLI, a service).</li>
+<li><strong>Surfaces</strong>: every screen, command, endpoint and file users touch, one line each.</li>
+<li><strong>Flows</strong>: the main things users do, each as steps and the outcome they see,
+  naming the components each step uses.</li>
+</ul>
+<p>Optional headings such as <strong>Interfaces</strong> (outside services, plugin or storage
+interfaces) and <strong>Order</strong> (what to build first when a build cannot do it all)
+help. Like the rest of the pack it is minimal: what a good builder could not
+guess, not layout or styling. Requirements in it that a build must keep and no
+check covers yet can be <code>unchecked</code> obligations.</p>
+<p>A pack with <code>PRODUCT.md</code> is a <strong>product pack</strong>: its build is the product, with the
+components as its core, and it is done when every flow works and every component
+passes. A pack without it is a <strong>component library</strong>: its build is the components.
+<code>symbola replicate</code> always builds the components only, so it costs the same either way.</p>
 <h2 id="assumptionsnametoml"><code>assumptions/&lt;name&gt;.toml</code><a class="headerlink" href="#assumptionsnametoml" title="Permanent link">&para;</a></h2>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"K-single-writer"</span><span class="w">                 </span><span class="c1"># K-&lt;lowercase-name&gt;</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">statement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"At most one client writes a given library at a time."</span>
@@ -1366,7 +1411,7 @@ does, the fields record what a check must do.</p>
 <ol>
 <li><code>symbolon-pack.toml</code>, <code>BRIEF.md</code> and <code>obligations.toml</code> exist.</li>
 <li>Every component listed in the manifest is present with the same digest, and none is unlisted.</li>
-<li><code>BRIEF.md</code> has the three required sections.</li>
+<li><code>BRIEF.md</code> has the three required sections, and <code>PRODUCT.md</code>, if present, has its three.</li>
 <li>Every assumption file is well-formed, with a unique id.</li>
 <li>Every obligation is well-formed, with a unique id.</li>
 <li>Every <code>decided</code> or <code>default</code> obligation has checks or an <code>unchecked</code> reason (not

@@ -1155,6 +1155,7 @@
 <p>A <strong>spec pack</strong> is a product-level contract, packaged so a builder can rebuild the product in their own stack. It holds:</p>
 <ul>
 <li><code>BRIEF.md</code>: purpose, non-goals, priorities, and who resolves gaps.</li>
+<li><code>PRODUCT.md</code> (optional): the whole product a build delivers, its shape, surfaces and flows. A pack with it is a product pack, built as the product with the components as its core.</li>
 <li><code>assumptions/</code>: facts about the world a builder may rely on.</li>
 <li><code>obligations.toml</code>: the decisions a build must keep, each <code>decided</code>, <code>default</code> or <code>open</code>, and each tied to the checks that pin it down.</li>
 <li><code>components/</code>: ordinary capability contracts.</li>
