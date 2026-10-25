@@ -1310,7 +1310,7 @@ edits your publisher profile and support links, revokes CLI tokens, and asks for
 a pack to be removed. <code>symbola logout</code> forgets the local token.</p>
 <p>Publishing by pull request, below, still works and needs no account.</p>
 <h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>symbola release spec --registry ../symbolon-registry/packs   # in a clone of kausalflow/symbolon-registry
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>symbola release spec --registry ../symbola-registry/packs   # in a clone of kausalflow/symbola-registry
 </span></code></pre></div>
 <p><code>release</code> validates the pack, sets its manifest version to the next free number,
 copies it to <code>packs/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code>, and appends the version's
@@ -1370,7 +1370,7 @@ The catalog sorts packs by their evidence.</p>
 <p>The pack digest is the contract framing (<a href="../CONTRACT_FORMAT/">CONTRACT_FORMAT.md</a>)
 over the pack folder with the header <code>symbolon-pack-v1\n</code>.</p>
 <h2 id="the-site">The site<a class="headerlink" href="#the-site" title="Permanent link">&para;</a></h2>
-<p>The packs live in <a href="https://github.com/kausalflow/symbolon-registry">kausalflow/symbolon-registry</a>.
+<p>The packs live in <a href="https://github.com/kausalflow/symbola-registry">kausalflow/symbola-registry</a>.
 The website is built from them by <code>spikinglabs/symbolon-store</code> and hosted on
 Cloudflare Pages at <a href="https://symbola.sh/">https://symbola.sh/</a>. It is an <a href="https://astro.build">Astro</a>
 site over the files above, with <a href="https://pagefind.app">Pagefind</a> search built at the
