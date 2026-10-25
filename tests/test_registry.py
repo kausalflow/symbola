@@ -164,6 +164,41 @@ def test_pull_rejects_a_tampered_tarball(site, tmp_path):
         pull("kausalflow/lightkone", str(site), tmp_path / "lk")
 
 
+def test_files_out_keeps_the_site_to_a_few_files_per_pack(registry, tmp_path):
+    site, files = tmp_path / "site", tmp_path / "files"
+    build_site(registry, site, "https://symbola.sh", files_out=files, files_url="https://files.symbola.sh/")
+    pack_site = site / "packs" / "kausalflow" / "lightkone"
+    assert sorted(p.name for p in pack_site.iterdir()) == ["llms.txt", "pack.md"]
+    pack_files = files / "packs" / "kausalflow" / "lightkone"
+    for rel in ("latest.tar.gz", "latest.sha256", "evidence.json", "files/BRIEF.md"):
+        assert (pack_files / rel).is_file(), rel
+    assert list((pack_files / "parts").glob("*.md")) and list((pack_files / "parts").glob("*.tar.gz"))
+    index = json.loads((site / "index.json").read_text())
+    assert index["files_url"] == "https://files.symbola.sh"
+    # Links point at the host that serves each file, so an agent never has to follow a redirect.
+    md = (pack_site / "pack.md").read_text()
+    assert "](https://files.symbola.sh/packs/kausalflow/lightkone/parts/" in md
+    assert "](https://files.symbola.sh/packs/kausalflow/lightkone/files/" in md
+    part = next((pack_files / "parts").glob("*.md")).read_text()
+    assert "[https://symbola.sh/packs/kausalflow/lightkone/pack.md]" in part
+    assert "](https://files.symbola.sh/packs/kausalflow/lightkone/files/" in part
+    llms = (pack_site / "llms.txt").read_text()
+    assert "https://symbola.sh/packs/kausalflow/lightkone/pack.md" in llms
+    assert "https://files.symbola.sh/packs/kausalflow/lightkone/latest.tar.gz" in llms
+
+
+def test_pull_downloads_from_the_files_url(registry, tmp_path):
+    site, files = tmp_path / "site", tmp_path / "files"
+    build_site(registry, site, files_out=files, files_url=files.as_uri())
+    got = pull("kausalflow/lightkone", str(site), tmp_path / "lk")
+    assert got.version == 2 and pack_digest(tmp_path / "lk") == got.digest
+
+
+def test_files_out_needs_a_files_url(registry, tmp_path):
+    with pytest.raises(RegistryError, match="--files-url"):
+        build_site(registry, tmp_path / "site", files_out=tmp_path / "files")
+
+
 def test_pull_does_not_take_a_version(site, tmp_path):
     with pytest.raises(RegistryError, match="only the latest"):
         pull("kausalflow/lightkone@1", str(site), tmp_path / "lk")

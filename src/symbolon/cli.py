@@ -570,10 +570,12 @@ def site_build(
     base_url: str = typer.Option("", help="Absolute URL the site is served from, used in llms.txt links."),
     private_out: Path | None = typer.Option(None, help="Where priced packs' tarballs go, for the store's private bucket."),
     store_url: str = typer.Option("", help="URL of the store Worker that sells priced packs."),
+    files_out: Path | None = typer.Option(None, help="Put tarballs, parts, raw files and evidence here instead, for a bucket."),
+    files_url: str = typer.Option("", help="Absolute URL the --files-out folder is served from."),
 ) -> None:
     """Write index.json, llms.txt and each pack's tarball, pack.md and files for the latest versions."""
     try:
-        built = build_site(registry, out, base_url, private_out, store_url)
+        built = build_site(registry, out, base_url, private_out, store_url, files_out, files_url)
     except RegistryError as e:
         _line(False, str(e))
         raise typer.Exit(1)
