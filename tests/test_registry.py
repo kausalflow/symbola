@@ -239,7 +239,7 @@ def test_pack_llms_txt_tells_an_agent_how_to_build_it(registry, tmp_path):
         assert step in llms, step
     assert "Build this pack" in (tmp_path / "site" / "llms.txt").read_text()
     build_site(registry, tmp_path / "other", "http://localhost:8000")
-    assert "--registry http://localhost:8000 --dest spec" in (
+    assert "symbolon pull kausalflow/lightkone --dest spec --registry http://localhost:8000" in (
         tmp_path / "other" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
 
 
