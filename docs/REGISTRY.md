@@ -33,6 +33,28 @@ the code whenever you make a decision a builder could not have guessed, state a
 fact about the world, or leave something open, and to run `pack validate` after
 each change.
 
+## Publishing from symbola.sh
+
+Sign in at <https://symbola.sh/publish/> with GitHub, or from a terminal:
+
+```
+symbolon login              # GitHub device sign-in; saves a token in ~/.config/symbolon/
+symbolon publish spec       # validates locally, uploads, and follows the request
+```
+
+Your GitHub login is your namespace, so you publish `<login>/<name>`; organisations
+that installed the Symbola GitHub app (or where your membership is public) are
+namespaces too. The registry's publish workflow runs `release` and `site check` on
+the upload and opens a pull request as the Symbola bot. New versions of a pack
+merge when CI passes; a namespace's first pack waits once for a moderator. In CI,
+put a token in `SYMBOLON_PUBLISH_TOKEN` instead of running `login`.
+
+The account page (<https://symbola.sh/account/>) lists your packs and requests,
+edits your publisher profile and support links, revokes CLI tokens, and asks for
+a pack to be removed. `symbolon logout` forgets the local token.
+
+Publishing by pull request, below, still works and needs no account.
+
 ## Releasing
 
 ```
@@ -164,6 +186,10 @@ support = [
 
 Links must be `https://`. Money goes straight to the publisher; the registry
 takes nothing and handles no payments.
+
+A publisher profile edited on the account page is saved as `publishers/<owner>.toml`
+in the registry and wins over `[publisher]` in the manifest, which is frozen with
+each released version. It takes the same fields plus a short `bio`.
 
 ## Selling a pack
 
