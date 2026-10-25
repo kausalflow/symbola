@@ -1,48 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
       <url>
-        <loc>https://kausalflow.github.io/symbolon/</loc>
+        <loc>https://kausalflow.github.io/symbola/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/ATTESTATION/</loc>
+        <loc>https://kausalflow.github.io/symbola/ATTESTATION/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/CONTRACT_FORMAT/</loc>
+        <loc>https://kausalflow.github.io/symbola/CONTRACT_FORMAT/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/PACK_FORMAT/</loc>
+        <loc>https://kausalflow.github.io/symbola/PACK_FORMAT/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/REGISTRY/</loc>
+        <loc>https://kausalflow.github.io/symbola/REGISTRY/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/cli/</loc>
+        <loc>https://kausalflow.github.io/symbola/cli/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/concepts/</loc>
+        <loc>https://kausalflow.github.io/symbola/concepts/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/design-v0.3/</loc>
+        <loc>https://kausalflow.github.io/symbola/design-v0.3/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/getting-started/</loc>
+        <loc>https://kausalflow.github.io/symbola/getting-started/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/guides/extracting-a-pack/</loc>
+        <loc>https://kausalflow.github.io/symbola/guides/extracting-a-pack/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/guides/measuring-ambiguity/</loc>
+        <loc>https://kausalflow.github.io/symbola/guides/measuring-ambiguity/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/guides/replicating-a-pack/</loc>
+        <loc>https://kausalflow.github.io/symbola/guides/replicating-a-pack/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/guides/writing-a-contract/</loc>
+        <loc>https://kausalflow.github.io/symbola/guides/writing-a-contract/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/lightkone-pilot/</loc>
+        <loc>https://kausalflow.github.io/symbola/lightkone-pilot/</loc>
       </url>
       <url>
-        <loc>https://kausalflow.github.io/symbolon/seed-contracts/</loc>
+        <loc>https://kausalflow.github.io/symbola/seed-contracts/</loc>
       </url>
 </urlset>
