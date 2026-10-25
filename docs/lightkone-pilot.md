@@ -1,6 +1,6 @@
 # Lightkone pilot
 
-The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in [kausalflow/symbolon-registry](https://github.com/kausalflow/symbolon-registry), under `packs/kausalflow/lightkone/`.
+The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in [kausalflow/symbola-registry](https://github.com/kausalflow/symbola-registry), under `packs/kausalflow/lightkone/`.
 
 | Path | What it is | Ships to buyers |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ The row where all builds agree against lightkone is what replication alone canno
 
 The weaker builder needed more from the pack. Haiku's splits were on Unicode whitespace and DOI and page normalisation, points Sonnet and Opus got right from the description. Opus, the strongest model, had most of the `bibtex-import` and `library-merge` splits: it read more into the text than the examples pinned. A pack that converges for one builder may not converge for another (design v0.5, "minimal for whom").
 
-Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. The pack now lives in kausalflow/symbolon-registry. The change is [symbolon-registry#5](https://github.com/kausalflow/symbolon-registry/pull/5). It records examples from lightkone and adds them to the obligations that missed these points:
+Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. The pack now lives in kausalflow/symbola-registry. The change is [symbola-registry#5](https://github.com/kausalflow/symbola-registry/pull/5). It records examples from lightkone and adds them to the obligations that missed these points:
 
 - `merge.sets`: a tag listed twice is kept once.
 - `filing.paperpile-layout`: U+FEFF is whitespace.
@@ -117,7 +117,7 @@ Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split
 ## Re-running the evidence
 
 ```bash
-git clone https://github.com/kausalflow/symbolon-registry && cd symbolon-registry/packs/kausalflow/lightkone
+git clone https://github.com/kausalflow/symbola-registry && cd symbola-registry/packs/kausalflow/lightkone
 symbola pack validate 1
 symbola verify attestations/search-query.go-1.json --trust attestations/runner-a.pub \
   --contract versions/1/components/search-query/versions/1 --impl rebuilds/go-1/search-query --rerun

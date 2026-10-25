@@ -3,12 +3,12 @@
 Plausible wrong versions of the python-1 rebuild, one concern each, used to
 measure how much the lightkone pack's components reject. They live here,
 outside the pack, so adding them does not change the components' digests.
-The pack is in [kausalflow/symbolon-registry](https://github.com/kausalflow/symbolon-registry); run these from a clone of it next to this repository.
+The pack is in [kausalflow/symbola-registry](https://github.com/kausalflow/symbola-registry); run these from a clone of it next to this repository.
 
 ```
-symbola mutants ../symbolon-registry/packs/kausalflow/lightkone/versions/1/components/search-query/versions/1 --mutants examples/mutants/lightkone/search-query
-symbola mutants ../symbolon-registry/packs/kausalflow/lightkone/versions/1/components/bibtex-export/versions/1 --mutants examples/mutants/lightkone/bibtex-export
-symbola mutants ../symbolon-registry/packs/kausalflow/lightkone/versions/1/components/bibtex-import/versions/1 --mutants examples/mutants/lightkone/bibtex-import
+symbola mutants ../symbola-registry/packs/kausalflow/lightkone/versions/1/components/search-query/versions/1 --mutants examples/mutants/lightkone/search-query
+symbola mutants ../symbola-registry/packs/kausalflow/lightkone/versions/1/components/bibtex-export/versions/1 --mutants examples/mutants/lightkone/bibtex-export
+symbola mutants ../symbola-registry/packs/kausalflow/lightkone/versions/1/components/bibtex-import/versions/1 --mutants examples/mutants/lightkone/bibtex-import
 ```
 
 Result on 2026-10-22: search-query kills 8 of 9; the survivor (`m02`) is

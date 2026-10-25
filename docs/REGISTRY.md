@@ -58,7 +58,7 @@ Publishing by pull request, below, still works and needs no account.
 ## Releasing
 
 ```
-symbola release spec --registry ../symbolon-registry/packs   # in a clone of kausalflow/symbolon-registry
+symbola release spec --registry ../symbola-registry/packs   # in a clone of kausalflow/symbola-registry
 ```
 
 `release` validates the pack, sets its manifest version to the next free number,
@@ -137,7 +137,7 @@ over the pack folder with the header `symbolon-pack-v1\n`.
 
 ## The site
 
-The packs live in [kausalflow/symbolon-registry](https://github.com/kausalflow/symbolon-registry).
+The packs live in [kausalflow/symbola-registry](https://github.com/kausalflow/symbola-registry).
 The website is built from them by `spikinglabs/symbolon-store` and hosted on
 Cloudflare Pages at <https://symbola.sh/>. It is an [Astro](https://astro.build)
 site over the files above, with [Pagefind](https://pagefind.app) search built at the

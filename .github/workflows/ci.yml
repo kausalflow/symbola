@@ -15,4 +15,4 @@ jobs:
           python-version: "3.13"
       - run: pip install -e ".[dev]"
       - run: pytest -q -rs
-      # Packs and the registry site live in kausalflow/symbolon-registry, the store in spikinglabs/symbolon-store.
+      # Packs and the registry site live in kausalflow/symbola-registry, the store in spikinglabs/symbolon-store.
