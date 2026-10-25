@@ -1335,14 +1335,14 @@ that digest, so a released version cannot be edited in place. Packs without a
 <p>For each pack, it validates the latest version (the build fails if any pack is
 invalid) and writes:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>index.json                                 every pack: id, version, title, license, digest, tarball sha256, summary, files
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>llms.txt                                   one line per pack, for agents
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>llms.txt                                   one line per pack, for agents, and where to find build steps
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>packs/&lt;owner&gt;/&lt;name&gt;/
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  latest.tar.gz                            the pack folder, byte-identical on every build
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  latest.sha256                            sha256 of the tarball
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  pack.md                                  brief, assumptions, obligations, manifest, and a list of the parts
 </span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  parts/&lt;component&gt;-v&lt;n&gt;.md                one component's contract, schemas and tests
 </span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  parts/&lt;component&gt;-v&lt;n&gt;.tar.gz            that component's contract folder, for `symbolon attest`
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  llms.txt                                 the pack's files, for agents
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  llms.txt                                 build steps for a coding agent, then the pack's files
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  files/…                                  every file of the pack, raw
 </span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  evidence.json                            every attestation beside the pack, checked at build time
 </span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  attestations/…                           the attestation files and runner keys, to re-check
@@ -1388,7 +1388,9 @@ change reaches the registry and the site when those pins move.</p>
 <h2 id="pulling-a-pack">Pulling a pack<a class="headerlink" href="#pulling-a-pack" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--digest DIGEST]
 </span></code></pre></div>
-<p><code>pull</code> takes no version: the registry serves only the latest. The one exception is
+<p><code>pull</code> also takes the pack's page link (<code>symbolon pull https://symbola.sh/packs/acme/invoice-desk/</code>),
+and then pulls from the registry that serves the page. It prints the commands to start
+building. <code>pull</code> takes no version: the registry serves only the latest. The one exception is
 re-checking evidence: <code>symbolon pull &lt;id&gt; --digest &lt;pack digest&gt;</code> downloads an
 older version that some attestation names (the pack page links its digest). It downloads the
 tarball, checks its sha256 against <code>latest.sha256</code> and <code>index.json</code>, unpacks it,
