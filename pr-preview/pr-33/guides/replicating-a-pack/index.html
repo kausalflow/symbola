@@ -540,6 +540,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#prose-only-builds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Prose-only builds
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#which-agent-runs" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -981,6 +992,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#prose-only-builds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Prose-only builds
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#which-agent-runs" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1092,14 +1114,14 @@
 
 <h1 id="replicating-a-pack">Replicating a pack<a class="headerlink" href="#replicating-a-pack" title="Permanent link">&para;</a></h1>
 <p>A pack is good enough when independent builders, given only the pack, make
-builds that pass it and behave the same. <code>symbolon replicate</code> runs that test.
+builds that pass it and behave the same. <code>symbola replicate</code> runs that test.
 It does not write code. It hands the pack to outside coding agents, such as
 Claude Code, and then checks what they made, the way the lightkone pilots did by
 hand (design v0.5, section 5.3).</p>
 <h2 id="run-it">Run it<a class="headerlink" href="#run-it" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbolon<span class="w"> </span>keygen<span class="w">                                   </span><span class="c1"># once: the runner key for attestations</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbola<span class="w"> </span>keygen<span class="w">                                   </span><span class="c1"># once: the runner key for attestations</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>symbolon-registry/packs/kausalflow/lightkone<span class="w">   </span><span class="c1"># a clone of kausalflow/symbolon-registry</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>symbolon<span class="w"> </span>replicate<span class="w"> </span>versions/1<span class="w"> </span>--builds<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>symbola<span class="w"> </span>replicate<span class="w"> </span>versions/1<span class="w"> </span>--builds<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--agent<span class="w"> </span><span class="nv">claude</span><span class="o">=</span><span class="s2">"claude -p --permission-mode acceptEdits --allowedTools Read,Write,Edit,Glob,Grep,Bash"</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span>--agent<span class="w"> </span><span class="nv">other</span><span class="o">=</span><span class="s2">"my-agent --task-file {prompt_file}"</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span>--reference<span class="w"> </span>oracle<span class="w"> </span>--holdout<span class="w"> </span>oracle/holdout<span class="w"> </span>-o<span class="w"> </span>replication-1
@@ -1109,7 +1131,7 @@ hand (design v0.5, section 5.3).</p>
 <li>makes a work directory with the builder's copy of the pack in <code>pack/</code> (without
    <code>reference/</code> or <code>mutants/</code>) and an empty <code>build/</code>;</li>
 <li>runs the agent there with a prompt that says which components to build into
-   <code>build/&lt;component&gt;/</code>, how to check them with <code>symbolon test</code>, and where to write
+   <code>build/&lt;component&gt;/</code>, how to check them with <code>symbola test</code>, and where to write
    <code>NOTES.md</code>, <code>readings.toml</code> and flags;</li>
 <li>re-pins each <code>symbolon-impl.toml</code> the agent wrote to the published contract
    digest (the builder's copy differs only by the files left out) and adds a
@@ -1120,11 +1142,15 @@ hand (design v0.5, section 5.3).</p>
    <code>--holdout-scale</code> times the generated cases, and the publisher's
    <code>&lt;component&gt;.jsonl</code> examples, which the builder never saw.</li>
 </ol>
-<p>Then, per component, it runs <a href="../measuring-ambiguity/"><code>symbolon diff</code></a> across the
+<p>Then, per component, it runs <a href="../measuring-ambiguity/"><code>symbola diff</code></a> across the
 builds that passed, with <code>--reference</code> as the original product when there is one.</p>
 <p>Builds take turns among the <code>--agent</code>s, so <code>--builds 3</code> with two agents makes
 <code>claude-1</code>, <code>other-2</code> and <code>claude-3</code>. Different agent families make a better
 ensemble than one agent run three times, because they share fewer defaults.</p>
+<h2 id="prose-only-builds">Prose-only builds<a class="headerlink" href="#prose-only-builds" title="Permanent link">&para;</a></h2>
+<p><code>--prose-only N</code> gives the last N builds (named <code>&lt;agent&gt;-&lt;n&gt;-prose</code>) the pack without
+<code>examples.jsonl</code> or <code>properties.py</code>; they are still judged by the full spec. A component
+that fails only prose-only has a rule its description does not carry: fix the description.</p>
 <h2 id="which-agent-runs">Which agent runs<a class="headerlink" href="#which-agent-runs" title="Permanent link">&para;</a></h2>
 <p>Any command line that reads a prompt on stdin and works in its current directory.
 The prompt is also written to <code>.symbolon/prompt.md</code>, and <code>{prompt_file}</code> and

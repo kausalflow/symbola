@@ -1611,39 +1611,39 @@
 </tbody>
 </table>
 <h2 id="init"><code>init</code><a class="headerlink" href="#init" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbolon init CONTRACT_ID [--root contracts] [--author you@example.com]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbola init CONTRACT_ID [--root contracts] [--author you@example.com]
 </span></code></pre></div>
 <p>Creates <code>&lt;root&gt;/&lt;namespace&gt;/&lt;name&gt;/versions/1/</code> with every required file and a reference implementation. <code>CONTRACT_ID</code> looks like <code>namespace/name</code>: lowercase letters, digits and hyphens. Fails if the directory exists.</p>
 <h2 id="validate"><code>validate</code><a class="headerlink" href="#validate" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbolon validate PATH [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbola validate PATH [--json]
 </span></code></pre></div>
-<p>Runs the checks listed in <a href="../CONTRACT_FORMAT/#what-symbolon-validate-checks">What <code>symbolon validate</code> checks</a> and, if all pass, prints <code>namespace/name@version  sha256:&lt;hex&gt;</code>. Contract code runs in a separate isolated Python process.</p>
+<p>Runs the checks listed in <a href="../CONTRACT_FORMAT/#what-symbola-validate-checks">What <code>symbola validate</code> checks</a> and, if all pass, prints <code>namespace/name@version  sha256:&lt;hex&gt;</code>. Contract code runs in a separate isolated Python process.</p>
 <h2 id="schema"><code>schema</code><a class="headerlink" href="#schema" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>symbolon schema PATH
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>symbola schema PATH
 </span></code></pre></div>
 <p>Writes <code>schema/input.json</code> and <code>schema/output.json</code> from the <code>Input</code> and <code>Output</code> models in <code>schema.py</code>.</p>
 <h2 id="test"><code>test</code><a class="headerlink" href="#test" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>symbolon test PATH IMPL [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>symbola test PATH IMPL [--json]
 </span></code></pre></div>
 <p>Runs every example and property of the contract at <code>PATH</code> against <code>IMPL</code>, which is an implementation directory with <code>symbolon-impl.toml</code> or a single Python file. Failing properties print hypothesis's minimal failing case. This runs locally without a sandbox and signs nothing; use <code>attest</code> for evidence.</p>
 <h2 id="digest"><code>digest</code><a class="headerlink" href="#digest" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>symbolon digest PATH
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>symbola digest PATH
 </span></code></pre></div>
 <p>Prints <code>sha256:&lt;hex&gt;</code> for a contract directory. See <a href="../CONTRACT_FORMAT/#digest">Digest</a> for exactly what it covers.</p>
 <h2 id="impl-init"><code>impl-init</code><a class="headerlink" href="#impl-init" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>symbolon impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>symbola impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0]
 </span></code></pre></div>
 <p>Creates <code>IMPL_DIR</code> if needed and writes <code>symbolon-impl.toml</code> pinned to the contract's current digest. For implementations in other languages, edit the manifest to <code>language = "command"</code> and set <code>command</code>; see <a href="../ATTESTATION/#implementations-in-other-languages">Implementations in other languages</a>.</p>
 <h2 id="keygen"><code>keygen</code><a class="headerlink" href="#keygen" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>symbolon keygen [--out ~/.config/symbolon/runner.key]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>symbola keygen [--out ~/.config/symbolon/runner.key]
 </span></code></pre></div>
 <p>Creates an Ed25519 key for this runner. The public key is written next to it as <code>runner.pub</code>. Share the <code>.pub</code> with anyone who should trust your attestations.</p>
 <h2 id="attest"><code>attest</code><a class="headerlink" href="#attest" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>symbolon attest CONTRACT IMPL [-o attestation.json] [--key ~/.config/symbolon/runner.key] [--sandbox auto|container|process]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>symbola attest CONTRACT IMPL [-o attestation.json] [--key ~/.config/symbolon/runner.key] [--sandbox auto|container|process]
 </span></code></pre></div>
 <p>Copies the contract and implementation into a fresh directory, checks that the implementation pins this contract's digest, runs the spec in a sandbox, and writes a signed in-toto attestation. Exits 0 if the result is <code>PASSED</code>. <code>auto</code> uses the container sandbox when Docker is reachable and the process sandbox otherwise. See <a href="../ATTESTATION/#sandboxes">Sandboxes</a>.</p>
 <h2 id="verify"><code>verify</code><a class="headerlink" href="#verify" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>symbolon verify ATTESTATION [--trust KEY.pub ...] [--contract DIR] [--impl DIR] [--rerun] [--key ...] [--sandbox ...]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>symbola verify ATTESTATION [--trust KEY.pub ...] [--contract DIR] [--impl DIR] [--rerun] [--key ...] [--sandbox ...]
 </span></code></pre></div>
 <table>
 <thead>
@@ -1672,7 +1672,7 @@
 </tbody>
 </table>
 <h2 id="diff"><code>diff</code><a class="headerlink" href="#diff" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>symbolon diff CONTRACT IMPL IMPL... [--reference NAME] [--pool FILE ...] [--realistic FILE]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>symbola diff CONTRACT IMPL IMPL... [--reference NAME] [--pool FILE ...] [--realistic FILE]
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>              [--mutations 500] [--property-cases 50] [--search 300] [--seed 0]
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>              [--weight NAME=W ...] [--severity TIER=W ...] [--max-ambiguity X]
 </span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>              [--top 5] [-o report.json] [--json]
@@ -1717,7 +1717,7 @@ directory (<code>rebuilds/go-1/search-query</code> is <code>go-1</code>).</p>
 <p>Like <code>test</code>, it runs implementations in this process's environment, not a sandbox.
 See <a href="../guides/measuring-ambiguity/">Measuring ambiguity</a>.</p>
 <h2 id="extract"><code>extract</code><a class="headerlink" href="#extract" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbolon extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbola extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>                 [--agent COMMAND] [--hint TEXT] [--rounds 2] [--timeout 3600] [--no-oracle]
 </span></code></pre></div>
 <p>Hands <code>SOURCE</code> to an external coding agent, which drafts <code>ROOT/NAMESPACE/PRODUCT/versions/VERSION/</code>
@@ -1750,7 +1750,7 @@ for the agent. Symbolon never changes <code>SOURCE</code>.</p>
 </table>
 <p>See <a href="../guides/extracting-a-pack/">Extracting a pack</a>.</p>
 <h2 id="replicate"><code>replicate</code><a class="headerlink" href="#replicate" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--component NAME ...]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbola replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--prose-only 0] [--component NAME ...]
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>                   [--reference DIR] [--holdout DIR] [--holdout-seed N] [--holdout-scale 5]
 </span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>                   [--attest | --no-attest] [--key PATH] [--sandbox auto] [--jobs 1]
 </span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>                   [--agent-timeout 3600] [--prompt FILE] [--pool FILE ...]
@@ -1773,6 +1773,10 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 <tr>
 <td><code>--agent</code></td>
 <td>The agent command, <code>NAME=COMMAND</code> or a bare <code>COMMAND</code> named after its program; repeat for several, and builds take turns. Default <code>$SYMBOLON_AGENT</code>, then Claude Code headless</td>
+</tr>
+<tr>
+<td><code>--prose-only</code></td>
+<td>How many of the builds, the last ones, get the pack without any <code>examples.jsonl</code> or <code>properties.py</code>: they are judged by the full spec, so they show whether the descriptions alone carry it</td>
 </tr>
 <tr>
 <td><code>--reference</code></td>
@@ -1804,18 +1808,18 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 above <code>--max-ambiguity</code>. The agent runs with your permissions, outside the sandbox.
 See <a href="../guides/replicating-a-pack/">Replicating a pack</a>.</p>
 <h2 id="pack-validate"><code>pack validate</code><a class="headerlink" href="#pack-validate" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbolon pack validate PATH [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbola pack validate PATH [--json]
 </span></code></pre></div>
-<p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections, assumptions and obligations, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbolon pack validate</code> checks</a>.</p>
+<p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections, assumptions and obligations, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbola pack validate</code> checks</a>.</p>
 <h2 id="mutants"><code>mutants</code><a class="headerlink" href="#mutants" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbolon mutants PATH [--mutants DIR] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbola mutants PATH [--mutants DIR] [--json]
 </span></code></pre></div>
 <p>Runs the spec against each mutant in <code>PATH/mutants/</code>, or in <code>DIR</code> (useful for
 measuring a contract without changing its digest), and lists the checks that
 kill each one. Ends with the checks that kill no mutant and the kill rate. Exits 1
 if a mutant survives without <code>SURVIVES</code>. See <a href="../CONTRACT_FORMAT/#mutants-mutantspy">Mutants</a>.</p>
 <h2 id="canary-plant"><code>canary plant</code><a class="headerlink" href="#canary-plant" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>symbolon canary plant PATH OUT [--seed N] [--record FILE]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>symbola canary plant PATH OUT [--seed N] [--record FILE]
 </span></code></pre></div>
 <p>Copies the contract to <code>OUT</code> without <code>reference/</code> and <code>mutants/</code>, and changes one
 example's expected output (chosen by <code>--seed</code>) to a value that still matches the
@@ -1823,7 +1827,7 @@ output schema but contradicts the spec. Writes a private record, by default
 <code>OUT.canary.json</code>, next to the copy. Give the copy to a builder and keep the record.
 An honest build fails exactly that example.</p>
 <h2 id="canary-check"><code>canary check</code><a class="headerlink" href="#canary-check" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>symbolon canary check RECORD IMPL [--contract PATH] [--flags FILE] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>symbola canary check RECORD IMPL [--contract PATH] [--flags FILE] [--json]
 </span></code></pre></div>
 <p>Runs the finished build on the canary input. The outcome is <code>gamed</code> if it returns
 the planted output (the build was fitted to the examples), <code>honest</code> if it returns
@@ -1831,7 +1835,7 @@ what the spec requires, and <code>other</code> otherwise. Also reports whether t
 flagged the canary example in <code>symbolon-flags.jsonl</code> next to the build. Exits 1 only
 for <code>gamed</code>. In a replication, drop gamed builds from the convergence evidence.</p>
 <h2 id="flag"><code>flag</code><a class="headerlink" href="#flag" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>symbolon flag REF REASON [--dir BUILD_DIR]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>symbola flag REF REASON [--dir BUILD_DIR]
 </span></code></pre></div>
 <p>Appends <code>{"ref", "reason", "flagged_at"}</code> to <code>BUILD_DIR/symbolon-flags.jsonl</code>.
 <code>REF</code> is an obligation id, a check in pack form (<code>search-query#example:40</code>,
@@ -1840,23 +1844,23 @@ example and the description, or two checks, disagree, then build the reading the
 think is right. The flags file is part of the build directory, so it is covered by
 the implementation's digest.</p>
 <h2 id="pack-init"><code>pack init</code><a class="headerlink" href="#pack-init" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>symbolon pack init PACK_ID [--dir spec] [--author you@example.com]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>symbola pack init PACK_ID [--dir spec] [--author you@example.com]
 </span></code></pre></div>
 <p>Creates a pack folder (by default <code>spec/</code>, next to your code) with a manifest, <code>BRIEF.md</code>, a placeholder open obligation, a placeholder assumption, <code>components/</code> and <code>AGENTS.md</code>. Fails if the folder exists and is not empty. See <a href="../REGISTRY/#making-a-pack">Pack registry</a>.</p>
 <h2 id="site-build"><code>site build</code><a class="headerlink" href="#site-build" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>symbolon site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>symbola site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
 </span></code></pre></div>
 <p>Validates the latest version of every pack under <code>REGISTRY</code> and writes <code>index.json</code>, <code>llms.txt</code>, and each pack's tarball, sha256, <code>pack.md</code> and <code>parts/</code>, <code>llms.txt</code>, raw files, and <code>evidence.json</code> with every attestation checked. A priced pack's tarball goes to <code>--private-out</code> for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See <a href="../REGISTRY/#building-the-site">Pack registry</a>.</p>
 <h2 id="pull"><code>pull</code><a class="headerlink" href="#pull" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>symbola pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
 </span></code></pre></div>
-<p>Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into <code>DEST</code> (default <code>./&lt;name&gt;</code>). A priced pack is downloaded from the store with <code>--token</code> (or <code>$SYMBOLON_LICENSE</code>). <code>--digest</code> pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See <a href="../REGISTRY/#pulling-a-pack">Pack registry</a>.</p>
+<p>Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into <code>DEST</code> (default <code>./&lt;name&gt;</code>) and prints the commands to start building. <code>PACK_ID</code> can also be the pack's page link, such as <code>https://symbola.sh/packs/acme/invoice-desk/</code>; the registry is then the site that serves it. A priced pack is downloaded from the store with <code>--token</code> (or <code>$SYMBOLON_LICENSE</code>). <code>--digest</code> pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See <a href="../REGISTRY/#pulling-a-pack">Pack registry</a>.</p>
 <h2 id="site-check"><code>site check</code><a class="headerlink" href="#site-check" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>symbolon site check [REGISTRY=packs]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>symbola site check [REGISTRY=packs]
 </span></code></pre></div>
 <p>Builds the registry in a temporary folder, so every latest version must validate, and checks that every version in a pack's <code>digests.txt</code> still has its recorded digest. Prints a warning for packs without a <code>digests.txt</code>. See <a href="../REGISTRY/#submission-checks">Pack registry</a>.</p>
 <h2 id="release"><code>release</code><a class="headerlink" href="#release" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>symbolon release [SPEC=spec] --registry PACKS
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>symbola release [SPEC=spec] --registry PACKS
 </span></code></pre></div>
 <p>Validates <code>SPEC</code>, writes it to <code>PACKS/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code> as the next version, and records its digest in <code>digests.txt</code>. Does nothing if the content is unchanged since the latest version. See <a href="../REGISTRY/#releasing">Pack registry</a>.</p>
 

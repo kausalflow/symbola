@@ -1030,7 +1030,7 @@
 <li>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-terminal" viewBox="0 0 24 24"><path d="M12 19h8M4 17l6-6-6-6"/></svg></span> <strong>CLI reference</strong></p>
 <hr />
-<p>Every <code>symbolon</code> command and its options.</p>
+<p>Every <code>symbola</code> command and its options.</p>
 <p><a href="cli/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span> CLI</a></p>
 </li>
 <li>
@@ -1042,7 +1042,7 @@
 </ul>
 </div>
 <h2 id="the-idea-in-one-example">The idea in one example<a class="headerlink" href="#the-idea-in-one-example" title="Permanent link">&para;</a></h2>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">$ </span>symbolon<span class="w"> </span><span class="nb">test</span><span class="w"> </span>contracts/core/date-parse/versions/1<span class="w"> </span>examples/impls/date-parse-strptime
+<div class="language-console highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">$ </span>symbola<span class="w"> </span><span class="nb">test</span><span class="w"> </span>contracts/core/date-parse/versions/1<span class="w"> </span>examples/impls/date-parse-strptime
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="go">...</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="go">✗ test_iso_requires_two_digit_month_and_day</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="go">    AssertionError</span>
@@ -1053,7 +1053,7 @@
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="go">FAIL  2 of 21 checks failed</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="gp">$ </span>symbolon<span class="w"> </span><span class="nb">test</span><span class="w"> </span>contracts/core/date-parse/versions/1<span class="w"> </span>examples/impls/date-parse-strict
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="gp">$ </span>symbola<span class="w"> </span><span class="nb">test</span><span class="w"> </span>contracts/core/date-parse/versions/1<span class="w"> </span>examples/impls/date-parse-strict
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="go">PASS  21 checks</span>
 </span></code></pre></div>
 <p>The first implementation looks right and passes the obvious examples, but it accepts <code>2000-1-1</code> as an ISO date. The contract's properties catch it. The second, independently written implementation passes the same contract. Neither implementation matters on its own: the contract, and the evidence that something passed it, are the asset.</p>
@@ -1072,19 +1072,19 @@
 </tr>
 <tr>
 <td><strong>Validation</strong></td>
-<td><code>symbolon validate</code> checks structure, schema drift, examples, and that the spec is not vacuous.</td>
+<td><code>symbola validate</code> checks structure, schema drift, examples, and that the spec is not vacuous.</td>
 </tr>
 <tr>
 <td><strong>Testing</strong></td>
-<td><code>symbolon test</code> runs a contract's spec against an implementation in Python or any language that speaks a JSON line protocol.</td>
+<td><code>symbola test</code> runs a contract's spec against an implementation in Python or any language that speaks a JSON line protocol.</td>
 </tr>
 <tr>
 <td><strong>Attestations</strong></td>
-<td><code>symbolon attest</code> runs the spec in a sandbox and writes a signed in-toto attestation; <code>symbolon verify --rerun</code> reproduces it.</td>
+<td><code>symbola attest</code> runs the spec in a sandbox and writes a signed in-toto attestation; <code>symbola verify --rerun</code> reproduces it.</td>
 </tr>
 <tr>
 <td><strong>Spec packs</strong></td>
-<td>Product-level contracts: a brief, assumptions, obligations, and component contracts. <code>symbolon pack validate</code> checks them.</td>
+<td>Product-level contracts: a brief, assumptions, obligations, and component contracts. <code>symbola pack validate</code> checks them.</td>
 </tr>
 <tr>
 <td><strong>Seeds and a pilot</strong></td>

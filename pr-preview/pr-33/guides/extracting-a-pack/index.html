@@ -1091,13 +1091,13 @@
 
 
 <h1 id="extracting-a-pack">Extracting a pack<a class="headerlink" href="#extracting-a-pack" title="Permanent link">&para;</a></h1>
-<p><code>symbolon extract</code> turns a product you already built into a draft spec pack. It
+<p><code>symbola extract</code> turns a product you already built into a draft spec pack. It
 follows design v0.5, sections 5.1 and 5.2: an AI reads the product and drafts a
 minimal pack, and the original product is the oracle the draft must pass.</p>
 <p>Symbolon does not read code or write software itself. It hands that to a coding
 agent you already use, then checks what the agent leaves behind.</p>
 <h2 id="run-it">Run it<a class="headerlink" href="#run-it" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbolon<span class="w"> </span>extract<span class="w"> </span>~/code/lightkone<span class="w"> </span>--pack<span class="w"> </span>kausalflow/lightkone<span class="w"> </span><span class="se">\</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbola<span class="w"> </span>extract<span class="w"> </span>~/code/lightkone<span class="w"> </span>--pack<span class="w"> </span>kausalflow/lightkone<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--hint<span class="w"> </span><span class="s2">"Cover search, BibTeX import and export, and the library file."</span>
 </span></code></pre></div>
 <p>The agent works in <code>packs/kausalflow/lightkone/</code> and may read the source, which
@@ -1137,8 +1137,8 @@ Symbolon never changes. When it finishes you have:</p>
 <p>After each agent run, <code>extract</code> fills in the component digests in
 <code>symbolon-pack.toml</code> and checks:</p>
 <ol>
-<li><code>symbolon pack validate</code> passes on the draft.</li>
-<li><code>symbolon validate</code> passes on every component.</li>
+<li><code>symbola pack validate</code> passes on the draft.</li>
+<li><code>symbola validate</code> passes on every component.</li>
 <li>The original passes every component, through <code>oracle/&lt;name&gt;/</code> (skip with <code>--no-oracle</code>).</li>
 <li><code>REVIEW.md</code> exists.</li>
 </ol>
@@ -1159,7 +1159,7 @@ directory, and exits 0 when done. In order, <code>extract</code> uses:</p>
 <li>Claude Code headless: <code>claude -p --permission-mode acceptEdits --allowedTools Read,Write,Edit,Glob,Grep,Bash</code></li>
 </ol>
 <p>The default lets the agent run shell commands without asking, since it must run
-<code>symbolon</code> and the product's code to record examples. Run it on a machine or
+<code>symbola</code> and the product's code to record examples. Run it on a machine or
 container where that is acceptable.</p>
 <p>The prompt is also written to a file. A command can name it as <code>{prompt_file}</code>
 and its working directory as <code>{workdir}</code>; the agent also gets
@@ -1173,7 +1173,7 @@ shell, so a script is also the place for <code>$(...)</code> and pipes:</p>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="s">exec codex exec --full-auto "$(cat "$SYMBOLON_PROMPT_FILE")"</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="s">SH</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>chmod<span class="w"> </span>+x<span class="w"> </span>codex-agent.sh
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>symbolon<span class="w"> </span>extract<span class="w"> </span>./product<span class="w"> </span>--pack<span class="w"> </span>acme/product<span class="w"> </span>--agent<span class="w"> </span>./codex-agent.sh
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>symbola<span class="w"> </span>extract<span class="w"> </span>./product<span class="w"> </span>--pack<span class="w"> </span>acme/product<span class="w"> </span>--agent<span class="w"> </span>./codex-agent.sh
 </span></code></pre></div>
 
 

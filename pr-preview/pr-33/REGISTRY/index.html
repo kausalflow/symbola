@@ -1270,13 +1270,13 @@
 
 <h1 id="pack-registry">Pack registry<a class="headerlink" href="#pack-registry" title="Permanent link">&para;</a></h1>
 <p>The registry is a static website. A folder of packs (<code>packs/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code>)
-is turned into plain files that any web host can serve, and <code>symbolon pull</code> reads
+is turned into plain files that any web host can serve, and <code>symbola pull</code> reads
 them. There is no server. Only the <strong>latest</strong> version of each pack is published;
 older versions stay in the registry's folders and git history so that attestations
 naming them can still be re-checked.</p>
 <h2 id="making-a-pack">Making a pack<a class="headerlink" href="#making-a-pack" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbolon pack init acme/invoice-desk          # creates spec/ next to your code
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>symbolon pack validate spec
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbola pack init acme/invoice-desk          # creates spec/ next to your code
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>symbola pack validate spec
 </span></code></pre></div>
 <p><code>pack init</code> writes a manifest, a <code>BRIEF.md</code> with the three required headings, an
 <code>obligations.toml</code> with one open placeholder, a placeholder assumption, an empty
@@ -1296,8 +1296,8 @@ fact about the world, or leave something open, and to run <code>pack validate</c
 each change.</p>
 <h2 id="publishing-from-symbolash">Publishing from symbola.sh<a class="headerlink" href="#publishing-from-symbolash" title="Permanent link">&para;</a></h2>
 <p>Sign in at <a href="https://symbola.sh/publish/">https://symbola.sh/publish/</a> with GitHub, or from a terminal:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbolon login              # GitHub device sign-in; saves a token in ~/.config/symbolon/
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>symbolon publish spec       # validates locally, uploads, and follows the request
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbola login              # GitHub device sign-in; saves a token in ~/.config/symbolon/
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>symbola publish spec       # validates locally, uploads, and follows the request
 </span></code></pre></div>
 <p>Your GitHub login is your namespace, so you publish <code>&lt;login&gt;/&lt;name&gt;</code>; organisations
 that installed the Symbola GitHub app (or where your membership is public) are
@@ -1307,10 +1307,10 @@ merge when CI passes; a namespace's first pack waits once for a moderator. In CI
 put a token in <code>SYMBOLON_PUBLISH_TOKEN</code> instead of running <code>login</code>.</p>
 <p>The account page (<a href="https://symbola.sh/account/">https://symbola.sh/account/</a>) lists your packs and requests,
 edits your publisher profile and support links, revokes CLI tokens, and asks for
-a pack to be removed. <code>symbolon logout</code> forgets the local token.</p>
+a pack to be removed. <code>symbola logout</code> forgets the local token.</p>
 <p>Publishing by pull request, below, still works and needs no account.</p>
 <h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>symbolon release spec --registry ../symbolon-registry/packs   # in a clone of kausalflow/symbolon-registry
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>symbola release spec --registry ../symbolon-registry/packs   # in a clone of kausalflow/symbolon-registry
 </span></code></pre></div>
 <p><code>release</code> validates the pack, sets its manifest version to the next free number,
 copies it to <code>packs/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code>, and appends the version's
@@ -1322,7 +1322,7 @@ repositories as GitHub Releases, GitHub's provenance attestation will identify
 the publisher and <code>pull</code> will check it (distribution design v0.5, section 5.2).
 Ed25519 keys are only for runners that sign attestations.</p>
 <h2 id="submission-checks">Submission checks<a class="headerlink" href="#submission-checks" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>symbolon site check packs
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>symbola site check packs
 </span></code></pre></div>
 <p>CI runs this on every pull request. It builds the whole registry (so every latest
 version must pass <code>pack validate</code>, match its manifest id, and hold no holdout
@@ -1330,19 +1330,19 @@ files) and checks that every version listed in a pack's <code>digests.txt</code>
 that digest, so a released version cannot be edited in place. Packs without a
 <code>digests.txt</code> get a warning.</p>
 <h2 id="building-the-site">Building the site<a class="headerlink" href="#building-the-site" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>symbolon site build packs --out site-registry [--base-url https://…/registry]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>symbola site build packs --out site-registry [--base-url https://…/registry]
 </span></code></pre></div>
 <p>For each pack, it validates the latest version (the build fails if any pack is
 invalid) and writes:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>index.json                                 every pack: id, version, title, license, digest, tarball sha256, summary, files
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>llms.txt                                   one line per pack, for agents
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>llms.txt                                   one line per pack, for agents, and where to find build steps
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>packs/&lt;owner&gt;/&lt;name&gt;/
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  latest.tar.gz                            the pack folder, byte-identical on every build
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  latest.sha256                            sha256 of the tarball
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  pack.md                                  brief, assumptions, obligations, manifest, and a list of the parts
 </span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  parts/&lt;component&gt;-v&lt;n&gt;.md                one component's contract, schemas and tests
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  parts/&lt;component&gt;-v&lt;n&gt;.tar.gz            that component's contract folder, for `symbolon attest`
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  llms.txt                                 the pack's files, for agents
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  parts/&lt;component&gt;-v&lt;n&gt;.tar.gz            that component's contract folder, for `symbola attest`
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  llms.txt                                 build steps for a coding agent, then the pack's files
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  files/…                                  every file of the pack, raw
 </span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  evidence.json                            every attestation beside the pack, checked at build time
 </span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  attestations/…                           the attestation files and runner keys, to re-check
@@ -1357,7 +1357,7 @@ free plan), and the list above grows with every file of every pack. With
 <code>pack.md</code> and <code>llms.txt</code> stay in <code>--out</code>; everything else is written to <code>DIR</code>, to
 upload to a bucket served at <code>URL</code>. Links in <code>pack.md</code>, the parts and <code>llms.txt</code>
 then point straight at <code>URL</code>, <code>index.json</code> names it as <code>files_url</code>, and
-<code>symbolon pull</code> downloads from there. The site can redirect the old paths to the
+<code>symbola pull</code> downloads from there. The site can redirect the old paths to the
 bucket so older CLIs keep working.</p>
 <h2 id="evidence">Evidence<a class="headerlink" href="#evidence" title="Permanent link">&para;</a></h2>
 <p>Attestations sit beside the pack in <code>packs/&lt;owner&gt;/&lt;name&gt;/attestations/</code>, with
@@ -1380,16 +1380,18 @@ links, file tree), and a rendered view of every file under
 <code>packs/&lt;owner&gt;/&lt;name&gt;/view/&lt;file&gt;/</code>.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>site/build.sh OUT ORIGIN BASE     # in spikinglabs/symbolon-store, e.g. dist-site https://symbola.sh /
 </span></code></pre></div>
-<p>clones the registry, runs <code>symbolon site build</code> over its packs, then <code>astro build</code>
+<p>clones the registry, runs <code>symbola site build</code> over its packs, then <code>astro build</code>
 and <code>pagefind</code>, and copies the result to <code>OUT</code>. Cloudflare runs it on every push to
 the site's repository, and the registry's CI triggers it after every merge to its
 <code>main</code>. Both repositories pin the CLI they use in <code>.symbolon-version</code>, so a CLI
 change reaches the registry and the site when those pins move.</p>
 <h2 id="pulling-a-pack">Pulling a pack<a class="headerlink" href="#pulling-a-pack" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--digest DIGEST]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>symbola pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--digest DIGEST]
 </span></code></pre></div>
-<p><code>pull</code> takes no version: the registry serves only the latest. The one exception is
-re-checking evidence: <code>symbolon pull &lt;id&gt; --digest &lt;pack digest&gt;</code> downloads an
+<p><code>pull</code> also takes the pack's page link (<code>symbola pull https://symbola.sh/packs/acme/invoice-desk/</code>),
+and then pulls from the registry that serves the page. It prints the commands to start
+building. <code>pull</code> takes no version: the registry serves only the latest. The one exception is
+re-checking evidence: <code>symbola pull &lt;id&gt; --digest &lt;pack digest&gt;</code> downloads an
 older version that some attestation names (the pack page links its digest). It downloads the
 tarball, checks its sha256 against <code>latest.sha256</code> and <code>index.json</code>, unpacks it,
 and checks the unpacked folder's digest against <code>index.json</code>. These checks catch a
@@ -1434,7 +1436,7 @@ everything anyway. Its tarball is written to <code>--private-out</code> instead 
 public site and is served by the store, a Cloudflare Worker in
 <code>spikinglabs/symbolon-store</code> (private). The pack page
 shows a Buy button; after paying through Stripe, the buyer gets a license token:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbolon pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbola pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
 </span></code></pre></div>
 <p><code>site build</code> refuses a priced pack unless it is given <code>--private-out</code> and
 <code>--store-url</code>. Deployment steps are in that repository's README.</p>

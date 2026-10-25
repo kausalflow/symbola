@@ -1157,17 +1157,17 @@
 
 
 <h1 id="writing-a-contract">Writing a contract<a class="headerlink" href="#writing-a-contract" title="Permanent link">&para;</a></h1>
-<p>This walks through a contract from <code>symbolon init</code> to a valid digest. The full rules are in the <a href="../../CONTRACT_FORMAT/">contract format</a>.</p>
+<p>This walks through a contract from <code>symbola init</code> to a valid digest. The full rules are in the <a href="../../CONTRACT_FORMAT/">contract format</a>.</p>
 <h2 id="1-scaffold">1. Scaffold<a class="headerlink" href="#1-scaffold" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbolon<span class="w"> </span>init<span class="w"> </span>acme/shout<span class="w"> </span>--author<span class="w"> </span><span class="s2">"you@example.com"</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbola<span class="w"> </span>init<span class="w"> </span>acme/shout<span class="w"> </span>--author<span class="w"> </span><span class="s2">"you@example.com"</span>
 </span></code></pre></div>
-<p>This creates <code>contracts/acme/shout/versions/1/</code> with every required file and a reference implementation, and it already passes <code>validate</code>. Change one file at a time and re-run <code>symbolon validate contracts/acme/shout/versions/1</code> after each.</p>
+<p>This creates <code>contracts/acme/shout/versions/1/</code> with every required file and a reference implementation, and it already passes <code>validate</code>. Change one file at a time and re-run <code>symbola validate contracts/acme/shout/versions/1</code> after each.</p>
 <h2 id="2-describe-the-capability">2. Describe the capability<a class="headerlink" href="#2-describe-the-capability" title="Permanent link">&para;</a></h2>
 <p>Edit <code>symbolon.toml</code>. The <code>description</code> is the prose half of the spec: write what a builder needs to know that the schema cannot say, such as which inputs are invalid and what happens at the edges. Declare anything the implementation needs from the world under <code>[requires]</code>. Empty lists mean no network, no credentials and no state.</p>
 <p>Unknown keys are errors, so a typo cannot silently change a contract's meaning.</p>
 <h2 id="3-define-the-interface">3. Define the interface<a class="headerlink" href="#3-define-the-interface" title="Permanent link">&para;</a></h2>
 <p><code>schema.py</code> defines pydantic <code>Input</code> and <code>Output</code> models. Use <code>ConfigDict(extra="forbid")</code> and <code>Field(description=...)</code> so the generated JSON Schema is strict and self-explaining. Then regenerate the language-neutral schema:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbolon<span class="w"> </span>schema<span class="w"> </span>contracts/acme/shout/versions/1
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbola<span class="w"> </span>schema<span class="w"> </span>contracts/acme/shout/versions/1
 </span></code></pre></div>
 <p><code>validate</code> fails if <code>schema/*.json</code> drifts from <code>schema.py</code>.</p>
 <h2 id="4-add-examples">4. Add examples<a class="headerlink" href="#4-add-examples" title="Permanent link">&para;</a></h2>
@@ -1187,7 +1187,7 @@
 </span></code></pre></div>
 <p>Don't use <code>@settings</code>: the seed and the example budget come from <code>[spec]</code> in the manifest, so runs are reproducible.</p>
 <h2 id="6-validate">6. Validate<a class="headerlink" href="#6-validate" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>symbolon<span class="w"> </span>validate<span class="w"> </span>contracts/acme/shout/versions/1
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>symbola<span class="w"> </span>validate<span class="w"> </span>contracts/acme/shout/versions/1
 </span></code></pre></div>
 <p>The vacuity check is the one most often hit. If your properties only check the output's type, an implementation that returns a constant passes them, and <code>validate</code> rejects the contract:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nd">@given</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">st</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
