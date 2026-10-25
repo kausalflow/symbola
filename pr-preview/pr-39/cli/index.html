@@ -1810,7 +1810,7 @@ See <a href="../guides/replicating-a-pack/">Replicating a pack</a>.</p>
 <h2 id="pack-validate"><code>pack validate</code><a class="headerlink" href="#pack-validate" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbola pack validate PATH [--json]
 </span></code></pre></div>
-<p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections, assumptions and obligations, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbola pack validate</code> checks</a>.</p>
+<p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections (and <code>PRODUCT.md</code>'s, if present), assumptions and obligations, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbola pack validate</code> checks</a>.</p>
 <h2 id="mutants"><code>mutants</code><a class="headerlink" href="#mutants" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbola mutants PATH [--mutants DIR] [--json]
 </span></code></pre></div>

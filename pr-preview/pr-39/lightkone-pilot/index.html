@@ -865,6 +865,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#the-field-test-components-are-not-the-product" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The field test: components are not the product
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#results-milestone-4-replicate-over-the-whole-pack" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1018,6 +1029,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         What the pack covers
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-field-test-components-are-not-the-product" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The field test: components are not the product
       </span>
     </span>
   </a>
@@ -1187,7 +1209,7 @@
 <tbody>
 <tr>
 <td><code>versions/1/</code></td>
-<td>The pack, version 1: BRIEF, AGENTS, assumptions, obligations, and eight component contracts</td>
+<td>The pack, version 1: BRIEF, PRODUCT (the app), AGENTS, assumptions, obligations, and eight component contracts</td>
 <td>yes</td>
 </tr>
 <tr>
@@ -1213,6 +1235,7 @@
 </tbody>
 </table>
 <h2 id="what-the-pack-covers">What the pack covers<a class="headerlink" href="#what-the-pack-covers" title="Permanent link">&para;</a></h2>
+<p><code>PRODUCT.md</code> describes the app a build delivers: its shape, files, screens, flows and interfaces, and the components each flow uses. The components are the app's core:</p>
 <table>
 <thead>
 <tr>
@@ -1255,7 +1278,9 @@
 </tr>
 </tbody>
 </table>
-<p><code>symbola pack validate packs/kausalflow/lightkone/versions/1</code> reports 64 obligations (all decided) and 4 assumptions, and every one of the components' 340 checks traces to an obligation.</p>
+<p><code>symbola pack validate packs/kausalflow/lightkone/versions/1</code> reports a product pack with 73 obligations (72 decided, 1 open, 5 of them unchecked app decisions) and 4 assumptions, and every one of the components' 360 checks traces to an obligation.</p>
+<h2 id="the-field-test-components-are-not-the-product">The field test: components are not the product<a class="headerlink" href="#the-field-test-components-are-not-the-product" title="Permanent link">&para;</a></h2>
+<p>On 2026-10-25 kausalflow asked a coding agent to build lightkone from the pack, as a user would. It ported all eight components faithfully and then wrapped them in a demo page that looked nothing like lightkone, because the pack described the app in one paragraph and said later versions would add the rest. Every earlier build had passed because it was asked for the components only. The fix is <code>PRODUCT.md</code> (<a href="../PACK_FORMAT/#productmd">pack format</a>): a pack with it is built as the product, and the build steps on its page say so.</p>
 <h2 id="results-milestone-4-replicate-over-the-whole-pack">Results (milestone 4: replicate over the whole pack)<a class="headerlink" href="#results-milestone-4-replicate-over-the-whole-pack" title="Permanent link">&para;</a></h2>
 <p><code>symbola replicate</code> gave all eight components to three Claude Code builds: Sonnet, Opus and Haiku. Lightkone was the reference and the holdout was on. All three builders wrote Python, and their logs show no reads outside the builder's copy. The builds took 11, 16 and 21 minutes and cost $1.76, $5.13 and $1.15 in agent time.</p>
 <p>Every build passed every component and every holdout: 24 of 24 on both. They still differ. <code>diff</code> found 27 splits, 15 of them in <code>bibtex-import</code>. Builders' probes found 12 of the 27. <code>bibtex-export</code> and <code>citation-key</code> converged.</p>
