@@ -58,12 +58,9 @@ class Obligation(_Strict):
     status: Literal["decided", "default", "open"]
     kind: Literal["behaviour", "constraint", "security", "audit"] = "behaviour"
     # Exact: every output must satisfy it. Statistical: the output distribution
-    # must, checked over `samples` runs with false-alarm rate `alpha`, using
-    # `tolerance` of the pack's budget for disagreement. Open is the free case.
+    # must, so at least one of its checks is a statistical property, run over
+    # seeds as its contract's [spec.statistical] says. Open is the free case.
     exactness: Literal["exact", "statistical"] = "exact"
-    samples: int | None = Field(default=None, ge=1)
-    alpha: float | None = Field(default=None, gt=0, lt=1)
-    tolerance: float | None = Field(default=None, ge=0)
     reason: str = ""
     source: Literal["extract", "oracle", "replication", "counterexample", "publisher"] = "publisher"
     assumes: list[str] = []
@@ -170,9 +167,12 @@ def validate_pack(pack_dir: Path) -> PackReport:
         return report
     components = _component_dirs(root)
     by_alias = {}
-    for d in components.values():
+    statistical = set()
+    for name, d in components.items():
         try:
-            by_alias[load_manifest(d).alias] = d
+            m = load_manifest(d)
+            by_alias[m.alias] = d
+            statistical |= {f"{name}#{t}" for t in m.spec.statistical}
         except Exception as e:
             add(CheckResult("component manifests are valid", False, f"{d.relative_to(root)}: {_error(e)}"))
             return report
@@ -238,15 +238,12 @@ def validate_pack(pack_dir: Path) -> PackReport:
                             "or an `unchecked` reason naming the check it would need")
         if o.kind == "constraint" and not o.reason.strip():
             problems.append(f"{o.id}: a constraint needs a reason")
-        stats = {"samples": o.samples, "alpha": o.alpha, "tolerance": o.tolerance}
         if o.exactness == "statistical":
             if o.status == "open":
                 problems.append(f"{o.id}: open, so it is free; it cannot also be statistical")
-            missing = [k for k, v in stats.items() if v is None]
-            if missing:
-                problems.append(f"{o.id}: statistical, so it needs {', '.join(missing)}")
-        elif any(v is not None for v in stats.values()):
-            problems.append(f"{o.id}: samples, alpha and tolerance only apply to exactness = \"statistical\"")
+            elif o.checks and not statistical & set(o.checks):
+                problems.append(f"{o.id}: statistical, so at least one of its checks must be a property "
+                                "listed under [spec.statistical] in its contract")
         for ref in o.checks:
             if not CHECK_RE.match(ref):
                 problems.append(f"{o.id}: '{ref}' is not '<component>#example:<line>' or '<component>#test_<name>'")
@@ -275,6 +272,7 @@ def validate_pack(pack_dir: Path) -> PackReport:
         "by_status": {s: status.get(s, 0) for s in ("decided", "default", "open")},
         "unchecked": len(unchecked),
         "by_source": dict(Counter(o.source for o in obligations)),
+        "statistical_checks": len(statistical),
         "by_exactness": {"exact": sum(o.status != "open" and o.exactness == "exact" for o in obligations),
                          "statistical": sum(o.exactness == "statistical" for o in obligations),
                          "free": status.get("open", 0)},

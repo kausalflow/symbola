@@ -166,6 +166,10 @@ Each `{components}/<name>/{versions}/1/` has:
                    oracle adapter; never write them from your reading of the code.
   properties.py    hypothesis properties: functions named test_* whose first parameter is
                    `impl` (call impl(input_dict), get a validated Output). No @settings.
+                   A rule about a distribution (noise, sampling) is a statistical property:
+                   test_*(impl, seed) returns a number per run, and [spec.statistical.<name>]
+                   gives at_least and/or at_most for its mean over seeds; mark its
+                   obligation exactness = "statistical".
   fixtures/*.json  optional shared sample data, referenced as {{"$fixture": "name.json"}}
   mutants/*.py     optional plausible wrong implementations, each with a docstring
                    naming the concern; the spec must reject every one

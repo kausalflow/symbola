@@ -18,6 +18,7 @@ cannot corrupt it. `symbola attest` runs this process inside a sandbox
 
 from __future__ import annotations
 
+import inspect
 import json
 import sys
 import time
@@ -122,6 +123,16 @@ def check(root: Path) -> list[CheckResult]:
         return fail(name, f"{type(e).__name__}: {e}")
     if not props:
         return fail(name, "define at least one test_* property taking `impl`")
+    problems = []
+    defined = dict(props)
+    for stat_name in manifest.spec.statistical:
+        fn = defined.get(stat_name)
+        if fn is None:
+            problems.append(f"[spec.statistical.{stat_name}]: properties.py has no {stat_name}")
+        elif hasattr(fn, "hypothesis") or list(inspect.signature(fn).parameters) != ["impl", "seed"]:
+            problems.append(f"{stat_name} is statistical, so it takes exactly (impl, seed) and has no @given")
+    if problems:
+        return fail(name, "\n".join(problems))
     checks.append(CheckResult(name, True, f"{len(props)} propert" + ("ies" if len(props) != 1 else "y")))
 
     name = "spec passes against reference implementation"
