@@ -113,6 +113,15 @@ packs/<owner>/<name>/
 build, distinct builds, distinct runners, invalid attestations) and its `older`
 attested versions.
 
+Static hosts cap the number of files per site (Cloudflare Pages: 20,000 on the
+free plan), and the list above grows with every file of every pack. With
+`--files-out DIR --files-url URL`, only `index.json`, `llms.txt` and each pack's
+`pack.md` and `llms.txt` stay in `--out`; everything else is written to `DIR`, to
+upload to a bucket served at `URL`. Links in `pack.md`, the parts and `llms.txt`
+then point straight at `URL`, `index.json` names it as `files_url`, and
+`symbolon pull` downloads from there. The site can redirect the old paths to the
+bucket so older CLIs keep working.
+
 ## Evidence
 
 Attestations sit beside the pack in `packs/<owner>/<name>/attestations/`, with
