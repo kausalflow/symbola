@@ -13,24 +13,10 @@ section 4.
 
 ## What a pack specifies
 
-A pack specifies what the product does at the surfaces people rely on: its API,
-its file formats, its command line, the results it reports. It does not specify
-how the product is built. Three rules keep it that way:
-
-- **Specify at surfaces, not internal seams.** A component at an internal seam,
-  such as one function of the original's core, forces builders into the
-  original's architecture. Prefer components that drive the product the way a
-  user does: a scenario in and its results out, or a command line run in a
-  scratch directory. Add a seam only when someone outside relies on it.
-- **Pin an algorithm only when its exact output is the product.** Exact examples
-  of a numerical method allow one algorithm. When any reasonable one would do,
-  check the properties it must have instead (stays within limits, settles at
-  the right value, does not depend on the step size).
-- **State a realization choice only as a constraint, with a reason that says who
-  it affects.** "Parameters are in physical units, so changing the step size
-  never needs retuning" affects users and belongs in the pack. Choices that
-  concern only the publisher's own codebase, such as module layout or naming,
-  stay out; they belong in that codebase's own guidance.
+What the product does at the surfaces people use (API, file formats, command line,
+results), not how it is built. Drive the product as a user does rather than through
+internal seams; check properties rather than exact output unless the exact output is
+the product; leave codebase-only choices to the codebase's own guidance.
 
 ## Layout
 
@@ -100,26 +86,11 @@ unchecked = ""                         # see "Unchecked obligations" below
 
 ### Unchecked obligations
 
-A requirement the publisher would hold every build to, but that no example or
-property can express yet, is `decided` (or `default`) with no checks and an
-`unchecked` reason naming the check it would need:
-
-```toml
-[[obligation]]
-id = "engine.resume-is-seamless"
-statement = "Running to t1 and then to t2 gives the same series as running to t2 at once."
-status = "decided"
-checks = []
-unchecked = "a session check: several calls on one live implementation, compared with one call"
-```
-
-Builders read it as required, like any decided obligation. `pack validate`
-reports it as debt, and fails when unchecked obligations are more than
-`max_unchecked` of the decided and default ones (a share; 0.1 unless the pack
-manifest's `[pack]` table sets it), so a pack stays a set of checked promises
-rather than prose. Do not use `unchecked` for what an example or property could
-check: write the check. Do not use `open` for a requirement just because it has
-no check: that tells builders the choice is theirs.
+A required behaviour no example or property can express yet is `decided` (or
+`default`) with no checks and an `unchecked` reason naming the check it would need,
+such as `unchecked = "a session check: run to t1 then t2, compared with one run to t2"`.
+Builders treat it as required; `pack validate` counts it as debt and fails above
+`[pack] max_unchecked` (a share of decided and default obligations, default 0.1).
 
 A check is `<component>#example:<line>` (a 1-based line of that component's
 `examples.jsonl`) or `<component>#<test function>` (a property in its
@@ -159,6 +130,6 @@ does, the fields record what a check must do.
    `tolerance`; an exact one gives none of them.
 8. Unchecked obligations are at most `max_unchecked` of the decided and default ones.
 
-It then reports obligations by status (and how many are unchecked), source and exactness, assumptions and how many are
+It then reports obligations by status, source and exactness, assumptions and how many are
 monitored, and how many of the components' checks trace to an obligation. It does
 not run contract code; use `symbolon validate` on each component for that.

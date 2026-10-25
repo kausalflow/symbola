@@ -42,23 +42,9 @@ ensemble than one agent run three times, because they share fewer defaults.
 
 ## Prose-only builds
 
-Builders lean on the examples. A description that states a rule wrongly, or
-leaves out a convention such as how steps are indexed, can go unnoticed because
-the examples show what it should have said. `--prose-only N` gives the last N
-builds a copy of the pack with no `examples.jsonl` or `properties.py`: only the
-brief, assumptions, obligations, schemas and component descriptions. Their prompt
-says so and asks them to test against the descriptions. They are checked, held
-out and diffed against the full spec like every other build, and named
-`<agent>-<n>-prose`.
-
-```bash
-symbolon replicate versions/1 --builds 3 --prose-only 1 --reference oracle -o replication-2
-```
-
-A component that passes with the examples but fails prose-only has a rule the
-description does not carry. Fix the description, not the examples: the
-description is the definition, and the checks only witness it. This matters most
-for components defined by formulas.
+`--prose-only N` gives the last N builds (named `<agent>-<n>-prose`) the pack without
+`examples.jsonl` or `properties.py`; they are still judged by the full spec. A component
+that fails only prose-only has a rule its description does not carry: fix the description.
 
 ## Which agent runs
 
