@@ -27,6 +27,8 @@ if variant == "nothing":
     sys.exit(3)
 spec = pathlib.Path("pack/components/date-parse/versions/1")
 assert not (spec / "reference").exists(), "the builder must not see the reference"
+prose = "no examples and no properties" in prompt
+assert (spec / "examples.jsonl").exists() != prose and (spec / "properties.py").exists() != prose
 code = source.read_text()
 if variant == "lenient":  # passes the suite, but also ignores spaces inside the date
     code = code.replace('input["text"].strip()', '"".join(input["text"].split())')
@@ -191,3 +193,24 @@ def test_builds_are_attested(pack):
                            contract_dir=root / "components" / "date-parse" / "versions" / "1",
                            impl_dir=out / "builds" / "a-1" / "build" / "date-parse")
     assert v.ok
+
+
+def test_prose_only_builds_get_no_checks_but_are_judged_by_them(pack):
+    root, agent, tmp = pack
+    r = _replicate(root, "--agent", agent("a", "same"), "--builds", "2", "--prose-only", "1",
+                   "-o", str(tmp / "run"))
+    assert [(b["name"], b["prose_only"]) for b in r["builds"]] == [("a-1", False), ("a-2-prose", True)]
+    for b in r["builds"]:
+        c = b["components"]["date-parse"]
+        assert c["public"]["passed"]
+        assert c["manifest_changes"][0] == "re-pinned to the published contract digest"
+    row = r["components"]["date-parse"]
+    assert row["prose_only"] == {"builds": 1, "passed": 1}
+    assert row["diff"]["members"] == ["a-1", "a-2-prose"]
+
+
+def test_prose_only_cannot_exceed_the_builds(pack):
+    root, agent, tmp = pack
+    result = runner.invoke(app, ["replicate", str(root), "--no-attest", "--agent", agent("a", "same"),
+                                 "--builds", "1", "--prose-only", "2", "-o", str(tmp / "run")])
+    assert result.exit_code == 1 and "--prose-only" in result.output

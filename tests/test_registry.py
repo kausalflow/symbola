@@ -9,7 +9,7 @@ from symbolon.digest import contract_digest
 from symbolon.cli import app
 from symbolon.pack import validate_pack
 import symbolon.registry as registry_mod
-from symbolon.registry import RegistryError, build_site, check_registry, pack_digest, pull, release, scaffold_pack
+from symbolon.registry import RegistryError, build_site, check_registry, pack_digest, pack_ref, pull, release, scaffold_pack
 
 from .conftest import REPO
 
@@ -227,6 +227,36 @@ def test_cli_init_build_and_pull(registry, tmp_path):
                             "--dest", str(tmp_path / "lk")])
     assert r.exit_code == 0, r.output
     assert (tmp_path / "lk" / "AGENTS.md").is_file()
+
+
+def test_pack_llms_txt_tells_an_agent_how_to_build_it(registry, tmp_path):
+    build_site(registry, tmp_path / "site", "https://symbola.sh")
+    llms = (tmp_path / "site" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
+    for step in ("uv tool install git+https://github.com/kausalflow/symbolon", "Not `pip install symbolon`",
+                 "symbolon pull kausalflow/lightkone --dest spec", "spec/AGENTS.md",
+                 "symbolon impl-init impl/", "symbolon test spec/components/", "symbolon keygen",
+                 "`tidy`: `spec/components/tidy/versions/1`"):
+        assert step in llms, step
+    assert "Build this pack" in (tmp_path / "site" / "llms.txt").read_text()
+    build_site(registry, tmp_path / "other", "http://localhost:8000")
+    assert "symbolon pull kausalflow/lightkone --dest spec --registry http://localhost:8000" in (
+        tmp_path / "other" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
+
+
+def test_pack_ref_takes_an_id_or_a_page_link():
+    assert pack_ref("kausalflow/lightkone") == ("kausalflow/lightkone", None)
+    for link in ("https://symbola.sh/packs/kausalflow/lightkone/", "https://symbola.sh/packs/kausalflow/lightkone",
+                 "https://symbola.sh/packs/kausalflow/lightkone/llms.txt", "https://symbola.sh/packs/kausalflow/lightkone/#brief"):
+        assert pack_ref(link) == ("kausalflow/lightkone", "https://symbola.sh"), link
+    assert pack_ref("http://localhost:8000/sub/packs/a/b/") == ("a/b", "http://localhost:8000/sub")
+
+
+def test_cli_pull_takes_a_page_link_and_names_the_next_steps(registry, tmp_path):
+    build_site(registry, tmp_path / "site")
+    page = (tmp_path / "site").as_uri() + "/packs/kausalflow/lightkone/"
+    r = runner.invoke(app, ["pull", page, "--dest", str(tmp_path / "lk")])
+    assert r.exit_code == 0, r.output
+    assert "symbolon impl-init impl/" in r.output and "tidy" in r.output
 
 
 def test_release_freezes_and_records_the_digest(tmp_path):

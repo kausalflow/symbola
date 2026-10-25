@@ -42,6 +42,11 @@ BRIEF_SECTIONS = {
     "who resolves gaps": "Who resolves gaps",
 }
 
+# A decided or default obligation with no check yet must say what check it
+# needs (`unchecked`). Such debt may be at most this share of them, so the
+# pack stays a set of checked promises rather than prose.
+DEFAULT_MAX_UNCHECKED = 0.1
+
 
 class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -63,6 +68,9 @@ class Obligation(_Strict):
     source: Literal["extract", "oracle", "replication", "counterexample", "publisher"] = "publisher"
     assumes: list[str] = []
     checks: list[str] = []
+    # Required but not yet checkable: the kind of check that would settle it,
+    # such as "a static check over the source tree". Reported as debt.
+    unchecked: str = ""
 
     @field_validator("id")
     @classmethod
@@ -154,7 +162,9 @@ def validate_pack(pack_dir: Path) -> PackReport:
     # Components: every contract listed in the manifest is present and unchanged.
     try:
         with (root / PACK_MANIFEST_FILE).open("rb") as f:
-            listed: dict[str, str] = tomllib.load(f).get("components", {})
+            manifest = tomllib.load(f)
+        listed: dict[str, str] = manifest.get("components", {})
+        max_unchecked = manifest.get("pack", {}).get("max_unchecked", DEFAULT_MAX_UNCHECKED)
     except tomllib.TOMLDecodeError as e:
         add(CheckResult(f"{PACK_MANIFEST_FILE} is valid", False, str(e)))
         return report
@@ -218,8 +228,14 @@ def validate_pack(pack_dir: Path) -> PackReport:
     for o in obligations:
         if o.status == "open" and o.checks:
             problems.append(f"{o.id}: open, so it must not have checks (a check would decide it)")
-        if o.status != "open" and not o.checks:
-            problems.append(f"{o.id}: {o.status}, so it needs at least one check")
+        if o.unchecked.strip():
+            if o.status == "open":
+                problems.append(f"{o.id}: open, so it is free; it cannot be unchecked")
+            elif o.checks:
+                problems.append(f"{o.id}: has checks, so it is not unchecked; remove one or the other")
+        elif o.status != "open" and not o.checks:
+            problems.append(f"{o.id}: {o.status}, so it needs at least one check, "
+                            "or an `unchecked` reason naming the check it would need")
         if o.kind == "constraint" and not o.reason.strip():
             problems.append(f"{o.id}: a constraint needs a reason")
         stats = {"samples": o.samples, "alpha": o.alpha, "tolerance": o.tolerance}
@@ -241,11 +257,23 @@ def validate_pack(pack_dir: Path) -> PackReport:
                 problems.append(f"{o.id}: assumes unknown {k}")
     add(CheckResult("every obligation is checked, open, or explained", not problems, "\n".join(problems)))
 
+    bound = [o for o in obligations if o.status != "open"]
+    unchecked = [o.id for o in bound if o.unchecked.strip()]
+    if not isinstance(max_unchecked, (int, float)) or isinstance(max_unchecked, bool) or not 0 <= max_unchecked <= 1:
+        add(CheckResult("unchecked obligations are within the cap", False,
+                        f"[pack] max_unchecked must be a share between 0 and 1, not {max_unchecked!r}"))
+    elif unchecked:
+        share = len(unchecked) / len(bound)
+        add(CheckResult("unchecked obligations are within the cap", share <= max_unchecked,
+                        f"{len(unchecked)} of {len(bound)} decided or default obligations have no check yet "
+                        f"({share:.0%}; the cap is {max_unchecked:.0%}): {', '.join(unchecked)}"))
+
     referenced = {ref for o in obligations for ref in o.checks}
     status = Counter(o.status for o in obligations)
     report.summary = {
         "obligations": len(obligations),
         "by_status": {s: status.get(s, 0) for s in ("decided", "default", "open")},
+        "unchecked": len(unchecked),
         "by_source": dict(Counter(o.source for o in obligations)),
         "by_exactness": {"exact": sum(o.status != "open" and o.exactness == "exact" for o in obligations),
                          "statistical": sum(o.exactness == "statistical" for o in obligations),
@@ -261,8 +289,9 @@ def validate_pack(pack_dir: Path) -> PackReport:
 
 def summary_line(summary: dict) -> str:
     s = summary["by_status"]
+    debt = f", {summary['unchecked']} unchecked" if summary.get("unchecked") else ""
     return (f"{summary['obligations']} obligations ({s['decided']} decided, {s['default']} default, "
-            f"{s['open']} open) · {summary['assumptions']} assumptions "
+            f"{s['open']} open{debt}) · {summary['assumptions']} assumptions "
             f"({summary['monitored_assumptions']} monitored) · "
             f"{summary['checks_tracing_to_an_obligation']}/{summary['checks']} checks trace to an obligation")
 

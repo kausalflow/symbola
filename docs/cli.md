@@ -157,7 +157,7 @@ See [Extracting a pack](guides/extracting-a-pack.md).
 ## `replicate`
 
 ```
-symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--component NAME ...]
+symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--prose-only 0] [--component NAME ...]
                    [--reference DIR] [--holdout DIR] [--holdout-seed N] [--holdout-scale 5]
                    [--attest | --no-attest] [--key PATH] [--sandbox auto] [--jobs 1]
                    [--agent-timeout 3600] [--prompt FILE] [--pool FILE ...]
@@ -174,6 +174,7 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 | Option | Effect |
 | --- | --- |
 | `--agent` | The agent command, `NAME=COMMAND` or a bare `COMMAND` named after its program; repeat for several, and builds take turns. Default `$SYMBOLON_AGENT`, then Claude Code headless |
+| `--prose-only` | How many of the builds, the last ones, get the pack without any `examples.jsonl` or `properties.py`: they are judged by the full spec, so they show whether the descriptions alone carry it |
 | `--reference` | A directory with one implementation per component, such as a pack's `oracle/`: compared with every build, not part of the ensemble |
 | `--holdout` | A directory of `<component>.jsonl` examples the builders never see, run with `--holdout-seed` and `--holdout-scale` times the property cases |
 | `--no-attest` | Test each build instead of attesting it; no runner key needed |
@@ -263,7 +264,7 @@ Validates the latest version of every pack under `REGISTRY` and writes `index.js
 symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
 ```
 
-Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into `DEST` (default `./<name>`). A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Pack registry](REGISTRY.md#pulling-a-pack).
+Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into `DEST` (default `./<name>`) and prints the commands to start building. `PACK_ID` can also be the pack's page link, such as `https://symbola.sh/packs/acme/invoice-desk/`; the registry is then the site that serves it. A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Pack registry](REGISTRY.md#pulling-a-pack).
 
 ## `site check`
 

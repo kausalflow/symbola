@@ -5,7 +5,7 @@ import pytest
 from typer.testing import CliRunner
 
 from symbolon.cli import app
-from symbolon.pack import component_name, validate_pack
+from symbolon.pack import component_name, summary_line, validate_pack
 
 from .conftest import REPO
 
@@ -53,6 +53,43 @@ def test_open_obligation_must_not_have_checks(pack):
 def test_decided_obligation_needs_a_check(pack):
     add(pack, id="search.extra", statement="x", status="decided")
     assert "needs at least one check" in failed(validate_pack(pack))["every obligation is checked, open, or explained"]
+
+
+def test_unchecked_obligation_names_the_check_it_needs(pack):
+    add(pack, id="search.extra", statement="x", status="decided",
+        unchecked="a static check over the source tree")
+    report = validate_pack(pack)
+    assert report.ok, failed(report)
+    assert report.summary["unchecked"] == 1
+    assert "1 unchecked" in summary_line(report.summary)
+    detail = next(c.detail for c in report.checks if c.name == "unchecked obligations are within the cap")
+    assert "search.extra" in detail and "1 of" in detail
+
+
+@pytest.mark.parametrize("fields, message", [
+    ({"status": "open"}, "cannot be unchecked"),
+    ({"status": "decided", "checks": ["search-query#example:1"]}, "not unchecked"),
+])
+def test_unchecked_is_only_for_required_obligations_without_checks(pack, fields, message):
+    add(pack, id="search.extra", statement="x", unchecked="later", **fields)
+    assert message in failed(validate_pack(pack))["every obligation is checked, open, or explained"]
+
+
+def test_unchecked_debt_is_capped(pack):
+    for i in range(10):
+        add(pack, id=f"search.later-{i}", statement="x", status="decided", unchecked="a session check")
+    detail = failed(validate_pack(pack))["unchecked obligations are within the cap"]
+    assert "the cap is 10%" in detail
+    manifest = pack / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text().replace("[pack]\n", "[pack]\nmax_unchecked = 0.5\n", 1))
+    assert validate_pack(pack).ok
+
+
+def test_unchecked_cap_must_be_a_share(pack):
+    manifest = pack / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text().replace("[pack]\n", "[pack]\nmax_unchecked = 3\n", 1))
+    add(pack, id="search.extra", statement="x", status="decided", unchecked="later")
+    assert "between 0 and 1" in failed(validate_pack(pack))["unchecked obligations are within the cap"]
 
 
 def test_constraint_needs_a_reason(pack):

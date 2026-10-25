@@ -21,7 +21,7 @@ from .manifest import ID_RE, load_manifest
 from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_site, publish as publish_pack, \
     request_state, start_login
 from .pack import component_name, report_json, summary_line, validate_pack
-from .registry import RegistryError, build_site, check_registry, pull as pull_pack, release as release_pack, scaffold_pack
+from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, pull as pull_pack, release as release_pack, scaffold_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
@@ -413,6 +413,8 @@ def _print_replication(r: dict, top: int) -> None:
     typer.echo("")
     for comp, row in r["components"].items():
         held = f", holdout {row['holdout_passed']}/{row['passed']}" if row["holdout_passed"] is not None else ""
+        if row.get("prose_only"):
+            held += f", prose-only {row['prose_only']['passed']}/{row['prose_only']['builds']}"
         d = row["diff"]
         if d is None:
             measured = "not diffed: needs two passing implementations"
@@ -460,6 +462,8 @@ def replicate(
     agent: list[str] = typer.Option([], help="Coding agent command, as NAME=COMMAND or COMMAND. Repeat for several; "
                                      "builds take turns. Default $SYMBOLON_AGENT, else Claude Code."),
     builds: int = typer.Option(2, help="How many builds to make."),
+    prose_only: int = typer.Option(0, help="How many of the builds (the last ones) get the pack without examples "
+                                   "and properties, to test whether the descriptions alone carry the spec."),
     component: list[str] = typer.Option([], help="Build only this component. Repeat for several. Default every one."),
     reference: Path | None = typer.Option(None, help="The original product: a directory with one implementation per component, compared with every build."),
     holdout: Path | None = typer.Option(None, help="Publisher's holdout: a directory of <component>.jsonl examples the builders never see."),
@@ -487,7 +491,7 @@ def replicate(
         agents = parse_agents(agent)
     except AgentError as e:
         raise typer.BadParameter(str(e), param_hint="--agent")
-    opts = Options(builds=builds, components=component or None, reference=reference, holdout=holdout,
+    opts = Options(builds=builds, prose_only=prose_only, components=component or None, reference=reference, holdout=holdout,
                    holdout_seed=holdout_seed, holdout_scale=holdout_scale, jobs=jobs, agent_timeout=agent_timeout,
                    prompt=prompt.read_text() if prompt else None, pools=pool, mutations=mutations,
                    property_cases=property_cases, search=search, seed=seed, diff_timeout=diff_timeout,
@@ -686,14 +690,16 @@ def publish(
 
 @app.command()
 def pull(
-    pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk'. Only the latest version is served."),
-    registry: str = typer.Option("https://symbola.sh",
+    pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk', or its page link. Only the latest version is served."),
+    registry: str = typer.Option(DEFAULT_REGISTRY,
                                  envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
     dest: Path | None = typer.Option(None, help="Where to unpack; defaults to ./<name>."),
     token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid pack."),
     digest: str | None = typer.Option(None, help="Pull the older version with this pack digest, to re-check evidence that names it."),
 ) -> None:
     """Download a pack, check its sha256 and digest against the registry, and unpack it."""
+    pack_id, page_registry = pack_ref(pack_id)
+    registry = page_registry or registry
     target = dest or Path(pack_id.split("/")[-1])
     try:
         got = pull_pack(pack_id, registry, target, token, digest)
@@ -704,7 +710,12 @@ def pull(
     _line(True, "pack digest matches the registry", got.digest)
     typer.echo("  (the publisher is not verified yet: packs get GitHub provenance when they move to GitHub Releases)")
     _line(True, f"{got.id} version {got.version} unpacked into {target}")
-    typer.echo(f"\nNext: point your coding agent at {target / 'AGENTS.md'}")
+    comps = components_of(target)
+    typer.echo(f"\nNext: build from {target / 'AGENTS.md'}, one folder per component, running its checks as you go:")
+    if comps:
+        c, n = comps[0], comps[0].split("/")[1]
+        typer.echo(f"  symbolon impl-init impl/{n} --contract {target / c}\n  symbolon test {target / c} impl/{n}")
+        typer.echo(f"Components: {', '.join(x.split('/')[1] for x in comps)}")
 
 
 @app.command()

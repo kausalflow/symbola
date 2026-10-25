@@ -40,6 +40,12 @@ Builds take turns among the `--agent`s, so `--builds 3` with two agents makes
 `claude-1`, `other-2` and `claude-3`. Different agent families make a better
 ensemble than one agent run three times, because they share fewer defaults.
 
+## Prose-only builds
+
+`--prose-only N` gives the last N builds (named `<agent>-<n>-prose`) the pack without
+`examples.jsonl` or `properties.py`; they are still judged by the full spec. A component
+that fails only prose-only has a rule its description does not carry: fix the description.
+
 ## Which agent runs
 
 Any command line that reads a prompt on stdin and works in its current directory.

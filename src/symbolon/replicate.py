@@ -86,6 +86,54 @@ You are done when `symbolon test` passes for every component. Your builds will
 also be checked on inputs you have not seen.
 """
 
+# Prose-only builds get the pack without its checks, so whether they pass shows
+# whether the descriptions, brief and obligations alone carry the spec. Examples
+# can mask a wrong or incomplete description, since builders fit them.
+PROSE_ONLY_HIDDEN = ("examples.jsonl", "properties.py")
+
+PROSE_ONLY_PROMPT = """\
+You are building software from a Symbolon spec pack, in a clean room: build only
+from the pack. It is in `$pack/`. Start with `$pack/AGENTS.md` if it exists, then
+`$pack/BRIEF.md`, `$pack/assumptions/` and `$pack/obligations.toml`. Do not look for
+the original product's source, and do not read anything outside this directory.
+
+This copy of the pack has no examples and no properties: each component's
+description (in its `symbolon.toml`), its schema, and the pack's brief,
+assumptions and obligations are the whole specification. The `checks` listed in
+`obligations.toml` refer to tests you do not have; read the statements instead.
+`symbolon test` cannot run on this copy, so write your own tests from the
+descriptions, and treat every rule a description states as exact.
+
+Build each of these components into its own directory under `$build/`:
+
+$components
+
+Each build directory needs a `symbolon-impl.toml`. Create it with
+`symbolon impl-init $build/<name> --contract <spec>` and edit it if you do not
+write Python (the pack's AGENTS.md, or `symbolon impl-init --help`, says how).
+
+Write `$build/NOTES.md` with your questions about unclear parts and the reading
+you chose for each. Record every such choice in `$build/readings.toml` as well:
+
+    [[reading]]
+    point = "what was unclear"
+    considered = ["one reading", "another reading"]
+    chosen = "the reading you built"
+    obligation = "the obligation id, if it is about one"
+    component = "the component"
+    probes = [ { ... } ]   # inputs (matching the schema) where the readings differ
+
+Give each reading one to three probes: inputs that the readings you considered
+would answer differently. They are run on every build, so be concrete.
+
+If the spec contradicts itself, run
+`symbolon flag <obligation id> "<what disagrees, and the reading you chose>" --dir $build/<component>`
+and carry on; do not code around it.
+
+You are done when every component does what its description says. Your builds
+will be checked against the full specification, which you have not seen.
+"""
+
 
 class ReplicateError(Exception):
     pass
@@ -104,6 +152,7 @@ class Options:
     agent_timeout: int = 3600
     jobs: int = 1
     prompt: str | None = None           # template; $pack, $build and $components are filled in
+    prose_only: int = 0                 # how many builds (the last ones) get the pack without its checks
     pools: list[Path] = field(default_factory=list)  # extra diff inputs
     mutations: int = 500
     property_cases: int = 50
@@ -116,9 +165,13 @@ class Options:
 # ── the builder's copy and the prompt ────────────────────────────────────
 
 
-def builder_copy(pack_dir: Path, dest: Path) -> None:
-    """The pack as a builder may see it: no reference implementations, no mutants."""
-    shutil.copytree(pack_dir, dest, ignore=shutil.ignore_patterns(*NOT_FOR_BUILDERS, ".*"))
+def builder_copy(pack_dir: Path, dest: Path, prose_only: bool = False) -> None:
+    """The pack as a builder may see it: no reference implementations, no mutants.
+
+    A prose-only copy also leaves out every component's examples and properties.
+    """
+    hidden = NOT_FOR_BUILDERS + (PROSE_ONLY_HIDDEN if prose_only else ())
+    shutil.copytree(pack_dir, dest, ignore=shutil.ignore_patterns(*hidden, ".*"))
 
 
 def render_prompt(template: str, components: dict[str, Path], pack_dir: Path) -> str:
@@ -232,10 +285,10 @@ def _holdout(contract: Path, impl: Path, work: Path, name: str, opts: Options) -
 
 
 def _build(agent: AgentCommand, name: str, pack_dir: Path, components: dict[str, Path],
-           run_dir: Path, opts: Options, template: str) -> dict:
+           run_dir: Path, opts: Options, template: str, prose_only: bool = False) -> dict:
     work = run_dir / "builds" / name
     work.mkdir(parents=True)
-    builder_copy(pack_dir, work / PACK_DIR)
+    builder_copy(pack_dir, work / PACK_DIR, prose_only)
     (work / BUILD_DIR).mkdir()
     prompt = render_prompt(template, components, pack_dir)
     prompt_digest = "sha256:" + hashlib.sha256(prompt.encode()).hexdigest()
@@ -248,7 +301,7 @@ def _build(agent: AgentCommand, name: str, pack_dir: Path, components: dict[str,
     (work / LOG_FILE).write_text(log)
     entry = {"name": name, "agent": agent.name, "command": argv, "exit_code": code,
              "seconds": seconds, "workdir": str(work), "log": str(work / LOG_FILE),
-             "prompt_digest": prompt_digest, "components": {}}
+             "prompt_digest": prompt_digest, "prose_only": prose_only, "components": {}}
     if code != 0:
         opts.progress(f"build {name}: agent {'failed' if code is None else f'exited with {code}'}; "
                       "checking what it left")
@@ -309,6 +362,8 @@ def replicate(pack_dir: Path, run_dir: Path, agents: list[AgentCommand], opts: O
         raise ReplicateError(f"{run_dir} already exists")
     if opts.builds < 1:
         raise ReplicateError("--builds must be at least 1")
+    if not 0 <= opts.prose_only <= opts.builds:
+        raise ReplicateError("--prose-only must be between 0 and --builds")
     if not agents:
         raise ReplicateError("no agent given")
     if opts.sandbox is not None and opts.key is None:
@@ -334,21 +389,29 @@ def replicate(pack_dir: Path, run_dir: Path, agents: list[AgentCommand], opts: O
     with (pack_dir / "obligations.toml").open("rb") as f:
         status = {o["id"]: o.get("status") for o in tomllib.load(f).get("obligation", [])}
 
-    template = opts.prompt or DEFAULT_PROMPT
     run_dir.mkdir(parents=True)
+    first_prose = opts.builds - opts.prose_only
     plan = [(i, agents[i % len(agents)]) for i in range(opts.builds)]
-    names = [f"{a.name}-{i + 1}" for i, a in plan]
+    names = [f"{a.name}-{i + 1}" + ("-prose" if i >= first_prose else "") for i, a in plan]
+
+    def job(args):
+        (i, agent), name = args
+        prose = i >= first_prose
+        template = opts.prompt or (PROSE_ONLY_PROMPT if prose else DEFAULT_PROMPT)
+        return _build(agent, name, pack_dir, components, run_dir, opts, template, prose)
+
     started = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     with ThreadPoolExecutor(max_workers=max(1, opts.jobs)) as pool:
-        builds = list(pool.map(lambda job: _build(job[0][1], job[1], pack_dir, components, run_dir, opts, template),
-                               zip(plan, names)))
+        builds = list(pool.map(job, zip(plan, names)))
 
     per_component = {}
     for comp, contract in components.items():
         passing = [b for b in builds if b["components"][comp].get("public", {}).get("passed")]
         holdout = [b for b in passing if "holdout" in b["components"][comp]]
+        prose = [b for b in builds if b["prose_only"]]
         row = {"contract": str(contract), "digest": contract_digest(contract),
                "builds": len(builds), "passed": len(passing),
+               "prose_only": {"builds": len(prose), "passed": sum(b in passing for b in prose)} if prose else None,
                "holdout_passed": sum(b["components"][comp]["holdout"].get("passed", False) for b in holdout)
                if holdout else None}
         members = [load_member(b["name"], Path(b["components"][comp]["impl"]), comp) for b in passing]
