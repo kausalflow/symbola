@@ -11,6 +11,13 @@ builders would choose differently and the publisher would reject one choice, the
 facts about the world no builder can infer, and a check for each. See design v0.5,
 section 4.
 
+## What a pack specifies
+
+What the product does at the surfaces people use (API, file formats, command line,
+results), not how it is built. Drive the product as a user does rather than through
+internal seams; check properties rather than exact output unless the exact output is
+the product; leave codebase-only choices to the codebase's own guidance.
+
 ## Layout
 
 ```
@@ -68,6 +75,7 @@ reason = "..."                         # required when kind = "constraint"
 exactness = "exact"                    # exact | statistical (default exact)
 assumes = ["K-..."]                    # optional
 checks = ["search-query#test_only_the_last_year_filter_counts", "search-query#example:40"]
+unchecked = ""                         # see "Unchecked obligations" below
 ```
 
 | Status | Meaning | Checks |
@@ -75,6 +83,14 @@ checks = ["search-query#test_only_the_last_year_filter_counts", "search-query#ex
 | `decided` | Required | At least one |
 | `default` | Chosen by the publisher; a fork may change it if it says so | At least one |
 | `open` | Deliberately undecided; builds may differ | None, since a check would decide it |
+
+### Unchecked obligations
+
+A required behaviour no example or property can express yet is `decided` (or
+`default`) with no checks and an `unchecked` reason naming the check it would need,
+such as `unchecked = "a session check: run to t1 then t2, compared with one run to t2"`.
+Builders treat it as required; `pack validate` counts it as debt and fails above
+`[pack] max_unchecked` (a share of decided and default obligations, default 0.1).
 
 A check is `<component>#example:<line>` (a 1-based line of that component's
 `examples.jsonl`) or `<component>#<test function>` (a property in its
@@ -107,10 +123,12 @@ does, the fields record what a check must do.
 3. `BRIEF.md` has the three required sections.
 4. Every assumption file is well-formed, with a unique id.
 5. Every obligation is well-formed, with a unique id.
-6. Every `decided` or `default` obligation has checks, every `open` one has none,
-   every constraint has a reason, every check exists, and every assumption it names exists.
+6. Every `decided` or `default` obligation has checks or an `unchecked` reason (not
+   both), every `open` one has neither, every constraint has a reason, every check
+   exists, and every assumption it names exists.
 7. A `statistical` obligation is not `open` and gives `samples`, `alpha` and
    `tolerance`; an exact one gives none of them.
+8. Unchecked obligations are at most `max_unchecked` of the decided and default ones.
 
 It then reports obligations by status, source and exactness, assumptions and how many are
 monitored, and how many of the components' checks trace to an obligation. It does
