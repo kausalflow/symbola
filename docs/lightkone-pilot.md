@@ -4,13 +4,15 @@ The first spec pack built from a real product: lightkone, a static web app for k
 
 | Path | What it is | Ships to buyers |
 | --- | --- | --- |
-| `versions/1/` | The pack, version 1: BRIEF, AGENTS, assumptions, obligations, and eight component contracts | yes |
+| `versions/1/` | The pack, version 1: BRIEF, PRODUCT (the app), AGENTS, assumptions, obligations, and eight component contracts | yes |
 | `oracle/` | Publisher side: lightkone's own TypeScript bundled as command implementations, fixtures, example recorder, holdout, differential tester | no |
 | `rebuilds/python-1/` | Milestone 1: an AI build in Python (Claude Opus 5.5 in Claude Code) of the first three contracts | no |
 | `rebuilds/go-1/` | Milestone 2: a second AI build in Go of all eight contracts, with its NOTES.md | no |
 | `attestations/` | Signed evidence for both builds, plus the runner keys | yes, as evidence |
 
 ## What the pack covers
+
+`PRODUCT.md` describes the app a build delivers: its shape, files, screens, flows and interfaces, and the components each flow uses. The components are the app's core:
 
 | Component | What it does |
 | --- | --- |
@@ -23,7 +25,11 @@ The first spec pack built from a real product: lightkone, a static web app for k
 | `lightkone/tidy@1` | Finding duplicate papers and how to merge each group |
 | `lightkone/library-file@1` | Reading `library.json` and writing it back, with `library.bib`, byte for byte |
 
-`symbola pack validate packs/kausalflow/lightkone/versions/1` reports 64 obligations (all decided) and 4 assumptions, and every one of the components' 340 checks traces to an obligation.
+`symbola pack validate packs/kausalflow/lightkone/versions/1` reports a product pack with 73 obligations (72 decided, 1 open, 5 of them unchecked app decisions) and 4 assumptions, and every one of the components' 360 checks traces to an obligation.
+
+## The field test: components are not the product
+
+On 2026-10-25 kausalflow asked a coding agent to build lightkone from the pack, as a user would. It ported all eight components faithfully and then wrapped them in a demo page that looked nothing like lightkone, because the pack described the app in one paragraph and said later versions would add the rest. Every earlier build had passed because it was asked for the components only. The fix is `PRODUCT.md` ([pack format](PACK_FORMAT.md#productmd)): a pack with it is built as the product, and the build steps on its page say so.
 
 ## Results (milestone 4: replicate over the whole pack)
 
