@@ -26,6 +26,9 @@ from .spec import CheckResult
 PACK_MANIFEST_FILE = "symbolon-pack.toml"
 OBLIGATIONS_FILE = "obligations.toml"
 BRIEF_FILE = "BRIEF.md"
+# Optional: the whole product a build delivers. A pack with it is a product pack,
+# whose components are the product's core; one without it is a component library.
+PRODUCT_FILE = "PRODUCT.md"
 ASSUMPTIONS_DIR = "assumptions"
 COMPONENTS_DIR = "components"
 # Each version of a pack or contract lives in versions/<n>/ next to the others.
@@ -40,6 +43,13 @@ BRIEF_SECTIONS = {
     "non-goals": "Non-goals",
     "priorities": "Priorities",
     "who resolves gaps": "Who resolves gaps",
+}
+
+# Headings PRODUCT.md must have when present.
+PRODUCT_SECTIONS = {
+    "shape": "Shape",
+    "surfaces": "Surfaces",
+    "flows": "Flows",
 }
 
 # A decided or default obligation with no check yet must say what check it
@@ -192,6 +202,13 @@ def validate_pack(pack_dir: Path) -> PackReport:
     add(CheckResult("BRIEF.md states non-goals, priorities and who resolves gaps", not absent,
                     "missing sections: " + ", ".join(absent) if absent else ""))
 
+    # PRODUCT.md: optional; when present the pack is built as a whole product.
+    if (root / PRODUCT_FILE).is_file():
+        headings = _brief_headings((root / PRODUCT_FILE).read_text())
+        absent = [label for key, label in PRODUCT_SECTIONS.items() if key not in headings]
+        add(CheckResult("PRODUCT.md states the shape, surfaces and flows", not absent,
+                        "missing sections: " + ", ".join(absent) if absent else ""))
+
     # Assumptions.
     assumptions: dict[str, Assumption] = {}
     problems = []
@@ -268,6 +285,7 @@ def validate_pack(pack_dir: Path) -> PackReport:
     referenced = {ref for o in obligations for ref in o.checks}
     status = Counter(o.status for o in obligations)
     report.summary = {
+        "product": (root / PRODUCT_FILE).is_file(),
         "obligations": len(obligations),
         "by_status": {s: status.get(s, 0) for s in ("decided", "default", "open")},
         "unchecked": len(unchecked),
@@ -288,7 +306,8 @@ def validate_pack(pack_dir: Path) -> PackReport:
 def summary_line(summary: dict) -> str:
     s = summary["by_status"]
     debt = f", {summary['unchecked']} unchecked" if summary.get("unchecked") else ""
-    return (f"{summary['obligations']} obligations ({s['decided']} decided, {s['default']} default, "
+    kind = "product pack · " if summary.get("product") else ""
+    return (f"{kind}{summary['obligations']} obligations ({s['decided']} decided, {s['default']} default, "
             f"{s['open']} open{debt}) · {summary['assumptions']} assumptions "
             f"({summary['monitored_assumptions']} monitored) · "
             f"{summary['checks_tracing_to_an_obligation']}/{summary['checks']} checks trace to an obligation")

@@ -45,6 +45,7 @@ Two separate questions apply to any attestation:
 A **spec pack** is a product-level contract, packaged so a builder can rebuild the product in their own stack. It holds:
 
 - `BRIEF.md`: purpose, non-goals, priorities, and who resolves gaps.
+- `PRODUCT.md` (optional): the whole product a build delivers, its shape, surfaces and flows. A pack with it is a product pack, built as the product with the components as its core.
 - `assumptions/`: facts about the world a builder may rely on.
 - `obligations.toml`: the decisions a build must keep, each `decided`, `default` or `open`, and each tied to the checks that pin it down.
 - `components/`: ordinary capability contracts.

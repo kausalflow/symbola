@@ -29,7 +29,7 @@ from pathlib import Path
 from .agent import PROMPT_DIR, AgentCommand, AgentRun, run_agent
 from .digest import contract_digest
 from .manifest import ID_RE, load_manifest
-from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
+from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, PRODUCT_FILE, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
                    VERSIONS_DIR, PackReport, _component_dirs, validate_pack)
 from .spec import CheckResult
 from .validate import WorkerError, check_impl, validate
@@ -72,6 +72,24 @@ question and the reading you chose in `NOTES.md` next to your build; obligations
 `open` in `obligations.toml` are yours to choose.
 '''
 
+PRODUCT = '''\
+# {product}: the product
+
+TODO: what a build of the whole product is. The components are its core.
+
+## Shape
+
+- TODO: what kind of program it is and where it runs
+
+## Surfaces
+
+- TODO: each screen, command, endpoint or file users touch
+
+## Flows
+
+1. TODO: a thing users do, its steps, the outcome they see, and the components it uses
+'''
+
 OBLIGATIONS = '''\
 # Obligations of the {id} spec pack (format: docs/PACK_FORMAT.md).
 #
@@ -103,10 +121,15 @@ that reads one JSON input per line on stdin and writes `{{"output": ...}}` per l
 A component whose `symbolon.toml` says `driver = "cli"` is a command line: build the
 real program and set `command` to it; symbola runs it once per check.
 
+**The product.** If `PRODUCT.md` exists, the pack is a whole product: build it as
+`PRODUCT.md` describes (its shape, surfaces and flows), with your component builds as
+its core. Don't build a demo page around the components instead.
+
 **Done** means `symbola attest components/<name>/versions/<n> <impl-dir>` reports PASSED
-for every component. Don't special-case the examples: the properties generate
-other inputs, and the publisher keeps a holdout. Write questions about unclear
-parts, and the reading you chose, in `NOTES.md` next to your build.
+for every component and, for a product pack, every flow in `PRODUCT.md` works. Don't
+special-case the examples: the properties generate other inputs, and the publisher
+keeps a holdout. Write questions about unclear parts, and the reading you chose, in
+`NOTES.md` next to your build.
 
 **If the spec contradicts itself**, don't code around it. Run
 `symbola flag <component>#example:<line> "<what disagrees, and the reading you chose>" --dir <impl-dir>`,
@@ -128,6 +151,7 @@ Write these files, relative to your working directory:
   {pack}/                         the pack (already scaffolded: fill in the TODOs)
     {manifest}             [pack] title, license, authors. Leave [components] alone.
     {brief}                       purpose; "Non-goals"; "Priorities" (ordered); "Who resolves gaps"
+    {product}                     the whole product: "Shape", "Surfaces", "Flows" (see below)
     {agents}                      guide for builders (already written; adjust only if needed)
     {assumptions}/<name>.toml       what the product relies on about the world but never checks
     {obligations}              the decisions a rebuild must keep
@@ -152,6 +176,21 @@ everything, but do not leave out a surface because it is not a pure function:
 an adapter can drive a command line in a scratch directory or a whole run, and a
 property can hold for every seed of a random process. Leave out what concerns
 only the original's own codebase (its module layout, naming, code style).
+
+## {product}
+
+The components alone are not the product: an agent asked to build the product from
+them invents everything else. {product} says what a build of the whole product is,
+written from the product's own README and docs (summarise them; do not re-read the
+code for it). Keep it to what a builder could not guess:
+  ## Shape      what kind of program it is, where it runs, what it needs (no server,
+                a CLI, a service), and the stack choices users would notice
+  ## Surfaces   every screen, command, endpoint and file users touch, one line each
+  ## Flows      the main things users do, each as steps and the outcome they see,
+                naming the component each step uses
+  ## Interfaces outside services, plugin or storage interfaces, credentials
+  ## Order      optional: what to build first when a build cannot do it all
+State rules exactly only where they matter; leave layout and styling to the builder.
 
 ## Components (capability contracts)
 
@@ -290,6 +329,7 @@ def scaffold_pack(pack_id: str, product_dir: Path, version: int = 1) -> Path:
     (product_dir / ORACLE_DIR).mkdir(exist_ok=True)
     (pack_dir / PACK_MANIFEST_FILE).write_text(PACK_MANIFEST.format(**fill))
     (pack_dir / BRIEF_FILE).write_text(BRIEF.format(**fill))
+    (pack_dir / PRODUCT_FILE).write_text(PRODUCT.format(**fill))
     (pack_dir / OBLIGATIONS_FILE).write_text(OBLIGATIONS.format(**fill))
     (pack_dir / AGENTS_FILE).write_text(AGENTS.format(**fill))
     return pack_dir
@@ -301,8 +341,8 @@ def extract_prompt(source: Path, product_dir: Path, pack_dir: Path, hint: str = 
         source=Path(source).resolve(), workdir=Path(product_dir).resolve(),
         hint=f"\nThe publisher adds: {hint.strip()}\n" if hint.strip() else "",
         pack=pack_dir.relative_to(product_dir).as_posix(), namespace=namespace,
-        manifest=PACK_MANIFEST_FILE, brief=BRIEF_FILE, agents=AGENTS_FILE, assumptions=ASSUMPTIONS_DIR,
-        obligations=OBLIGATIONS_FILE, components=COMPONENTS_DIR, versions=VERSIONS_DIR,
+        manifest=PACK_MANIFEST_FILE, brief=BRIEF_FILE, product=PRODUCT_FILE, agents=AGENTS_FILE,
+        assumptions=ASSUMPTIONS_DIR, obligations=OBLIGATIONS_FILE, components=COMPONENTS_DIR, versions=VERSIONS_DIR,
         oracle=ORACLE_DIR, review=REVIEW_FILE)
 
 

@@ -202,3 +202,15 @@ def test_obligations_no_longer_take_sample_sizes(pack):
 def test_component_name_skips_the_versions_folder(tmp_path):
     assert component_name(tmp_path / "components" / "tidy" / "versions" / "1") == "tidy"
     assert component_name(tmp_path / "components" / "tidy" / "1") == "tidy"
+
+
+def test_product_pack_needs_shape_surfaces_and_flows(pack):
+    assert validate_pack(pack).summary["product"] is False
+    (pack / "PRODUCT.md").write_text("# Product\n\n## Shape\n\nA web app.\n\n## Flows\n\n1. Search.\n")
+    report = validate_pack(pack)
+    assert failed(report)["PRODUCT.md states the shape, surfaces and flows"] == "missing sections: Surfaces"
+    (pack / "PRODUCT.md").write_text("# Product\n\n## Shape\n\n## Surfaces\n\n## Flows\n")
+    report = validate_pack(pack)
+    assert report.ok, failed(report)
+    assert report.summary["product"] is True
+    assert summary_line(report.summary).startswith("product pack · ")
