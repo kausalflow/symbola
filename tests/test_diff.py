@@ -4,9 +4,9 @@ import shutil
 import pytest
 from typer.testing import CliRunner
 
-from symbolon.cli import app
-from symbolon.digest import contract_digest
-from symbolon.diff import Member, Reading, chao1, chao_shen_bits, compare_readings, rao, tier
+from symbola.cli import app
+from symbola.digest import contract_digest
+from symbola.diff import Member, Reading, chao1, chao_shen_bits, compare_readings, rao, tier
 
 runner = CliRunner()
 

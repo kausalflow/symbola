@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from symbolon.scaffold import scaffold
-from symbolon.validate import regenerate_schema
+from symbola.scaffold import scaffold
+from symbola.validate import regenerate_schema
 
 REPO = Path(__file__).resolve().parent.parent
 SEEDS = sorted((REPO / "contracts").glob("*/*/versions/*/symbolon.toml"))

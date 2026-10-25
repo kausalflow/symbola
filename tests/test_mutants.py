@@ -3,8 +3,8 @@ import json
 import pytest
 from typer.testing import CliRunner
 
-from symbolon.cli import app
-from symbolon.validate import mutants_report, validate
+from symbola.cli import app
+from symbola.validate import mutants_report, validate
 
 from .conftest import SEEDS
 

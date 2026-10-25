@@ -14,7 +14,7 @@ five; the survivor accepts malformed quoting such as `"x"y`, which version 1's
 description never rules on. Version 2 settles it: text after a closing quote, or
 a quote never closed, raises `ValueError`, and all six mutants are killed.
 unit-convert kills five; the survivor uses binary floats, which the 1e-9 tolerance
-allows. `symbolon mutants contracts/core/<name>/versions/1` shows the full matrix.
+allows. `symbola mutants contracts/core/<name>/versions/1` shows the full matrix.
 
 ## `core/date-parse@1`
 

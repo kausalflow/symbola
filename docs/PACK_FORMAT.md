@@ -116,7 +116,7 @@ exactness. The terms follow the kit paper (*The Probabilistic Minimal Reproducti
 Kit*, section 5.4). The runner does not yet repeat statistical checks; until it
 does, the fields record what a check must do.
 
-## What `symbolon pack validate` checks
+## What `symbola pack validate` checks
 
 1. `symbolon-pack.toml`, `BRIEF.md` and `obligations.toml` exist.
 2. Every component listed in the manifest is present with the same digest, and none is unlisted.
@@ -132,4 +132,4 @@ does, the fields record what a check must do.
 
 It then reports obligations by status, source and exactness, assumptions and how many are
 monitored, and how many of the components' checks trace to an obligation. It does
-not run contract code; use `symbolon validate` on each component for that.
+not run contract code; use `symbola validate` on each component for that.

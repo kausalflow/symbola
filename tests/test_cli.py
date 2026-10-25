@@ -2,7 +2,7 @@ import json
 
 from typer.testing import CliRunner
 
-from symbolon.cli import app
+from symbola.cli import app
 
 runner = CliRunner()
 
@@ -48,7 +48,7 @@ def test_digest_command_matches_validate(contract):
 
 def test_attest_and_verify_round_trip(tmp_path, monkeypatch):
     import pytest
-    from symbolon.sandbox import SandboxUnavailable, select
+    from symbola.sandbox import SandboxUnavailable, select
     try:
         select("auto")
     except SandboxUnavailable:

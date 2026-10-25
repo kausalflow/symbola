@@ -1,9 +1,9 @@
 [project]
 site_name = "Symbolon"
 site_description = "Trustable contracts between agents: checkable specs, verifiable evidence."
-site_url = "https://kausalflow.github.io/symbolon/"
-repo_url = "https://github.com/kausalflow/symbolon"
-repo_name = "kausalflow/symbolon"
+site_url = "https://kausalflow.github.io/symbola/"
+repo_url = "https://github.com/kausalflow/symbola"
+repo_name = "kausalflow/symbola"
 edit_uri = "edit/main/docs/"
 copyright = "Copyright &copy; 2026 kausalflow"
 docs_dir = "docs"

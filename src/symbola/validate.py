@@ -30,7 +30,7 @@ class WorkerError(Exception):
 def run_worker(mode: str, contract_dir: Path, *extra: str, timeout: int = 120) -> dict:
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "result.json"
-        cmd = [sys.executable, "-I", "-m", "symbolon.worker", mode, str(contract_dir), str(out), *extra]
+        cmd = [sys.executable, "-I", "-m", "symbola.worker", mode, str(contract_dir), str(out), *extra]
         try:
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd=tmp)
         except subprocess.TimeoutExpired:

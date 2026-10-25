@@ -30,7 +30,7 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 ## `init`
 
 ```
-symbolon init CONTRACT_ID [--root contracts] [--author you@example.com]
+symbola init CONTRACT_ID [--root contracts] [--author you@example.com]
 ```
 
 Creates `<root>/<namespace>/<name>/versions/1/` with every required file and a reference implementation. `CONTRACT_ID` looks like `namespace/name`: lowercase letters, digits and hyphens. Fails if the directory exists.
@@ -38,15 +38,15 @@ Creates `<root>/<namespace>/<name>/versions/1/` with every required file and a r
 ## `validate`
 
 ```
-symbolon validate PATH [--json]
+symbola validate PATH [--json]
 ```
 
-Runs the checks listed in [What `symbolon validate` checks](CONTRACT_FORMAT.md#what-symbolon-validate-checks) and, if all pass, prints `namespace/name@version  sha256:<hex>`. Contract code runs in a separate isolated Python process.
+Runs the checks listed in [What `symbola validate` checks](CONTRACT_FORMAT.md#what-symbola-validate-checks) and, if all pass, prints `namespace/name@version  sha256:<hex>`. Contract code runs in a separate isolated Python process.
 
 ## `schema`
 
 ```
-symbolon schema PATH
+symbola schema PATH
 ```
 
 Writes `schema/input.json` and `schema/output.json` from the `Input` and `Output` models in `schema.py`.
@@ -54,7 +54,7 @@ Writes `schema/input.json` and `schema/output.json` from the `Input` and `Output
 ## `test`
 
 ```
-symbolon test PATH IMPL [--json]
+symbola test PATH IMPL [--json]
 ```
 
 Runs every example and property of the contract at `PATH` against `IMPL`, which is an implementation directory with `symbolon-impl.toml` or a single Python file. Failing properties print hypothesis's minimal failing case. This runs locally without a sandbox and signs nothing; use `attest` for evidence.
@@ -62,7 +62,7 @@ Runs every example and property of the contract at `PATH` against `IMPL`, which 
 ## `digest`
 
 ```
-symbolon digest PATH
+symbola digest PATH
 ```
 
 Prints `sha256:<hex>` for a contract directory. See [Digest](CONTRACT_FORMAT.md#digest) for exactly what it covers.
@@ -70,7 +70,7 @@ Prints `sha256:<hex>` for a contract directory. See [Digest](CONTRACT_FORMAT.md#
 ## `impl-init`
 
 ```
-symbolon impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0]
+symbola impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0]
 ```
 
 Creates `IMPL_DIR` if needed and writes `symbolon-impl.toml` pinned to the contract's current digest. For implementations in other languages, edit the manifest to `language = "command"` and set `command`; see [Implementations in other languages](ATTESTATION.md#implementations-in-other-languages).
@@ -78,7 +78,7 @@ Creates `IMPL_DIR` if needed and writes `symbolon-impl.toml` pinned to the contr
 ## `keygen`
 
 ```
-symbolon keygen [--out ~/.config/symbolon/runner.key]
+symbola keygen [--out ~/.config/symbolon/runner.key]
 ```
 
 Creates an Ed25519 key for this runner. The public key is written next to it as `runner.pub`. Share the `.pub` with anyone who should trust your attestations.
@@ -86,7 +86,7 @@ Creates an Ed25519 key for this runner. The public key is written next to it as 
 ## `attest`
 
 ```
-symbolon attest CONTRACT IMPL [-o attestation.json] [--key ~/.config/symbolon/runner.key] [--sandbox auto|container|process]
+symbola attest CONTRACT IMPL [-o attestation.json] [--key ~/.config/symbolon/runner.key] [--sandbox auto|container|process]
 ```
 
 Copies the contract and implementation into a fresh directory, checks that the implementation pins this contract's digest, runs the spec in a sandbox, and writes a signed in-toto attestation. Exits 0 if the result is `PASSED`. `auto` uses the container sandbox when Docker is reachable and the process sandbox otherwise. See [Sandboxes](ATTESTATION.md#sandboxes).
@@ -94,7 +94,7 @@ Copies the contract and implementation into a fresh directory, checks that the i
 ## `verify`
 
 ```
-symbolon verify ATTESTATION [--trust KEY.pub ...] [--contract DIR] [--impl DIR] [--rerun] [--key ...] [--sandbox ...]
+symbola verify ATTESTATION [--trust KEY.pub ...] [--contract DIR] [--impl DIR] [--rerun] [--key ...] [--sandbox ...]
 ```
 
 | Option | Checks |
@@ -107,7 +107,7 @@ symbolon verify ATTESTATION [--trust KEY.pub ...] [--contract DIR] [--impl DIR] 
 ## `diff`
 
 ```
-symbolon diff CONTRACT IMPL IMPL... [--reference NAME] [--pool FILE ...] [--realistic FILE]
+symbola diff CONTRACT IMPL IMPL... [--reference NAME] [--pool FILE ...] [--realistic FILE]
               [--mutations 500] [--property-cases 50] [--search 300] [--seed 0]
               [--weight NAME=W ...] [--severity TIER=W ...] [--max-ambiguity X]
               [--top 5] [-o report.json] [--json]
@@ -135,7 +135,7 @@ See [Measuring ambiguity](guides/measuring-ambiguity.md).
 ## `extract`
 
 ```
-symbolon extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
+symbola extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
                  [--agent COMMAND] [--hint TEXT] [--rounds 2] [--timeout 3600] [--no-oracle]
 ```
 
@@ -157,7 +157,7 @@ See [Extracting a pack](guides/extracting-a-pack.md).
 ## `replicate`
 
 ```
-symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--prose-only 0] [--component NAME ...]
+symbola replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--prose-only 0] [--component NAME ...]
                    [--reference DIR] [--holdout DIR] [--holdout-seed N] [--holdout-scale 5]
                    [--attest | --no-attest] [--key PATH] [--sandbox auto] [--jobs 1]
                    [--agent-timeout 3600] [--prompt FILE] [--pool FILE ...]
@@ -189,15 +189,15 @@ See [Replicating a pack](guides/replicating-a-pack.md).
 ## `pack validate`
 
 ```
-symbolon pack validate PATH [--json]
+symbola pack validate PATH [--json]
 ```
 
-`PATH` is the pack directory holding `symbolon-pack.toml`. Checks the manifest, component digests, `BRIEF.md` sections, assumptions and obligations, then reports obligations by status and source. It does not run contract code; run `validate` on each component for that. See [What `symbolon pack validate` checks](PACK_FORMAT.md#what-symbolon-pack-validate-checks).
+`PATH` is the pack directory holding `symbolon-pack.toml`. Checks the manifest, component digests, `BRIEF.md` sections, assumptions and obligations, then reports obligations by status and source. It does not run contract code; run `validate` on each component for that. See [What `symbola pack validate` checks](PACK_FORMAT.md#what-symbolon-pack-validate-checks).
 
 ## `mutants`
 
 ```
-symbolon mutants PATH [--mutants DIR] [--json]
+symbola mutants PATH [--mutants DIR] [--json]
 ```
 
 Runs the spec against each mutant in `PATH/mutants/`, or in `DIR` (useful for
@@ -208,7 +208,7 @@ if a mutant survives without `SURVIVES`. See [Mutants](CONTRACT_FORMAT.md#mutant
 ## `canary plant`
 
 ```
-symbolon canary plant PATH OUT [--seed N] [--record FILE]
+symbola canary plant PATH OUT [--seed N] [--record FILE]
 ```
 
 Copies the contract to `OUT` without `reference/` and `mutants/`, and changes one
@@ -220,7 +220,7 @@ An honest build fails exactly that example.
 ## `canary check`
 
 ```
-symbolon canary check RECORD IMPL [--contract PATH] [--flags FILE] [--json]
+symbola canary check RECORD IMPL [--contract PATH] [--flags FILE] [--json]
 ```
 
 Runs the finished build on the canary input. The outcome is `gamed` if it returns
@@ -232,7 +232,7 @@ for `gamed`. In a replication, drop gamed builds from the convergence evidence.
 ## `flag`
 
 ```
-symbolon flag REF REASON [--dir BUILD_DIR]
+symbola flag REF REASON [--dir BUILD_DIR]
 ```
 
 Appends `{"ref", "reason", "flagged_at"}` to `BUILD_DIR/symbolon-flags.jsonl`.
@@ -245,7 +245,7 @@ the implementation's digest.
 ## `pack init`
 
 ```
-symbolon pack init PACK_ID [--dir spec] [--author you@example.com]
+symbola pack init PACK_ID [--dir spec] [--author you@example.com]
 ```
 
 Creates a pack folder (by default `spec/`, next to your code) with a manifest, `BRIEF.md`, a placeholder open obligation, a placeholder assumption, `components/` and `AGENTS.md`. Fails if the folder exists and is not empty. See [Pack registry](REGISTRY.md#making-a-pack).
@@ -253,7 +253,7 @@ Creates a pack folder (by default `spec/`, next to your code) with a manifest, `
 ## `site build`
 
 ```
-symbolon site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
+symbola site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
 ```
 
 Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md` and `parts/`, `llms.txt`, raw files, and `evidence.json` with every attestation checked. A priced pack's tarball goes to `--private-out` for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See [Pack registry](REGISTRY.md#building-the-site).
@@ -261,7 +261,7 @@ Validates the latest version of every pack under `REGISTRY` and writes `index.js
 ## `pull`
 
 ```
-symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
+symbola pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
 ```
 
 Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into `DEST` (default `./<name>`) and prints the commands to start building. `PACK_ID` can also be the pack's page link, such as `https://symbola.sh/packs/acme/invoice-desk/`; the registry is then the site that serves it. A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Pack registry](REGISTRY.md#pulling-a-pack).
@@ -269,7 +269,7 @@ Downloads the latest version of a pack, checks the tarball's sha256 and the unpa
 ## `site check`
 
 ```
-symbolon site check [REGISTRY=packs]
+symbola site check [REGISTRY=packs]
 ```
 
 Builds the registry in a temporary folder, so every latest version must validate, and checks that every version in a pack's `digests.txt` still has its recorded digest. Prints a warning for packs without a `digests.txt`. See [Pack registry](REGISTRY.md#submission-checks).
@@ -277,7 +277,7 @@ Builds the registry in a temporary folder, so every latest version must validate
 ## `release`
 
 ```
-symbolon release [SPEC=spec] --registry PACKS
+symbola release [SPEC=spec] --registry PACKS
 ```
 
 Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next version, and records its digest in `digests.txt`. Does nothing if the content is unchanged since the latest version. See [Pack registry](REGISTRY.md#releasing).

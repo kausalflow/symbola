@@ -24,12 +24,12 @@ authors = ["..."]
 
 [generator]                 # optional, for generated implementations
 model = "..."
-family = "..."              # optional: model family, for the ensemble in `symbolon diff`
+family = "..."              # optional: model family, for the ensemble in `symbola diff`
 language = "go"             # optional: source language, when language = "command"
 prompt_digest = "sha256:..."
 ```
 
-`symbolon impl-init <dir> --contract <contract-dir>` writes this manifest, pinned to the contract's current digest.
+`symbola impl-init <dir> --contract <contract-dir>` writes this manifest, pinned to the contract's current digest.
 
 ### Implementations in other languages
 
@@ -58,8 +58,8 @@ The program is started once per run and speaks a line protocol: one JSON value p
 ## Running an attestation
 
 ```bash
-symbolon keygen                                        # once per runner
-symbolon attest <contract-dir> <impl-dir> -o att.json  # exit code 0 = PASSED
+symbola keygen                                        # once per runner
+symbola attest <contract-dir> <impl-dir> -o att.json  # exit code 0 = PASSED
 ```
 
 `attest` copies the contract and implementation into a fresh directory, computes both digests from those copies, and runs the spec inside a sandbox. That way the digests describe exactly what ran.
@@ -113,16 +113,16 @@ An attestation is an [in-toto Statement v1](https://github.com/in-toto/attestati
 ```
 
 - Test names are `example:<line and note>` and `property:<function name>`.
-- The `symbolon` object extends the Test Result predicate. Tools that only know the standard predicate can ignore it.
+- The `symbola` object extends the Test Result predicate. Tools that only know the standard predicate can ignore it.
 - The **environment digest** covers the inputs that decide behavior: sandbox kind, base image, Python version, OS, architecture, and package versions. It excludes machine-specific ids such as the local image id, so two runners that build the same environment get the same digest.
 
 ## Verifying
 
 ```bash
-symbolon verify att.json                                  # signature and contents
-symbolon verify att.json --trust runner.pub               # signer is in your trust set
-symbolon verify att.json --contract C --impl I            # digests match your local copies
-symbolon verify att.json --contract C --impl I --rerun    # run it again here and compare
+symbola verify att.json                                  # signature and contents
+symbola verify att.json --trust runner.pub               # signer is in your trust set
+symbola verify att.json --contract C --impl I            # digests match your local copies
+symbola verify att.json --contract C --impl I --rerun    # run it again here and compare
 ```
 
 `--rerun` runs the attestation again in your own sandbox and compares the result of every check. "Reproduced" means every example and property has the same outcome. That is the property a third party relies on: they don't have to trust the original runner, they can check.

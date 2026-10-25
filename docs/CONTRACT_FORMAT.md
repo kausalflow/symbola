@@ -55,13 +55,13 @@ Unknown keys are errors, so a typo cannot silently change a contract's meaning.
 
 ## Interface: `schema.py` and `schema/*.json`
 
-`schema.py` must define `Input` and `Output` as pydantic models. The JSON Schema files are generated from them with `symbolon schema <dir>`, and `validate` fails if they drift apart. The JSON Schema is the language-neutral interface. Pydantic is the authoring convenience.
+`schema.py` must define `Input` and `Output` as pydantic models. The JSON Schema files are generated from them with `symbola schema <dir>`, and `validate` fails if they drift apart. The JSON Schema is the language-neutral interface. Pydantic is the authoring convenience.
 
 ## Implementations
 
 An implementation is a Python file that defines the entrypoint function. It receives the input as plain JSON values (a dict matching `schema/input.json`) and returns plain JSON values matching `schema/output.json`. It reports invalid input by raising an exception, normally `ValueError`. Because implementations exchange only JSON values, any tool or model can produce one without importing Symbolon.
 
-`symbolon test` accepts a single file. `symbolon attest` needs an implementation directory with a manifest and optional lockfile; see [ATTESTATION.md](ATTESTATION.md).
+`symbola test` accepts a single file. `symbola attest` needs an implementation directory with a manifest and optional lockfile; see [ATTESTATION.md](ATTESTATION.md).
 
 ## Examples: `examples.jsonl`
 
@@ -127,15 +127,15 @@ and fails if any mutant passes. A survivor means one of two things:
 docstring, or if it is the same program as the reference or another mutant once
 comments and docstrings are removed. Its report line reads like
 `mutants: spec rejects every mutant  5/6 killed, 1 documented survivor`, which is
-the contract's **kill rate**. `symbolon mutants` shows which checks kill which
+the contract's **kill rate**. `symbola mutants` shows which checks kill which
 mutant, and which checks kill none.
 
 Mutants are part of the contract and its digest, so anyone can reproduce the kill
-rate. They are kept out of the copy given to builders by `symbolon canary plant`.
+rate. They are kept out of the copy given to builders by `symbola canary plant`.
 An LLM can draft mutants from the reference and a list of concerns; keep the ones
 that load, differ from the reference, and model a mistake someone would make.
 
-## What `symbolon validate` checks
+## What `symbola validate` checks
 
 1. The required files are present.
 2. `symbolon.toml` parses and matches the manifest schema.
@@ -148,7 +148,7 @@ that load, differ from the reference, and model a mistake someone would make.
 9. **Mutants:** if `mutants/` exists, every mutant fails the spec or explains with `SURVIVES` why it may pass (see above).
 10. If all checks pass, it prints the digest.
 
-Steps 3 to 9 execute contract code. They run in a separate Python process (`python -I -m symbolon.worker`). `symbolon attest` runs that same worker inside a sandbox (see ATTESTATION.md).
+Steps 3 to 9 execute contract code. They run in a separate Python process (`python -I -m symbola.worker`). `symbola attest` runs that same worker inside a sandbox (see ATTESTATION.md).
 
 ## Digest
 

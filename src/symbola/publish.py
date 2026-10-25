@@ -1,4 +1,4 @@
-"""Publishing to symbola.sh from the command line: `symbolon login`, `logout` and `publish`.
+"""Publishing to symbola.sh from the command line: `symbola login`, `logout` and `publish`.
 
 `login` signs in with GitHub's device flow, using the Symbola GitHub App's public client id
 (the site serves it at /api/cli/config), and trades the GitHub token for a Symbola token at
@@ -36,7 +36,7 @@ def credentials_path() -> Path:
 
 
 def _request(url: str, data: bytes | None = None, headers: dict | None = None, method: str | None = None) -> dict:
-    req = urllib.request.Request(url, data=data, headers={"accept": "application/json", "user-agent": "symbolon-cli",
+    req = urllib.request.Request(url, data=data, headers={"accept": "application/json", "user-agent": "symbola-cli",
                                                           **(headers or {})}, method=method)
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
@@ -91,7 +91,7 @@ def finish_login(site: str, client_id: str, code: DeviceCode, name: str,
             interval = int(t.get("interval", interval + 5))
         elif t.get("error") != "authorization_pending":
             raise PublishError(f"GitHub sign-in failed: {t.get('error_description') or t.get('error')}")
-    raise PublishError("the code expired before it was approved; run `symbolon login` again")
+    raise PublishError("the code expired before it was approved; run `symbola login` again")
 
 
 def save_credentials(site: str, got: dict) -> Path:
@@ -120,7 +120,7 @@ def token_for(site: str) -> str:
     path = credentials_path()
     data = json.loads(path.read_text()) if path.is_file() else {}
     if site not in data:
-        raise PublishError(f"not signed in to {site}; run `symbolon login` (or set SYMBOLON_PUBLISH_TOKEN)")
+        raise PublishError(f"not signed in to {site}; run `symbola login` (or set SYMBOLON_PUBLISH_TOKEN)")
     return data[site]["token"]
 
 
@@ -128,7 +128,7 @@ def package(spec: Path) -> tuple[str, bytes]:
     """Validate a pack folder and return its id and a .tar.gz of its files."""
     spec = Path(spec)
     if not (spec / PACK_MANIFEST_FILE).is_file():
-        raise PublishError(f"{spec}: no {PACK_MANIFEST_FILE}; is this the folder `symbolon pack init` made?")
+        raise PublishError(f"{spec}: no {PACK_MANIFEST_FILE}; is this the folder `symbola pack init` made?")
     report = validate_pack(spec)
     if not report.ok:
         bad = "; ".join(f"{c.name}: {c.detail}" for c in report.checks if not c.ok)

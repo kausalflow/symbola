@@ -1,6 +1,6 @@
 import pytest
 
-from symbolon.validate import check_impl, validate
+from symbola.validate import check_impl, validate
 
 from .conftest import SEEDS
 

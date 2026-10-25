@@ -1,6 +1,6 @@
 """Subprocess entry point for everything that executes contract code.
 
-Usage: python -I -m symbolon.worker <mode> <contract_dir> <out.json> [impl] [--deps DIR]
+Usage: python -I -m symbola.worker <mode> <contract_dir> <out.json> [impl] [--deps DIR]
 
 Modes:
   check   structural and behavioral checks for `validate`
@@ -12,7 +12,7 @@ Modes:
   canary  run an implementation on a canary record's input and compare
 
 The result is written as JSON to <out.json>, so anything the contract prints
-cannot corrupt it. `symbolon attest` runs this process inside a sandbox
+cannot corrupt it. `symbola attest` runs this process inside a sandbox
 (see sandbox.py).
 """
 
@@ -90,7 +90,7 @@ def check(root: Path) -> list[CheckResult]:
         elif json.loads(path.read_text()) != json.loads(text):
             stale.append(f"{rel} differs from schema.py")
     if stale:
-        return fail(name, "; ".join(stale) + ". Run `symbolon schema` to regenerate.")
+        return fail(name, "; ".join(stale) + ". Run `symbola schema` to regenerate.")
     checks.append(CheckResult(name, True))
 
     name = "examples.jsonl is valid"

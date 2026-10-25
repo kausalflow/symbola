@@ -1,4 +1,4 @@
-"""`symbolon diff`: how much a contract leaves undecided, measured on builds.
+"""`symbola diff`: how much a contract leaves undecided, measured on builds.
 
 Passing a spec shows a build agrees with the spec on the cases the spec
 samples. Two passing builds can still behave differently, and every such

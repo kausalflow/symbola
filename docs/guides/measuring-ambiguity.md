@@ -3,7 +3,7 @@
 Passing a contract shows a build agrees with the spec on the cases the spec
 samples. Two builds that both pass can still behave differently. Each difference
 is a point the contract leaves undecided, whether or not anyone meant it to.
-`symbolon diff` finds these points and measures how much they cost. It follows
+`symbola diff` finds these points and measures how much they cost. It follows
 the sufficiency test in *The Probabilistic Minimal Reproduction Kit* (sections 4
 and 6.2).
 
@@ -11,7 +11,7 @@ and 6.2).
 
 ```bash
 cd symbolon-registry/packs/kausalflow/lightkone   # a clone of kausalflow/symbolon-registry
-symbolon diff versions/1/components/search-query/versions/1 \
+symbola diff versions/1/components/search-query/versions/1 \
   oracle/search-query rebuilds/go-1/search-query rebuilds/python-1/search-query \
   --reference oracle -o diff-search-query.json
 ```
@@ -135,7 +135,7 @@ both builders had written down. Probes catch exactly this.
 ## In CI
 
 ```bash
-symbolon diff CONTRACT build-a build-b --max-ambiguity 0.01
+symbola diff CONTRACT build-a build-b --max-ambiguity 0.01
 ```
 
 This exits 1 when the estimate is above the threshold. A contract change that

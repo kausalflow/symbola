@@ -45,7 +45,7 @@ def public_path(key_path: Path) -> Path:
 def load_private(path: Path = DEFAULT_KEY) -> Ed25519PrivateKey:
     path = Path(path)
     if not path.exists():
-        raise FileNotFoundError(f"no runner key at {path}; run `symbolon keygen` first")
+        raise FileNotFoundError(f"no runner key at {path}; run `symbola keygen` first")
     key = serialization.load_pem_private_key(path.read_bytes(), password=None)
     if not isinstance(key, Ed25519PrivateKey):
         raise ValueError(f"{path} is not an Ed25519 key")

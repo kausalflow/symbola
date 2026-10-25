@@ -2,23 +2,32 @@
 
 ## Install
 
-Symbolon needs Python 3.11 or newer.
+Symbolon needs Python 3.11 or newer. The package and command are `symbola`.
 
 ```bash
-git clone https://github.com/kausalflow/symbolon
-cd symbolon
-pip install -e ".[dev]"
-symbolon --help
+uv tool install git+https://github.com/kausalflow/symbola   # or: pipx install git+https://github.com/kausalflow/symbola
+symbola --help
 ```
 
-Attestations run in a sandbox. The container sandbox needs a reachable Docker daemon; the process sandbox needs unprivileged user namespaces (`unshare -rn`). `symbolon test` and `symbolon validate` need neither.
+Not `pip install symbolon`: that name is an unrelated project.
+
+To run the examples below, work from a clone:
+
+```bash
+git clone https://github.com/kausalflow/symbola
+cd symbola
+pip install -e ".[dev]"
+symbola --help
+```
+
+Attestations run in a sandbox. The container sandbox needs a reachable Docker daemon; the process sandbox needs unprivileged user namespaces (`unshare -rn`). `symbola test` and `symbola validate` need neither.
 
 ## Check a seed contract
 
 The repository ships three seed contracts under `contracts/core/`.
 
 ```bash
-symbolon validate contracts/core/date-parse/versions/1
+symbola validate contracts/core/date-parse/versions/1
 ```
 
 ```console
@@ -40,8 +49,8 @@ The last line is the contract's identity: `core/date-parse@1` is a human-readabl
 ## Test implementations against it
 
 ```bash
-symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strptime   # fails: too lenient
-symbolon test contracts/core/date-parse/versions/1 examples/impls/date-parse-strict     # passes
+symbola test contracts/core/date-parse/versions/1 examples/impls/date-parse-strptime   # fails: too lenient
+symbola test contracts/core/date-parse/versions/1 examples/impls/date-parse-strict     # passes
 ```
 
 An implementation is a directory with a `symbolon-impl.toml` manifest, or for quick checks a single Python file that defines `run(input: dict) -> dict`. See [Implementations and attestations](ATTESTATION.md).
@@ -49,8 +58,8 @@ An implementation is a directory with a `symbolon-impl.toml` manifest, or for qu
 ## Write your own contract
 
 ```bash
-symbolon init acme/shout                      # scaffold a contract that already validates
-symbolon validate contracts/acme/shout/versions/1
+symbola init acme/shout                      # scaffold a contract that already validates
+symbola validate contracts/acme/shout/versions/1
 ```
 
 `init` writes a complete, valid contract so you can change one file at a time and re-validate. The walkthrough in [Writing a contract](guides/writing-a-contract.md) covers each file.
@@ -58,9 +67,9 @@ symbolon validate contracts/acme/shout/versions/1
 ## Sign and verify evidence
 
 ```bash
-symbolon keygen                                    # this runner's Ed25519 key
-symbolon attest contracts/core/date-parse/versions/1 examples/impls/date-parse-strict -o att.json
-symbolon verify att.json --trust ~/.config/symbolon/runner.pub \
+symbola keygen                                    # this runner's Ed25519 key
+symbola attest contracts/core/date-parse/versions/1 examples/impls/date-parse-strict -o att.json
+symbola verify att.json --trust ~/.config/symbolon/runner.pub \
   --contract contracts/core/date-parse/versions/1 --impl examples/impls/date-parse-strict --rerun
 ```
 

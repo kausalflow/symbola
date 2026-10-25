@@ -5,12 +5,12 @@ import sys
 import pytest
 from typer.testing import CliRunner
 
-from symbolon import keys
-from symbolon.attest import verify_attestation
-from symbolon.cli import app
-from symbolon.digest import contract_digest
-from symbolon.implementation import load_impl_manifest
-from symbolon.sandbox import ProcessSandbox, SandboxUnavailable
+from symbola import keys
+from symbola.attest import verify_attestation
+from symbola.cli import app
+from symbola.digest import contract_digest
+from symbola.implementation import load_impl_manifest
+from symbola.sandbox import ProcessSandbox, SandboxUnavailable
 
 runner = CliRunner()
 
@@ -18,7 +18,7 @@ runner = CliRunner()
 # build/date-parse/, changed as its variant says, the way an agent's build would land.
 STUB = r'''
 import json, pathlib, sys
-from symbolon.digest import contract_digest
+from symbola.digest import contract_digest
 
 variant, source = sys.argv[1], pathlib.Path(sys.argv[2])
 prompt = sys.stdin.read()

@@ -5,13 +5,13 @@ import tomllib
 import pytest
 from typer.testing import CliRunner
 
-from symbolon.agent import AgentCommand, AgentError, parse_agents, resolve_agent, run_agent
-from symbolon.cli import app
-from symbolon.digest import contract_digest
-from symbolon.extract import ExtractError, extract, scaffold_pack, sync_components
-from symbolon.pack import validate_pack
-from symbolon.scaffold import scaffold
-from symbolon.validate import regenerate_schema
+from symbola.agent import AgentCommand, AgentError, parse_agents, resolve_agent, run_agent
+from symbola.cli import app
+from symbola.digest import contract_digest
+from symbola.extract import ExtractError, extract, scaffold_pack, sync_components
+from symbola.pack import validate_pack
+from symbola.scaffold import scaffold
+from symbola.validate import regenerate_schema
 
 from .conftest import REPO
 

@@ -77,7 +77,7 @@ authors = ["{author}"]
 # support = [{{ label = "Buy me a coffee", url = "https://buymeacoffee.com/you" }}]
 
 # Component contracts, as "<namespace>/<name>@<version>" = "<digest>".
-# Add one with `symbolon init` under components/, then list its digest here.
+# Add one with `symbola init` under components/, then list its digest here.
 [components]
 '''
 
@@ -129,14 +129,14 @@ This is a Symbolon spec pack. If you are building from it:
    `unchecked` ones are required although no check covers them yet.
 4. Each component's specification is under `components/<name>/versions/<n>/`.
 
-**Done** means `symbolon attest components/<name>/versions/<n> <impl-dir>` passes
+**Done** means `symbola attest components/<name>/versions/<n> <impl-dir>` passes
 for every component. The publisher keeps a holdout, so don't special-case examples.
 
 If you are the publisher's coding agent, keep this pack current while you build:
 when the user makes a choice you could not have guessed, add it to
 `obligations.toml` with a check; when they state a fact about the world, add an
 assumption; record only what the user decided, not what the code happens to do.
-Keep holdout tests outside this folder. Run `symbolon pack validate <this folder>`
+Keep holdout tests outside this folder. Run `symbola pack validate <this folder>`
 after each change.
 '''
 
@@ -245,9 +245,9 @@ def _component_key(rel: str) -> str | None:
     return parts[1]
 
 
-INSTALL = "uv tool install git+https://github.com/kausalflow/symbolon"
+INSTALL = "uv tool install git+https://github.com/kausalflow/symbola"
 DEFAULT_REGISTRY = "https://symbola.sh"
-CLI_DOCS = "https://kausalflow.github.io/symbolon/cli/"
+CLI_DOCS = "https://kausalflow.github.io/symbola/cli/"
 
 
 def components_of(version_dir: Path) -> list[str]:
@@ -268,23 +268,23 @@ def build_steps(pack_id: str, page: str, components: list[str], price: dict | No
         "## Build this pack\n\n"
         f"For coding agents whose user shared {page} and wants it built. Run these steps yourself; "
         "ask the user only for the language if they have not named one.\n\n"
-        f"1. Install the Symbolon CLI (Python 3.11+): `{INSTALL}` (or `pipx install "
-        "git+https://github.com/kausalflow/symbolon`). Not `pip install symbolon`: that PyPI name is another project.\n"
-        + (f"2. Download the pack: `symbolon pull {pack_id} --dest spec{token}`"
+        f"1. Install the Symbola CLI (Python 3.11+): `{INSTALL}` (or `pipx install "
+        "git+https://github.com/kausalflow/symbola`). Not `pip install symbolon`: that PyPI name is another project.\n"
+        + (f"2. Download the pack: `symbola pull {pack_id} --dest spec{token}`"
            + (" (the user buys a license on the pack page first).\n" if price else ".\n"))
         + "3. Read `spec/AGENTS.md` and follow it. Build only from `spec/`: don't look for the original "
         "product's source, the registry repository (it holds holdout tests) or other builds.\n"
         "4. Build each component in its own folder and run its checks as you go, fixing what fails:\n\n"
-        f"       symbolon impl-init impl/{name} --contract spec/{first}\n"
-        f"       symbolon test spec/{first} impl/{name}\n\n"
+        f"       symbola impl-init impl/{name} --contract spec/{first}\n"
+        f"       symbola test spec/{first} impl/{name}\n\n"
         "   In Python, define `run(input)` in `impl.py`: it takes and returns a dict, and raises `ValueError` "
         "for input the contract rejects. Pin third-party packages with `==` in `requirements.lock`. In another language, set `language = \"command\"` and "
         "`command = [...]` in `symbolon-impl.toml`; the program reads one JSON input per line on stdin and writes "
         "`{\"output\": ...}` per line.\n"
-        f"5. When every component passes, run `symbolon keygen` once, then for each component "
-        f"`symbolon attest spec/{first} impl/{name} -o attestations/{name}.json`. On macOS, attest needs Docker "
+        f"5. When every component passes, run `symbola keygen` once, then for each component "
+        f"`symbola attest spec/{first} impl/{name} -o attestations/{name}.json`. On macOS, attest needs Docker "
         "running and accepts Python, Node or a static Linux binary (for Go, `GOOS=linux`); "
-        "`symbolon test` runs the same checks without it.\n\n"
+        "`symbola test` runs the same checks without it.\n\n"
         "You are done when attest reports PASSED for every component. Write open questions and the readings you "
         f"chose in `NOTES.md`. Every command is described at {CLI_DOCS}.\n\n"
         + (f"Components:\n\n{listed}\n" if listed else "")
@@ -331,8 +331,8 @@ def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bo
             [f"# {pack_id} (version {version}): component {key}\n",
              f"Part of the pack at [{top}]({top}). Pack digest: `{digest}`.\n",
              f"The contract folder, to check a build against: [{key}.tar.gz]({key}.tar.gz). Unpack it, "
-             f"then run `symbolon impl-init <build folder> --contract <contract folder>`, `symbolon keygen` "
-             f"once, and `symbolon attest <contract folder> <build folder>`.\n"]
+             f"then run `symbola impl-init <build folder> --contract <contract folder>`, `symbola keygen` "
+             f"once, and `symbola attest <contract folder> <build folder>`.\n"]
             + [_section(root, p, part_files) for p in sorted(paths)])
     contents = "".join(f"- [{rel}]({here}{rel}) ({len(text.encode()) // 1024 + 1} KB)\n" for rel, text in parts.items())
     head = [f"# {pack_id} (version {version})\n",
@@ -592,7 +592,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         (bulk / EVIDENCE_FILE).write_text(json.dumps(evidence, indent=2) + "\n")
         listed = [p.relative_to(version_dir).as_posix() for p in public]
         download = (f"buy it for {price['amount'] / 100:.2f} {price['currency'].upper()} and pull it with "
-                    f"`symbolon pull {pack_id} --token <license>`" if price else f"download {site_prefix}/{TARBALL_FILE}")
+                    f"`symbola pull {pack_id} --token <license>`" if price else f"download {site_prefix}/{TARBALL_FILE}")
         page = f"{site_prefix}/" if base_url else f"the pack {pack_id}"
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"

@@ -23,11 +23,11 @@ The first spec pack built from a real product: lightkone, a static web app for k
 | `lightkone/tidy@1` | Finding duplicate papers and how to merge each group |
 | `lightkone/library-file@1` | Reading `library.json` and writing it back, with `library.bib`, byte for byte |
 
-`symbolon pack validate packs/kausalflow/lightkone/versions/1` reports 64 obligations (all decided) and 4 assumptions, and every one of the components' 340 checks traces to an obligation.
+`symbola pack validate packs/kausalflow/lightkone/versions/1` reports 64 obligations (all decided) and 4 assumptions, and every one of the components' 340 checks traces to an obligation.
 
 ## Results (milestone 4: replicate over the whole pack)
 
-`symbolon replicate` gave all eight components to three Claude Code builds: Sonnet, Opus and Haiku. Lightkone was the reference and the holdout was on. All three builders wrote Python, and their logs show no reads outside the builder's copy. The builds took 11, 16 and 21 minutes and cost $1.76, $5.13 and $1.15 in agent time.
+`symbola replicate` gave all eight components to three Claude Code builds: Sonnet, Opus and Haiku. Lightkone was the reference and the holdout was on. All three builders wrote Python, and their logs show no reads outside the builder's copy. The builds took 11, 16 and 21 minutes and cost $1.76, $5.13 and $1.15 in agent time.
 
 Every build passed every component and every holdout: 24 of 24 on both. They still differ. `diff` found 27 splits, 15 of them in `bibtex-import`. Builders' probes found 12 of the 27. `bibtex-export` and `citation-key` converged.
 
@@ -56,7 +56,7 @@ Lightkone passes the five changed contracts and is re-attested on them by `runne
 
 ## Results (milestone 3: the first `replicate` runs)
 
-`symbolon replicate` handed `search-query` and `citation-key` to two Claude Code builds, one on Sonnet and one on Opus, with lightkone as the reference and the publisher's holdout. Each agent got only the builder's copy of `versions/1/`. Their logs show no reads outside it. Both chose Python. The runs cost $1.41 and $1.56 in agent time, and each took under eight minutes.
+`symbola replicate` handed `search-query` and `citation-key` to two Claude Code builds, one on Sonnet and one on Opus, with lightkone as the reference and the publisher's holdout. Each agent got only the builder's copy of `versions/1/`. Their logs show no reads outside it. Both chose Python. The runs cost $1.41 and $1.56 in agent time, and each took under eight minutes.
 
 | Run | Builds pass | Holdout | Splits found | What it showed |
 | --- | --- | --- | --- | --- |
@@ -112,14 +112,14 @@ Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split
 
 ## Measuring the remaining ambiguity
 
-`symbolon diff` turns the milestone 2 differential test into a command that works on any number of builds (see [Measuring ambiguity](guides/measuring-ambiguity.md)). Run on `search-query` with lightkone as the reference and both rebuilds, it puts the Go build at distance 0 from lightkone. It finds the two rules milestone 2 tightened, `search.year-malformed` and `search.title-sort-other`, as the splits between the milestone 1 Python build and the other two. On `bibtex-import`, after the importer fix in kausalflow/lightkone#50, it finds no disagreement between lightkone and the Go build.
+`symbola diff` turns the milestone 2 differential test into a command that works on any number of builds (see [Measuring ambiguity](guides/measuring-ambiguity.md)). Run on `search-query` with lightkone as the reference and both rebuilds, it puts the Go build at distance 0 from lightkone. It finds the two rules milestone 2 tightened, `search.year-malformed` and `search.title-sort-other`, as the splits between the milestone 1 Python build and the other two. On `bibtex-import`, after the importer fix in kausalflow/lightkone#50, it finds no disagreement between lightkone and the Go build.
 
 ## Re-running the evidence
 
 ```bash
 git clone https://github.com/kausalflow/symbolon-registry && cd symbolon-registry/packs/kausalflow/lightkone
-symbolon pack validate 1
-symbolon verify attestations/search-query.go-1.json --trust attestations/runner-a.pub \
+symbola pack validate 1
+symbola verify attestations/search-query.go-1.json --trust attestations/runner-a.pub \
   --contract versions/1/components/search-query/versions/1 --impl rebuilds/go-1/search-query --rerun
 ```
 
