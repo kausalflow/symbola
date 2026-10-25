@@ -157,7 +157,7 @@ See [Extracting a pack](guides/extracting-a-pack.md).
 ## `replicate`
 
 ```
-symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--component NAME ...]
+symbolon replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--prose-only 0] [--component NAME ...]
                    [--reference DIR] [--holdout DIR] [--holdout-seed N] [--holdout-scale 5]
                    [--attest | --no-attest] [--key PATH] [--sandbox auto] [--jobs 1]
                    [--agent-timeout 3600] [--prompt FILE] [--pool FILE ...]
@@ -174,6 +174,7 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 | Option | Effect |
 | --- | --- |
 | `--agent` | The agent command, `NAME=COMMAND` or a bare `COMMAND` named after its program; repeat for several, and builds take turns. Default `$SYMBOLON_AGENT`, then Claude Code headless |
+| `--prose-only` | How many of the builds, the last ones, get the pack without any `examples.jsonl` or `properties.py`: they are judged by the full spec, so they show whether the descriptions alone carry it |
 | `--reference` | A directory with one implementation per component, such as a pack's `oracle/`: compared with every build, not part of the ensemble |
 | `--holdout` | A directory of `<component>.jsonl` examples the builders never see, run with `--holdout-seed` and `--holdout-scale` times the property cases |
 | `--no-attest` | Test each build instead of attesting it; no runner key needed |

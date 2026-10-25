@@ -79,7 +79,8 @@ OBLIGATIONS = '''\
 # that pin it down. status: decided (required), default (chosen; a fork may
 # change it with a note), open (deliberately undecided; builds may differ).
 # Checks are "<component>#example:<line in examples.jsonl>" or
-# "<component>#<property test name>".
+# "<component>#<property test name>". A required obligation no check can
+# express yet has checks = [] and unchecked = "<the check it would need>".
 '''
 
 AGENTS = '''\
@@ -89,7 +90,8 @@ This is a Symbolon spec pack. Build from it; do not look for the original source
 
 1. Read `BRIEF.md`: what the product is, its non-goals and priorities.
 2. Read `assumptions/`: what you may take as true about the world. Don't build for cases they rule out.
-3. Read `obligations.toml`: the decisions you must keep. Obligations marked `open` are yours to choose.
+3. Read `obligations.toml`: the decisions you must keep. Obligations marked `open` are yours to choose;
+   ones marked `unchecked` are required although no check covers them yet.
 4. Each component's full specification is `components/<name>/versions/<n>/`: `symbolon.toml`
    (the description), `schema.py`, `examples.jsonl` and `properties.py`. Where the
    description and an example seem to disagree, the example is what the original does.
@@ -138,9 +140,16 @@ AI builders fill gaps well. A pack holds only what a competent builder could not
 decide alone: the points where good builders would choose differently and the
 publisher would reject one choice, facts about the world no builder can infer,
 and a check for each. Do not spell out what any good builder would do anyway.
-Pick a handful of pure, well-bounded components that carry the product's
-non-obvious behaviour (parsing, ranking, formats, merge rules, naming,
-authorisation, audit events). Do not try to cover the whole product.
+
+Specify the product at the surfaces its users rely on (its API, file formats,
+command line, the results it reports), not at internal seams: a component at an
+internal seam forces builders into the original's architecture. Pick a handful
+of components that carry the product's non-obvious behaviour (parsing, ranking,
+formats, merge rules, naming, authorisation, audit events). Do not try to cover
+everything, but do not leave out a surface because it is not a pure function:
+an adapter can drive a command line in a scratch directory or a whole run, and a
+property can hold for every seed of a random process. Leave out what concerns
+only the original's own codebase (its module layout, naming, code style).
 
 ## Components (capability contracts)
 
@@ -193,8 +202,12 @@ single-writer assumption.
   kind = "behaviour" | "constraint" | "security" | "audit"   (constraint needs reason = "...")
   assumes = ["K-..."]         optional
   checks = ["<name>#example:<line>", "<name>#test_<property>"]
+  unchecked = "..."           only when no example or property can check it: the
+                              kind of check it would need (then checks = [])
 A decided or default obligation needs at least one check, and the checks must
-exist. Every example and property should trace to some obligation.
+exist; `unchecked` is for a requirement the publisher would hold a build to but
+no example or property can express (at most a tenth of them). Every example and
+property should trace to some obligation.
 
 When you are unsure what the publisher wants, choose `default` and ask in {review}.
 

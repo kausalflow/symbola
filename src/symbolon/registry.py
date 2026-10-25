@@ -125,7 +125,8 @@ This is a Symbolon spec pack. If you are building from it:
 
 1. Read `BRIEF.md`: what the product is, its non-goals and priorities.
 2. Read `assumptions/`: what you may take as true about the world.
-3. Read `obligations.toml`: the decisions you must keep. `open` ones are yours to choose.
+3. Read `obligations.toml`: the decisions you must keep. `open` ones are yours to choose;
+   `unchecked` ones are required although no check covers them yet.
 4. Each component's specification is under `components/<name>/versions/<n>/`.
 
 **Done** means `symbolon attest components/<name>/versions/<n> <impl-dir>` passes

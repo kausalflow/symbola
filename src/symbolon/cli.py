@@ -413,6 +413,8 @@ def _print_replication(r: dict, top: int) -> None:
     typer.echo("")
     for comp, row in r["components"].items():
         held = f", holdout {row['holdout_passed']}/{row['passed']}" if row["holdout_passed"] is not None else ""
+        if row.get("prose_only"):
+            held += f", prose-only {row['prose_only']['passed']}/{row['prose_only']['builds']}"
         d = row["diff"]
         if d is None:
             measured = "not diffed: needs two passing implementations"
@@ -460,6 +462,8 @@ def replicate(
     agent: list[str] = typer.Option([], help="Coding agent command, as NAME=COMMAND or COMMAND. Repeat for several; "
                                      "builds take turns. Default $SYMBOLON_AGENT, else Claude Code."),
     builds: int = typer.Option(2, help="How many builds to make."),
+    prose_only: int = typer.Option(0, help="How many of the builds (the last ones) get the pack without examples "
+                                   "and properties, to test whether the descriptions alone carry the spec."),
     component: list[str] = typer.Option([], help="Build only this component. Repeat for several. Default every one."),
     reference: Path | None = typer.Option(None, help="The original product: a directory with one implementation per component, compared with every build."),
     holdout: Path | None = typer.Option(None, help="Publisher's holdout: a directory of <component>.jsonl examples the builders never see."),
@@ -487,7 +491,7 @@ def replicate(
         agents = parse_agents(agent)
     except AgentError as e:
         raise typer.BadParameter(str(e), param_hint="--agent")
-    opts = Options(builds=builds, components=component or None, reference=reference, holdout=holdout,
+    opts = Options(builds=builds, prose_only=prose_only, components=component or None, reference=reference, holdout=holdout,
                    holdout_seed=holdout_seed, holdout_scale=holdout_scale, jobs=jobs, agent_timeout=agent_timeout,
                    prompt=prompt.read_text() if prompt else None, pools=pool, mutations=mutations,
                    property_cases=property_cases, search=search, seed=seed, diff_timeout=diff_timeout,
