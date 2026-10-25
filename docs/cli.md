@@ -264,7 +264,7 @@ Validates the latest version of every pack under `REGISTRY` and writes `index.js
 symbolon pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
 ```
 
-Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into `DEST` (default `./<name>`). A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Pack registry](REGISTRY.md#pulling-a-pack).
+Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into `DEST` (default `./<name>`) and prints the commands to start building. `PACK_ID` can also be the pack's page link, such as `https://symbola.sh/packs/acme/invoice-desk/`; the registry is then the site that serves it. A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Pack registry](REGISTRY.md#pulling-a-pack).
 
 ## `site check`
 

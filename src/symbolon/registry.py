@@ -245,6 +245,52 @@ def _component_key(rel: str) -> str | None:
     return parts[1]
 
 
+INSTALL = "uv tool install git+https://github.com/kausalflow/symbolon"
+DEFAULT_REGISTRY = "https://symbola.sh"
+CLI_DOCS = "https://kausalflow.github.io/symbolon/cli/"
+
+
+def components_of(version_dir: Path) -> list[str]:
+    """The pack's contract folders, like `components/tidy/versions/1`, relative to the pack."""
+    return sorted(m.parent.relative_to(version_dir).as_posix()
+                  for m in Path(version_dir).glob(f"{COMPONENTS_DIR}/*/{VERSIONS_DIR}/*/symbolon.toml"))
+
+
+def build_steps(pack_id: str, page: str, components: list[str], price: dict | None = None,
+                registry: str = "") -> str:
+    """Build instructions for a coding agent that was handed only the pack's page link."""
+    token = (f" --registry {registry}" if registry.rstrip("/") not in ("", DEFAULT_REGISTRY) else "") \
+        + (" --token <license>" if price else "")
+    first = components[0] if components else f"{COMPONENTS_DIR}/<name>/{VERSIONS_DIR}/1"
+    name = first.split("/")[1]
+    listed = "".join(f"- `{c.split('/')[1]}`: `spec/{c}`\n" for c in components)
+    return (
+        "## Build this pack\n\n"
+        f"For coding agents whose user shared {page} and wants it built. Run these steps yourself; "
+        "ask the user only for the language if they have not named one.\n\n"
+        f"1. Install the Symbolon CLI (Python 3.11+): `{INSTALL}` (or `pipx install "
+        "git+https://github.com/kausalflow/symbolon`). Not `pip install symbolon`: that PyPI name is another project.\n"
+        + (f"2. Download the pack: `symbolon pull {pack_id} --dest spec{token}`"
+           + (" (the user buys a license on the pack page first).\n" if price else ".\n"))
+        + "3. Read `spec/AGENTS.md` and follow it. Build only from `spec/`: don't look for the original "
+        "product's source, the registry repository (it holds holdout tests) or other builds.\n"
+        "4. Build each component in its own folder and run its checks as you go, fixing what fails:\n\n"
+        f"       symbolon impl-init impl/{name} --contract spec/{first}\n"
+        f"       symbolon test spec/{first} impl/{name}\n\n"
+        "   In Python, define `run(input)` in `impl.py`: it takes and returns a dict, and raises `ValueError` "
+        "for input the contract rejects. Pin third-party packages with `==` in `requirements.lock`. In another language, set `language = \"command\"` and "
+        "`command = [...]` in `symbolon-impl.toml`; the program reads one JSON input per line on stdin and writes "
+        "`{\"output\": ...}` per line.\n"
+        f"5. When every component passes, run `symbolon keygen` once, then for each component "
+        f"`symbolon attest spec/{first} impl/{name} -o attestations/{name}.json`. On macOS, attest needs Docker "
+        "running and accepts Python, Node or a static Linux binary (for Go, `GOOS=linux`); "
+        "`symbolon test` runs the same checks without it.\n\n"
+        "You are done when attest reports PASSED for every component. Write open questions and the readings you "
+        f"chose in `NOTES.md`. Every command is described at {CLI_DOCS}.\n\n"
+        + (f"Components:\n\n{listed}\n" if listed else "")
+    )
+
+
 def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bool = False,
                   site_prefix: str = "", files_prefix: str = "") -> dict[str, str]:
     """The pack as a few Markdown files an agent can read in order, keyed by path.
@@ -547,9 +593,13 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         listed = [p.relative_to(version_dir).as_posix() for p in public]
         download = (f"buy it for {price['amount'] / 100:.2f} {price['currency'].upper()} and pull it with "
                     f"`symbolon pull {pack_id} --token <license>`" if price else f"download {site_prefix}/{TARBALL_FILE}")
+        page = f"{site_prefix}/" if base_url else f"the pack {pack_id}"
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
-            f"Version {version}, digest {digest}. Start with {site_prefix}/pack.md (brief, assumptions, "
+            f"Version {version}, digest {digest}. {summary_line(report.summary)}.\n\n"
+            + build_steps(pack_id, page, components_of(version_dir), price, base_url)
+            + "## Read it online\n\n"
+            f"Start with {site_prefix}/pack.md (brief, assumptions, "
             + (f"obligations, and links to one file per component under {files_prefix}/parts/), or {download}.\n\n"
                if preview == "full" else f"obligations; the components come with the purchase), or {download}.\n\n")
             + "## Files\n\n"
@@ -574,6 +624,8 @@ def build_site(registry: Path, out: Path, base_url: str = "",
     (out / "llms.txt").write_text(
         "# Symbolon pack registry\n\n> Spec packs that AI coding agents can build from. "
         "Each pack holds a brief, assumptions, obligations and component contracts with tests.\n\n"
+        "To build a pack, open its llms.txt below and follow its \"Build this pack\" steps. "
+        f"Install the CLI with `{INSTALL}`.\n\n"
         f"Catalog as JSON: {root_prefix}index.json\n\n## Packs\n\n"
         + "".join(f"- [{e['id']}]({root_prefix}packs/{e['id']}/llms.txt): {e['title']} · {e['summary_line']}\n"
                   for e in entries))
@@ -685,6 +737,16 @@ def _fetch(url: str, token: str | None = None) -> bytes:
             return r.read()
     except (urllib.error.URLError, OSError) as e:
         raise RegistryError(f"could not fetch {url}: {e}") from None
+
+
+PAGE_RE = re.compile(r"^([a-z]+://[^?#]*?)/packs/([^/?#]+/[^/?#]+)(?:[/?#].*)?$")
+
+
+def pack_ref(ref: str) -> tuple[str, str | None]:
+    """`owner/name` -> (id, None); a pack page link such as https://symbola.sh/packs/owner/name/
+    (or any file under it) -> (id, the registry it is served from)."""
+    m = PAGE_RE.match(ref.strip())
+    return (m.group(2), m.group(1)) if m else (ref, None)
 
 
 def pull(pack_id: str, registry: str, dest: Path, token: str | None = None,

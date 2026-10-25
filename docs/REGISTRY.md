@@ -95,14 +95,14 @@ invalid) and writes:
 
 ```
 index.json                                 every pack: id, version, title, license, digest, tarball sha256, summary, files
-llms.txt                                   one line per pack, for agents
+llms.txt                                   one line per pack, for agents, and where to find build steps
 packs/<owner>/<name>/
   latest.tar.gz                            the pack folder, byte-identical on every build
   latest.sha256                            sha256 of the tarball
   pack.md                                  brief, assumptions, obligations, manifest, and a list of the parts
   parts/<component>-v<n>.md                one component's contract, schemas and tests
   parts/<component>-v<n>.tar.gz            that component's contract folder, for `symbolon attest`
-  llms.txt                                 the pack's files, for agents
+  llms.txt                                 build steps for a coding agent, then the pack's files
   files/…                                  every file of the pack, raw
   evidence.json                            every attestation beside the pack, checked at build time
   attestations/…                           the attestation files and runner keys, to re-check
@@ -162,7 +162,9 @@ change reaches the registry and the site when those pins move.
 symbolon pull acme/invoice-desk [--registry URL-or-folder] [--dest DIR] [--digest DIGEST]
 ```
 
-`pull` takes no version: the registry serves only the latest. The one exception is
+`pull` also takes the pack's page link (`symbolon pull https://symbola.sh/packs/acme/invoice-desk/`),
+and then pulls from the registry that serves the page. It prints the commands to start
+building. `pull` takes no version: the registry serves only the latest. The one exception is
 re-checking evidence: `symbolon pull <id> --digest <pack digest>` downloads an
 older version that some attestation names (the pack page links its digest). It downloads the
 tarball, checks its sha256 against `latest.sha256` and `index.json`, unpacks it,
