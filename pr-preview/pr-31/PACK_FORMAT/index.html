@@ -1247,25 +1247,10 @@ builders would choose differently and the publisher would reject one choice, the
 facts about the world no builder can infer, and a check for each. See design v0.5,
 section 4.</p>
 <h2 id="what-a-pack-specifies">What a pack specifies<a class="headerlink" href="#what-a-pack-specifies" title="Permanent link">&para;</a></h2>
-<p>A pack specifies what the product does at the surfaces people rely on: its API,
-its file formats, its command line, the results it reports. It does not specify
-how the product is built. Three rules keep it that way:</p>
-<ul>
-<li><strong>Specify at surfaces, not internal seams.</strong> A component at an internal seam,
-  such as one function of the original's core, forces builders into the
-  original's architecture. Prefer components that drive the product the way a
-  user does: a scenario in and its results out, or a command line run in a
-  scratch directory. Add a seam only when someone outside relies on it.</li>
-<li><strong>Pin an algorithm only when its exact output is the product.</strong> Exact examples
-  of a numerical method allow one algorithm. When any reasonable one would do,
-  check the properties it must have instead (stays within limits, settles at
-  the right value, does not depend on the step size).</li>
-<li><strong>State a realization choice only as a constraint, with a reason that says who
-  it affects.</strong> "Parameters are in physical units, so changing the step size
-  never needs retuning" affects users and belongs in the pack. Choices that
-  concern only the publisher's own codebase, such as module layout or naming,
-  stay out; they belong in that codebase's own guidance.</li>
-</ul>
+<p>What the product does at the surfaces people use (API, file formats, command line,
+results), not how it is built. Drive the product as a user does rather than through
+internal seams; check properties rather than exact output unless the exact output is
+the product; leave codebase-only choices to the codebase's own guidance.</p>
 <h2 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>packs/&lt;namespace&gt;/&lt;product&gt;/versions/&lt;version&gt;/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  symbolon-pack.toml    manifest: pack id, version, license, component digests (required)
@@ -1337,23 +1322,11 @@ a build that passes the pack is correct under these assumptions.</p>
 </tbody>
 </table>
 <h3 id="unchecked-obligations">Unchecked obligations<a class="headerlink" href="#unchecked-obligations" title="Permanent link">&para;</a></h3>
-<p>A requirement the publisher would hold every build to, but that no example or
-property can express yet, is <code>decided</code> (or <code>default</code>) with no checks and an
-<code>unchecked</code> reason naming the check it would need:</p>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">[[obligation]]</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"engine.resume-is-seamless"</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">statement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Running to t1 and then to t2 gives the same series as running to t2 at once."</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"decided"</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">checks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">unchecked</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"a session check: several calls on one live implementation, compared with one call"</span>
-</span></code></pre></div>
-<p>Builders read it as required, like any decided obligation. <code>pack validate</code>
-reports it as debt, and fails when unchecked obligations are more than
-<code>max_unchecked</code> of the decided and default ones (a share; 0.1 unless the pack
-manifest's <code>[pack]</code> table sets it), so a pack stays a set of checked promises
-rather than prose. Do not use <code>unchecked</code> for what an example or property could
-check: write the check. Do not use <code>open</code> for a requirement just because it has
-no check: that tells builders the choice is theirs.</p>
+<p>A required behaviour no example or property can express yet is <code>decided</code> (or
+<code>default</code>) with no checks and an <code>unchecked</code> reason naming the check it would need,
+such as <code>unchecked = "a session check: run to t1 then t2, compared with one run to t2"</code>.
+Builders treat it as required; <code>pack validate</code> counts it as debt and fails above
+<code>[pack] max_unchecked</code> (a share of decided and default obligations, default 0.1).</p>
 <p>A check is <code>&lt;component&gt;#example:&lt;line&gt;</code> (a 1-based line of that component's
 <code>examples.jsonl</code>) or <code>&lt;component&gt;#&lt;test function&gt;</code> (a property in its
 <code>properties.py</code>). Obligation ids are the single id scheme for tracing checks to
@@ -1403,7 +1376,7 @@ does, the fields record what a check must do.</p>
    <code>tolerance</code>; an exact one gives none of them.</li>
 <li>Unchecked obligations are at most <code>max_unchecked</code> of the decided and default ones.</li>
 </ol>
-<p>It then reports obligations by status (and how many are unchecked), source and exactness, assumptions and how many are
+<p>It then reports obligations by status, source and exactness, assumptions and how many are
 monitored, and how many of the components' checks trace to an obligation. It does
 not run contract code; use <code>symbolon validate</code> on each component for that.</p>
 

@@ -1148,20 +1148,9 @@ builds that passed, with <code>--reference</code> as the original product when t
 <code>claude-1</code>, <code>other-2</code> and <code>claude-3</code>. Different agent families make a better
 ensemble than one agent run three times, because they share fewer defaults.</p>
 <h2 id="prose-only-builds">Prose-only builds<a class="headerlink" href="#prose-only-builds" title="Permanent link">&para;</a></h2>
-<p>Builders lean on the examples. A description that states a rule wrongly, or
-leaves out a convention such as how steps are indexed, can go unnoticed because
-the examples show what it should have said. <code>--prose-only N</code> gives the last N
-builds a copy of the pack with no <code>examples.jsonl</code> or <code>properties.py</code>: only the
-brief, assumptions, obligations, schemas and component descriptions. Their prompt
-says so and asks them to test against the descriptions. They are checked, held
-out and diffed against the full spec like every other build, and named
-<code>&lt;agent&gt;-&lt;n&gt;-prose</code>.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbolon<span class="w"> </span>replicate<span class="w"> </span>versions/1<span class="w"> </span>--builds<span class="w"> </span><span class="m">3</span><span class="w"> </span>--prose-only<span class="w"> </span><span class="m">1</span><span class="w"> </span>--reference<span class="w"> </span>oracle<span class="w"> </span>-o<span class="w"> </span>replication-2
-</span></code></pre></div>
-<p>A component that passes with the examples but fails prose-only has a rule the
-description does not carry. Fix the description, not the examples: the
-description is the definition, and the checks only witness it. This matters most
-for components defined by formulas.</p>
+<p><code>--prose-only N</code> gives the last N builds (named <code>&lt;agent&gt;-&lt;n&gt;-prose</code>) the pack without
+<code>examples.jsonl</code> or <code>properties.py</code>; they are still judged by the full spec. A component
+that fails only prose-only has a rule its description does not carry: fix the description.</p>
 <h2 id="which-agent-runs">Which agent runs<a class="headerlink" href="#which-agent-runs" title="Permanent link">&para;</a></h2>
 <p>Any command line that reads a prompt on stdin and works in its current directory.
 The prompt is also written to <code>.symbolon/prompt.md</code>, and <code>{prompt_file}</code> and
@@ -1173,21 +1162,21 @@ headless mode. <code>--prompt FILE</code> replaces the default prompt; <code>$pa
 only keeps it from seeing the original code if it stays there. For a clean room,
 run <code>replicate</code> on a machine or container that has no copy of the original.</p>
 <h2 id="what-comes-out">What comes out<a class="headerlink" href="#what-comes-out" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>replication-1/
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  replication.json          the report
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  builds/&lt;build&gt;/           each agent's work directory: pack/, build/, agent.log
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  attestations/&lt;component&gt;.&lt;build&gt;.json
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  diff/&lt;component&gt;.json     the full diff report
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  holdout/&lt;build&gt;/          the holdout copies that ran
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>replication-1/
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  replication.json          the report
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  builds/&lt;build&gt;/           each agent's work directory: pack/, build/, agent.log
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  attestations/&lt;component&gt;.&lt;build&gt;.json
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  diff/&lt;component&gt;.json     the full diff report
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  holdout/&lt;build&gt;/          the holdout copies that ran
 </span></code></pre></div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>✓ build claude-1  claude, 412s, 8/8 components built
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>✓ build other-2  other, 388s, 8/8 components built
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>✓ search-query  2/2 builds passed, holdout 2/2  ambiguity 0.0000, vs reference claude-1 0.0000, other-2 0.0000, 0 split(s)
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>✗ bibtex-import  2/2 builds passed, holdout 2/2
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    ambiguity 0.0153, 1 split(s)
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    1. claude-1 | other-2  31 inputs; no obligation covers it, a gap in the pack
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>...
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>not converged: 1 split(s) to review
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>✓ build claude-1  claude, 412s, 8/8 components built
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>✓ build other-2  other, 388s, 8/8 components built
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>✓ search-query  2/2 builds passed, holdout 2/2  ambiguity 0.0000, vs reference claude-1 0.0000, other-2 0.0000, 0 split(s)
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>✗ bibtex-import  2/2 builds passed, holdout 2/2
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    ambiguity 0.0153, 1 split(s)
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    1. claude-1 | other-2  31 inputs; no obligation covers it, a gap in the pack
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>...
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>not converged: 1 split(s) to review
 </span></code></pre></div>
 <p>Each split is labelled:</p>
 <table>
