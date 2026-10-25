@@ -54,6 +54,8 @@ class ContractSection(_Strict):
 
 class Entrypoint(_Strict):
     function: str = "run"
+    # "cli": implementations are programs, run once per call; see spec.CliImpl.
+    driver: Literal["function", "cli"] = "function"
 
     @field_validator("function")
     @classmethod

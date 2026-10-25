@@ -55,7 +55,7 @@ reports.
 When the user asks to release:
 
 1. `symbola pack validate spec` must pass.
-2. In a clone of the registry repository (github.com/kausalflow/symbolon-registry):
+2. In a clone of the registry repository (github.com/kausalflow/symbola-registry):
    `symbola release spec --registry <clone>/packs`
 3. In the clone: `symbola site check packs`, then commit and open a pull
    request. Tell the user the PR link.

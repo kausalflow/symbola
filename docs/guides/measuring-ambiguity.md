@@ -10,7 +10,7 @@ and 6.2).
 ## Run it
 
 ```bash
-cd symbolon-registry/packs/kausalflow/lightkone   # a clone of kausalflow/symbolon-registry
+cd symbola-registry/packs/kausalflow/lightkone   # a clone of kausalflow/symbola-registry
 symbola diff versions/1/components/search-query/versions/1 \
   oracle/search-query rebuilds/go-1/search-query rebuilds/python-1/search-query \
   --reference oracle -o diff-search-query.json
