@@ -246,6 +246,7 @@ def _component_key(rel: str) -> str | None:
 
 INSTALL = "uv tool install git+https://github.com/kausalflow/symbolon"
 DEFAULT_REGISTRY = "https://symbola.sh"
+CLI_DOCS = "https://kausalflow.github.io/symbolon/cli/"
 
 
 def components_of(version_dir: Path) -> list[str]:
@@ -284,7 +285,7 @@ def build_steps(pack_id: str, page: str, components: list[str], price: dict | No
         "running and accepts Python, Node or a static Linux binary (for Go, `GOOS=linux`); "
         "`symbolon test` runs the same checks without it.\n\n"
         "You are done when attest reports PASSED for every component. Write open questions and the readings you "
-        "chose in `NOTES.md`.\n\n"
+        f"chose in `NOTES.md`. Every command is described at {CLI_DOCS}.\n\n"
         + (f"Components:\n\n{listed}\n" if listed else "")
     )
 
