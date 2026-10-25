@@ -695,6 +695,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Implementations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command lines
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1094,6 +1111,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Implementations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Command lines
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1286,21 +1320,22 @@
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="k">[entrypoint]</span>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">function</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"run"</span><span class="w">                </span><span class="c1"># name of the function implementations must define</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="k">[requires]</span><span class="w">                      </span><span class="c1"># what an implementation needs from the world</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">network</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span><span class="w">                    </span><span class="c1"># allowed hosts; empty means no network</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="n">credentials</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span><span class="w">                </span><span class="c1"># names only, never values</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="n">permissions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="k">[spec]</span>
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w">                        </span><span class="c1"># hypothesis seed, for reproducible runs</span>
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="n">max_examples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="w">              </span><span class="c1"># hypothesis examples per property</span>
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="n">float_rel_tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e-9</span><span class="w">            </span><span class="c1"># tolerance when comparing numbers in examples</span>
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="n">timeout_seconds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">120</span><span class="w">           </span><span class="c1"># per validate or test run</span>
-</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>
-</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="k">[runtime]</span>
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=3.11"</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"function"</span><span class="w">             </span><span class="c1"># or "cli": implementations are programs; see Command lines</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="k">[requires]</span><span class="w">                      </span><span class="c1"># what an implementation needs from the world</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="n">network</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span><span class="w">                    </span><span class="c1"># allowed hosts; empty means no network</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">credentials</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span><span class="w">                </span><span class="c1"># names only, never values</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="n">permissions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="k">[spec]</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w">                        </span><span class="c1"># hypothesis seed, for reproducible runs</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="n">max_examples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="w">              </span><span class="c1"># hypothesis examples per property</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="n">float_rel_tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e-9</span><span class="w">            </span><span class="c1"># tolerance when comparing numbers in examples</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="n">timeout_seconds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">120</span><span class="w">           </span><span class="c1"># per validate or test run</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="k">[runtime]</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=3.11"</span>
 </span></code></pre></div>
 <p>Unknown keys are errors, so a typo cannot silently change a contract's meaning.</p>
 <h2 id="interface-schemapy-and-schemajson">Interface: <code>schema.py</code> and <code>schema/*.json</code><a class="headerlink" href="#interface-schemapy-and-schemajson" title="Permanent link">&para;</a></h2>
@@ -1308,10 +1343,15 @@
 <h2 id="implementations">Implementations<a class="headerlink" href="#implementations" title="Permanent link">&para;</a></h2>
 <p>An implementation is a Python file that defines the entrypoint function. It receives the input as plain JSON values (a dict matching <code>schema/input.json</code>) and returns plain JSON values matching <code>schema/output.json</code>. It reports invalid input by raising an exception, normally <code>ValueError</code>. Because implementations exchange only JSON values, any tool or model can produce one without importing Symbolon.</p>
 <p><code>symbola test</code> accepts a single file. <code>symbola attest</code> needs an implementation directory with a manifest and optional lockfile; see <a href="../ATTESTATION/">ATTESTATION.md</a>.</p>
+<h3 id="command-lines">Command lines<a class="headerlink" href="#command-lines" title="Permanent link">&para;</a></h3>
+<p>With <code>driver = "cli"</code>, an implementation is the real program (<code>language = "command"</code>, <code>command = ["./mytool"]</code>), not an adapter. <code>Input</code> has <code>argv</code> and optionally <code>files</code> (name -&gt; text) and <code>stdin</code>. For each call symbola writes <code>files</code> into an empty scratch directory, runs <code>command + argv</code> there with <code>stdin</code>, and collects</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span><span class="nt">"exit_code"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"stdout"</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span><span class="w"> </span><span class="nt">"stderr"</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span><span class="w"> </span><span class="nt">"files"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"out/a.csv"</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">}}</span>
+</span></code></pre></div>
+<p>where <code>files</code> holds every file the call created or changed. If the contract has <code>observe.py</code>, its <code>observe(input, result)</code> turns this into the output that examples and properties see, for example the exit code, the JSON keys printed and the files written. Without it, the output is the result itself. The reduction is part of the contract, so every build is compared the same way. Mutants are still Python functions that return the output.</p>
 <h2 id="examples-examplesjsonl">Examples: <code>examples.jsonl</code><a class="headerlink" href="#examples-examplesjsonl" title="Permanent link">&para;</a></h2>
 <p>One JSON object per line:</p>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">}}</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="nt">"raises"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ValueError"</span><span class="p">,</span><span class="w"> </span><span class="nt">"note"</span><span class="p">:</span><span class="w"> </span><span class="s2">"why this must fail"</span><span class="p">}</span>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">}}</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="nt">"raises"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ValueError"</span><span class="p">,</span><span class="w"> </span><span class="nt">"note"</span><span class="p">:</span><span class="w"> </span><span class="s2">"why this must fail"</span><span class="p">}</span>
 </span></code></pre></div>
 <ul>
 <li>Each line has <code>input</code> and exactly one of <code>output</code> or <code>raises</code>. <code>note</code> is optional.</li>
@@ -1321,14 +1361,14 @@
 </ul>
 <h3 id="fixtures-fixtures">Fixtures: <code>fixtures/</code><a class="headerlink" href="#fixtures-fixtures" title="Permanent link">&para;</a></h3>
 <p>When many examples need the same sample data, such as a library of papers, put it in <code>fixtures/&lt;name&gt;.json</code> once. Anywhere in an example, an object whose only key is <code>$fixture</code> is replaced by that file's contents before the example runs:</p>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"papers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"$fixture"</span><span class="p">:</span><span class="w"> </span><span class="s2">"library.json"</span><span class="p">},</span><span class="w"> </span><span class="nt">"query"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tag:ml"</span><span class="p">},</span><span class="w"> </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"ids"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"a"</span><span class="p">,</span><span class="w"> </span><span class="s2">"b"</span><span class="p">]}}</span>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"papers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"$fixture"</span><span class="p">:</span><span class="w"> </span><span class="s2">"library.json"</span><span class="p">},</span><span class="w"> </span><span class="nt">"query"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tag:ml"</span><span class="p">},</span><span class="w"> </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"ids"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"a"</span><span class="p">,</span><span class="w"> </span><span class="s2">"b"</span><span class="p">]}}</span>
 </span></code></pre></div>
 <ul>
 <li>The name must be a relative path to a <code>.json</code> file inside <code>fixtures/</code>.</li>
 <li>Each example gets its own copy, so an implementation that changes its input cannot affect the next example.</li>
 <li><code>{"$text": "name"}</code> inserts a fixture file's text instead of parsing it, for contracts whose input is a file's raw text (any extension; CRLF becomes LF, as in the digest):</li>
 </ul>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"$text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paperpile-import.json"</span><span class="p">}},</span><span class="w"> </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"written"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}}</span>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"$text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paperpile-import.json"</span><span class="p">}},</span><span class="w"> </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"written"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}}</span>
 </span></code></pre></div>
 <ul>
 <li>Fixtures are part of the contract directory, so they are part of its digest. Everyone tests against exactly the same data.</li>
@@ -1341,10 +1381,10 @@
 <p>A mutant is a plausible wrong implementation: the bug a careless builder, or an
 AI fitting the examples, would most likely write. Each file defines the
 entrypoint function and starts with a docstring naming the concern it models.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="sd">"""every fourth year is a leap year, centuries included"""</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="o">...</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="sd">"""every fourth year is a leap year, centuries included"""</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="o">...</span>
 </span></code></pre></div>
 <p><code>validate</code> runs the whole spec (examples and properties) against every mutant
 and fails if any mutant passes. A survivor means one of two things:</p>
@@ -1380,9 +1420,9 @@ that load, differ from the reference, and model a mistake someone would make.</p
 </ol>
 <p>Steps 3 to 9 execute contract code. They run in a separate Python process (<code>python -I -m symbola.worker</code>). <code>symbola attest</code> runs that same worker inside a sandbox (see ATTESTATION.md).</p>
 <h2 id="digest">Digest<a class="headerlink" href="#digest" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sha256( "symbolon-contract-v1\n"
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>        + for each file, sorted by POSIX relative path:
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>            path + "\n" + byte_length + "\n" + content + "\n" )
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sha256( "symbolon-contract-v1\n"
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>        + for each file, sorted by POSIX relative path:
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>            path + "\n" + byte_length + "\n" + content + "\n" )
 </span></code></pre></div>
 <ul>
 <li><code>content</code> has CRLF replaced with LF.</li>
