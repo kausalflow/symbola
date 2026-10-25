@@ -113,9 +113,24 @@ class LoadedContract:
             return self.load_impl(path, module_name)
         from .implementation import load_impl_manifest
         section = load_impl_manifest(path).implementation
+        if self.manifest.entrypoint.driver == "cli":
+            if section.language != "command":
+                raise SpecError("this contract checks a command line: set language = \"command\" and "
+                                "command = [...] to the program, e.g. [\"./mytool\"]")
+            return CliImpl(section.command, cwd=path, observe=self.observer(),
+                           timeout=self.manifest.spec.timeout_seconds)
         if section.language == "command":
             return CommandImpl(section.command, cwd=path)
         return self.load_impl(path / section.entrypoint, module_name)
+
+    def observer(self) -> Callable[[dict, dict], dict]:
+        """observe(input, result) from observe.py, or the raw result itself."""
+        if not (self.root / OBSERVE_FILE).is_file():
+            return lambda _input, result: result
+        fn = getattr(load_module("observe", self.root / OBSERVE_FILE), "observe", None)
+        if not callable(fn):
+            raise SpecError(f"{OBSERVE_FILE} must define observe(input, result)")
+        return fn
 
     def bind(self, fn: Callable) -> "BoundImpl":
         return BoundImpl(fn, self.Input, self.Output)
@@ -222,6 +237,68 @@ class CommandImpl:
                 self._proc.kill()
 
 
+class CliImpl:
+    """A command line, run once per call in a fresh scratch directory.
+
+    The input names the call: `argv` (appended to the implementation's
+    `command`), `files` (path -> text, written into the scratch directory
+    first) and `stdin`. The program's raw result is
+
+      {"exit_code": 0, "stdout": "...", "stderr": "...",
+       "files": {path: text for each file the call created or changed}}
+
+    and the contract's observe.py, if any, reduces it to the contract's
+    output with `observe(input, result)`. Builders then ship only the real
+    program; the reduction belongs to the contract, not to each build.
+    """
+
+    def __init__(self, argv: list[str], cwd: Path, observe: Callable[[dict, dict], dict], timeout: int = 120):
+        self.argv = list(argv)
+        self.cwd = Path(cwd)
+        self.observe = observe
+        self.timeout = timeout
+
+    def __call__(self, data: dict) -> dict:
+        # The call runs in the scratch directory, so files named in `command` resolve against the implementation.
+        argv = [str(self.cwd / a) if (self.cwd / a).is_file() else a for a in self.argv]
+        files = data.get("files") or {}
+        with tempfile.TemporaryDirectory() as tmp:
+            scratch = Path(tmp)
+            for name, text in files.items():
+                rel = PurePosixPath(name)
+                if rel.is_absolute() or ".." in rel.parts:
+                    raise SpecError(f"input file {name!r} must be a relative path inside the scratch directory")
+                (scratch / rel).parent.mkdir(parents=True, exist_ok=True)
+                (scratch / rel).write_text(text, encoding="utf-8")
+            try:
+                proc = subprocess.run(
+                    argv + list(data.get("argv") or []), cwd=scratch, input=(data.get("stdin") or "").encode(),
+                    capture_output=True, timeout=self.timeout,
+                    env={**os.environ, "HOME": tmp, "TMPDIR": tmp, "PYTHONDONTWRITEBYTECODE": "1"},
+                )
+            except FileNotFoundError:
+                raise RuntimeError(f"program not found: {argv[0]}") from None
+            except subprocess.TimeoutExpired:
+                raise RuntimeError(f"command did not finish within {self.timeout}s") from None
+            changed = {}
+            for path in sorted(p for p in scratch.rglob("*") if p.is_file()):
+                rel = path.relative_to(scratch).as_posix()
+                text = path.read_bytes().decode("utf-8", errors="replace")
+                if files.get(rel) != text:
+                    changed[rel] = text
+        result = {
+            "exit_code": proc.returncode,
+            "stdout": proc.stdout.decode("utf-8", errors="replace"),
+            "stderr": proc.stderr.decode("utf-8", errors="replace"),
+            "files": changed,
+        }
+        return self.observe(copy.deepcopy(data), result)
+
+    def close(self) -> None:
+        pass
+
+
+OBSERVE_FILE = "observe.py"
 FIXTURES_DIR = "fixtures"
 
 

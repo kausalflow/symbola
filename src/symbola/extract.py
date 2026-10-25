@@ -100,6 +100,8 @@ This is a Symbolon spec pack. Build from it; do not look for the original source
 (`symbola impl-init <dir> --contract components/<name>/versions/<n>`). In Python, define
 `run(input)` returning the contract's output; in any other language, a program
 that reads one JSON input per line on stdin and writes `{{"output": ...}}` per line.
+A component whose `symbolon.toml` says `driver = "cli"` is a command line: build the
+real program and set `command` to it; symbola runs it once per check.
 
 **Done** means `symbola attest components/<name>/versions/<n> <impl-dir>` reports PASSED
 for every component. Don't special-case the examples: the properties generate
@@ -181,6 +183,13 @@ original code. For any other language, set language = "command" and
 command = [...]: a program that reads one JSON input per line on stdin and writes
 {{"output": ...}} or {{"error": {{"type": "ValueError", "message": "..."}}}} per line.
 Re-run `symbola impl-init` after changing a contract, since it pins the digest.
+
+For a command line, give the component `[entrypoint] driver = "cli"`: `Input` is
+`argv`, `files` (name -> text) and `stdin`; symbola runs the program once per call
+in a scratch directory holding `files`, and `observe.py` defines
+`observe(input, result)`, turning `result` = {{exit_code, stdout, stderr, files (created or
+changed)}} into the `Output` to compare. The oracle is then just language = "command",
+command = ["<the original program>"], and builders ship only their real program.
 
 ## Assumptions
 
