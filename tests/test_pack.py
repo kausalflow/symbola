@@ -9,7 +9,7 @@ from symbolon.pack import component_name, validate_pack
 
 from .conftest import REPO
 
-LIGHTKONE = REPO / "packs" / "kausalflow" / "lightkone" / "versions" / "1"
+LIGHTKONE = REPO / "tests" / "fixtures" / "lightkone" / "versions" / "1"
 runner = CliRunner()
 
 

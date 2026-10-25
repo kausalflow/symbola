@@ -8,6 +8,11 @@ into static files that any web host can serve (distribution design, sections 2-4
                          pack.md, parts/*.md, llms.txt, files/...,
                          evidence.json, attestations/, by-digest/<digest>.tar.gz
 
+With a files folder (`--files-out`, served from `--files-url`), only index.json and
+each pack's pack.md and llms.txt stay in the site folder; the rest, which grows with
+every file of every pack, goes to the files folder for a bucket, so a host's cap on
+files per site does not cap the number of packs.
+
 Only the latest version of each pack is published. Older versions stay in the
 registry's git history and folders, so attestations that name them can still be
 re-checked. An older version that some attestation names is also published
@@ -62,6 +67,14 @@ version = 1
 title = "{name}"
 license = "Proprietary"
 authors = ["{author}"]
+
+# Who publishes this pack, shown on its registry page. The profile defaults to
+# your GitHub page; support links (Buy Me a Coffee, GitHub Sponsors, Ko-fi, ...)
+# are optional, at most five, https only.
+# [publisher]
+# name = "Your name"
+# url = "https://github.com/you"
+# support = [{{ label = "Buy me a coffee", url = "https://buymeacoffee.com/you" }}]
 
 # Component contracts, as "<namespace>/<name>@<version>" = "<digest>".
 # Add one with `symbolon init` under components/, then list its digest here.
@@ -231,7 +244,8 @@ def _component_key(rel: str) -> str | None:
     return parts[1]
 
 
-def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bool = False) -> dict[str, str]:
+def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bool = False,
+                  site_prefix: str = "", files_prefix: str = "") -> dict[str, str]:
     """The pack as a few Markdown files an agent can read in order, keyed by path.
 
     `pack.md` holds the brief, assumptions, obligations and manifest, plus a list of
@@ -239,7 +253,14 @@ def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bo
     show their first lines and link the raw file, so each Markdown file stays small
     enough for one read. With `brief` (a priced pack's preview), only `pack.md` is
     written and the components are named but not included.
+
+    Links are relative unless `site_prefix` (where pack.md is served) and
+    `files_prefix` (where files/ and parts/ are served) are given, both ending in "/".
     """
+    here = files_prefix or ""
+    files = f"{here}files/"
+    top = f"{site_prefix}pack.md" if site_prefix else "../pack.md"
+    part_files = files if files_prefix else "../files/"
     order = {"AGENTS.md": 0, BRIEF_FILE: 1, OBLIGATIONS_FILE: 3, PACK_MANIFEST_FILE: 4}
     core, components = [], {}
     for path in _files(root):
@@ -256,24 +277,24 @@ def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bo
                 "purchase, in the tarball.\n"]
         if listed:
             head.append(f"## Components (in the tarball)\n\n{listed}")
-        return {"pack.md": "\n".join(head + [_section(root, p, "files/") for p in core])}
+        return {"pack.md": "\n".join(head + [_section(root, p, files) for p in core])}
     parts = {}
     for key, paths in sorted(components.items()):
         parts[f"parts/{key}.md"] = "\n".join(
             [f"# {pack_id} (version {version}): component {key}\n",
-             f"Part of the pack at [../pack.md](../pack.md). Pack digest: `{digest}`.\n",
+             f"Part of the pack at [{top}]({top}). Pack digest: `{digest}`.\n",
              f"The contract folder, to check a build against: [{key}.tar.gz]({key}.tar.gz). Unpack it, "
              f"then run `symbolon impl-init <build folder> --contract <contract folder>`, `symbolon keygen` "
              f"once, and `symbolon attest <contract folder> <build folder>`.\n"]
-            + [_section(root, p, "../files/") for p in sorted(paths)])
-    contents = "".join(f"- [{rel}]({rel}) ({len(text.encode()) // 1024 + 1} KB)\n" for rel, text in parts.items())
+            + [_section(root, p, part_files) for p in sorted(paths)])
+    contents = "".join(f"- [{rel}]({here}{rel}) ({len(text.encode()) // 1024 + 1} KB)\n" for rel, text in parts.items())
     head = [f"# {pack_id} (version {version})\n",
             f"Pack digest: `{digest}`. This file holds the brief, assumptions, obligations and manifest. "
             "Each component's contract, schemas and tests are in their own file; read the ones you build. "
-            "Raw files are under [files/](files/), and the tarball holds everything.\n"]
+            f"Raw files are under [files/]({files}), and the tarball holds everything.\n"]
     if contents:
         head.append(f"## Components\n\n{contents}")
-    return {"pack.md": "\n".join(head + [_section(root, p, "files/") for p in core]), **parts}
+    return {"pack.md": "\n".join(head + [_section(root, p, files) for p in core]), **parts}
 
 
 def _manifest(root: Path) -> dict:
@@ -296,6 +317,42 @@ def listing_price(pack_dir: Path) -> dict | None:
     if not isinstance(currency, str) or not CURRENCY_RE.match(currency):
         raise RegistryError(f"{pack_dir}: [listing] currency must be a lowercase ISO code such as \"eur\"")
     return {"amount": price, "currency": currency}
+
+
+MAX_SUPPORT_LINKS = 5
+
+
+def _https(value: object) -> bool:
+    return isinstance(value, str) and value.startswith("https://") and len(value) <= 300 and not any(
+        c.isspace() for c in value)
+
+
+def listing_publisher(pack_dir: Path, owner: str) -> dict:
+    """Who publishes a pack and where to support them, from `[publisher]` in its manifest.
+
+    The profile defaults to the owner's GitHub page. Support links are the
+    publisher's own (Buy Me a Coffee, GitHub Sponsors, Ko-fi, ...); the registry
+    only shows them.
+    """
+    with (Path(pack_dir) / PACK_MANIFEST_FILE).open("rb") as f:
+        pub = tomllib.load(f).get("publisher", {})
+    name = pub.get("name", owner)
+    url = pub.get("url", f"https://github.com/{owner}")
+    if not isinstance(name, str) or not 0 < len(name) <= 80:
+        raise RegistryError(f"{pack_dir}: [publisher] name must be a string of at most 80 characters")
+    if not _https(url):
+        raise RegistryError(f"{pack_dir}: [publisher] url must be an https:// link")
+    support = pub.get("support", [])
+    if not isinstance(support, list) or len(support) > MAX_SUPPORT_LINKS:
+        raise RegistryError(f"{pack_dir}: [publisher] support must be a list of at most {MAX_SUPPORT_LINKS} links")
+    links = []
+    for link in support:
+        label = link.get("label") if isinstance(link, dict) else None
+        if not isinstance(label, str) or not 0 < len(label) <= 40 or not _https(link.get("url")):
+            raise RegistryError(f"{pack_dir}: each [publisher] support link needs a label (at most 40 characters) "
+                                "and an https:// url")
+        links.append({"label": label, "url": link["url"]})
+    return {"name": name, "url": url, "support": links}
 
 
 def listing_preview(pack_dir: Path, price: dict | None) -> str:
@@ -394,17 +451,27 @@ def pack_evidence(pack_root: Path, latest: Path) -> dict:
 
 
 def build_site(registry: Path, out: Path, base_url: str = "",
-               private_out: Path | None = None, store_url: str = "") -> list[BuiltPack]:
+               private_out: Path | None = None, store_url: str = "",
+               files_out: Path | None = None, files_url: str = "") -> list[BuiltPack]:
     """Write the registry's static data for the latest version of every pack.
+
+    With `files_out`, everything but index.json, llms.txt and each pack's pack.md and
+    llms.txt goes there instead of `out`, for a bucket served at `files_url` (the
+    module docstring). index.json then names `files_url` so `pull` goes straight there.
 
     A priced pack's tarball goes to `private_out` (uploaded to the store's private
     bucket) instead of the public site; everything else, including the preview and
     the tarball's sha256, stays public so buyers can check what they download.
     """
     registry, out = Path(registry), Path(out)
-    if out.exists():
-        shutil.rmtree(out)
-    out.mkdir(parents=True)
+    if files_out is not None and not files_url:
+        raise RegistryError("--files-out needs --files-url, the address the files folder is served from")
+    for folder in (out, files_out):
+        if folder is not None:
+            if folder.exists():
+                shutil.rmtree(folder)
+            folder.mkdir(parents=True)
+    files_url = files_url.rstrip("/")
     entries, built = [], []
     for pack_root in sorted(p for p in registry.glob("*/*") if (p / VERSIONS_DIR).is_dir()):
         owner, name = pack_root.parent.name, pack_root.name
@@ -422,12 +489,14 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         version = int(version_dir.name)
         digest = pack_digest(version_dir)
         dest = out / "packs" / owner / name
+        bulk = Path(files_out) / "packs" / owner / name if files_out is not None else dest
+        dest.mkdir(parents=True, exist_ok=True)
         price = listing_price(version_dir)
         preview = listing_preview(version_dir, price)
         public = [p for p in _files(version_dir)
                   if preview == "full" or _component_key(p.relative_to(version_dir).as_posix()) is None]
         for path in public:
-            target = dest / "files" / path.relative_to(version_dir)
+            target = bulk / "files" / path.relative_to(version_dir)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, target)
         tarball = make_tarball(version_dir, name)
@@ -439,15 +508,19 @@ def build_site(registry: Path, out: Path, base_url: str = "",
             private.parent.mkdir(parents=True, exist_ok=True)
             private.write_bytes(tarball)
         else:
-            (dest / TARBALL_FILE).write_bytes(tarball)
-        (dest / SHA_FILE).write_text(f"{sha}  {TARBALL_FILE}\n")
-        for rel, text in pack_markdown(version_dir, pack_id, version, digest, preview == "brief").items():
-            (dest / rel).parent.mkdir(parents=True, exist_ok=True)
-            (dest / rel).write_text(text)
+            (bulk / TARBALL_FILE).write_bytes(tarball)
+        (bulk / SHA_FILE).write_text(f"{sha}  {TARBALL_FILE}\n")
+        site_prefix = f"{base_url.rstrip('/')}/packs/{pack_id}" if base_url else f"packs/{pack_id}"
+        files_prefix = f"{files_url}/packs/{pack_id}" if files_url else site_prefix
+        links = (f"{site_prefix}/", f"{files_prefix}/") if files_out is not None else ("", "")
+        for rel, text in pack_markdown(version_dir, pack_id, version, digest, preview == "brief", *links).items():
+            target = (dest if rel == "pack.md" else bulk) / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(text)
         if preview == "full":
             for manifest in sorted((version_dir / COMPONENTS_DIR).glob(f"*/{VERSIONS_DIR}/*/symbolon.toml")):
                 key = _component_key(manifest.parent.relative_to(version_dir).as_posix() + "/symbolon.toml")
-                (dest / "parts" / f"{key}.tar.gz").write_bytes(make_tarball(manifest.parent, key))
+                (bulk / "parts" / f"{key}.tar.gz").write_bytes(make_tarball(manifest.parent, key))
         evidence = pack_evidence(pack_root, version_dir)
         older = []
         for n in sorted({r["pack_version"] for r in evidence["attestations"] if r.get("covers") == "older"}):
@@ -455,7 +528,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
             old_digest = pack_digest(old_dir)
             old_tarball = make_tarball(old_dir, name)
             rel = f"{BY_DIGEST_DIR}/{hex_of(old_digest)}.tar.gz"
-            target = (Path(private_out) / "packs" / owner / name if price else dest) / rel
+            target = (Path(private_out) / "packs" / owner / name if price else bulk) / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(old_tarball)
             older.append({"version": n, "digest": old_digest,
@@ -465,32 +538,34 @@ def build_site(registry: Path, out: Path, base_url: str = "",
                 record["pack_digest"] = (digest if record["pack_version"] == version else
                                          next(o["digest"] for o in older if o["version"] == record["pack_version"]))
         if evidence["attestations"]:
-            (dest / ATTESTATIONS_DIR).mkdir(parents=True, exist_ok=True)
+            (bulk / ATTESTATIONS_DIR).mkdir(parents=True, exist_ok=True)
             for path in sorted((pack_root / ATTESTATIONS_DIR).glob("*")):
                 if path.suffix in (".json", ".pub"):
-                    shutil.copyfile(path, dest / ATTESTATIONS_DIR / path.name)
-        (dest / EVIDENCE_FILE).write_text(json.dumps(evidence, indent=2) + "\n")
+                    shutil.copyfile(path, bulk / ATTESTATIONS_DIR / path.name)
+        (bulk / EVIDENCE_FILE).write_text(json.dumps(evidence, indent=2) + "\n")
         listed = [p.relative_to(version_dir).as_posix() for p in public]
-        prefix = f"{base_url.rstrip('/')}/packs/{pack_id}" if base_url else f"packs/{pack_id}"
         download = (f"buy it for {price['amount'] / 100:.2f} {price['currency'].upper()} and pull it with "
-                    f"`symbolon pull {pack_id} --token <license>`" if price else f"download {prefix}/{TARBALL_FILE}")
+                    f"`symbolon pull {pack_id} --token <license>`" if price else f"download {files_prefix}/{TARBALL_FILE}")
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
-            f"Version {version}, digest {digest}. Start with {prefix}/pack.md (brief, assumptions, "
-            + (f"obligations, and links to one file per component under {prefix}/parts/), or {download}.\n\n"
+            f"Version {version}, digest {digest}. Start with {site_prefix}/pack.md (brief, assumptions, "
+            + (f"obligations, and links to one file per component under {files_prefix}/parts/), or {download}.\n\n"
                if preview == "full" else f"obligations; the components come with the purchase), or {download}.\n\n")
             + "## Files\n\n"
-            + "".join(f"- [{rel}]({prefix}/files/{rel})\n" for rel in listed))
+            + "".join(f"- [{rel}]({files_prefix}/files/{rel})\n" for rel in listed))
         entries.append({
             "id": pack_id, "version": version, "title": meta.get("title", name),
             "license": meta.get("license", ""), "authors": meta.get("authors", []),
             "digest": digest, "tarball_sha256": sha,
             "summary": report.summary, "summary_line": summary_line(report.summary),
             "files": listed, "price": price, "preview": preview,
+            "publisher": listing_publisher(version_dir, owner),
             "evidence": evidence["summary"], "older": older,
         })
         built.append(BuiltPack(pack_id, version, digest, sha))
     index = {"format": 1, "packs": entries}
+    if files_out is not None:
+        index["files_url"] = files_url
     if store_url:
         index["store"] = store_url.rstrip("/")
     (out / "index.json").write_text(json.dumps(index, indent=2) + "\n")
@@ -625,7 +700,8 @@ def pull(pack_id: str, registry: str, dest: Path, token: str | None = None,
     entry = next((e for e in index.get("packs", []) if e["id"] == pack_id), None)
     if entry is None:
         raise RegistryError(f"{pack_id} is not in the registry at {base}")
-    prefix = f"{base}packs/{pack_id}/"
+    # A site that keeps its files in a bucket names it; the site also redirects there.
+    prefix = f"{index['files_url'].rstrip('/')}/packs/{pack_id}/" if index.get("files_url") else f"{base}packs/{pack_id}/"
     if digest and digest != entry["digest"]:
         old = next((o for o in entry.get("older", []) if o["digest"] == digest), None)
         if old is None:

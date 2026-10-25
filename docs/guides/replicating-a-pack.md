@@ -10,7 +10,7 @@ hand (design v0.5, section 5.3).
 
 ```bash
 symbolon keygen                                   # once: the runner key for attestations
-cd packs/kausalflow/lightkone
+cd symbolon-registry/packs/kausalflow/lightkone   # a clone of kausalflow/symbolon-registry
 symbolon replicate versions/1 --builds 3 \
   --agent claude="claude -p --permission-mode acceptEdits --allowedTools Read,Write,Edit,Glob,Grep,Bash" \
   --agent other="my-agent --task-file {prompt_file}" \

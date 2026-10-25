@@ -1,6 +1,6 @@
 # Lightkone pilot
 
-The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in `packs/kausalflow/lightkone/`.
+The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in [kausalflow/symbolon-registry](https://github.com/kausalflow/symbolon-registry), under `packs/kausalflow/lightkone/`.
 
 | Path | What it is | Ships to buyers |
 | --- | --- | --- |
@@ -43,15 +43,16 @@ The row where all builds agree against lightkone is what replication alone canno
 
 The weaker builder needed more from the pack. Haiku's splits were on Unicode whitespace and DOI and page normalisation, points Sonnet and Opus got right from the description. Opus, the strongest model, had most of the `bibtex-import` and `library-merge` splits: it read more into the text than the examples pinned. A pack that converges for one builder may not converge for another (design v0.5, "minimal for whom").
 
-Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. Ten examples were recorded from lightkone and added to the obligations that missed the points:
+Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. The pack now lives in kausalflow/symbolon-registry. The change is [symbolon-registry#5](https://github.com/kausalflow/symbolon-registry/pull/5). It records examples from lightkone and adds them to the obligations that missed these points:
 
 - `merge.sets`: a tag listed twice is kept once.
-- `filing.paperpile-layout` and `search.query-tokens`: U+FEFF is whitespace, and a quoted phrase ends at its closing quote.
+- `filing.paperpile-layout`: U+FEFF is whitespace.
+- `search.query-tokens`: a quoted phrase ends at its closing quote. Search whitespace was already pinned by `search.whitespace`.
 - `import.identifiers`: a DOI keeps its trailing slash.
 - `import.draft-fields`: `annote` wins whenever the entry has one, even when it is empty, and pages keep their letters.
 - `file.exact-text`: numbers print as JavaScript prints them.
 
-The descriptions of four contracts now state these rules. The pack has 64 obligations and 350 checks. Lightkone passes the five changed contracts and is re-attested on them by `runner-c`. The `tidy` crash is filed as [kausalflow/lightkone#54](https://github.com/kausalflow/lightkone/issues/54). The pack will record an example once lightkone is fixed.
+Lightkone passes the five changed contracts and is re-attested on them by `runner-c`. The `tidy` crash is filed as [kausalflow/lightkone#54](https://github.com/kausalflow/lightkone/issues/54). The pack will record an example once lightkone is fixed.
 
 ## Results (milestone 3: the first `replicate` runs)
 
@@ -116,7 +117,7 @@ Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split
 ## Re-running the evidence
 
 ```bash
-cd packs/kausalflow/lightkone
+git clone https://github.com/kausalflow/symbolon-registry && cd symbolon-registry/packs/kausalflow/lightkone
 symbolon pack validate 1
 symbolon verify attestations/search-query.go-1.json --trust attestations/runner-a.pub \
   --contract versions/1/components/search-query/versions/1 --impl rebuilds/go-1/search-query --rerun

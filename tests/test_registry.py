@@ -12,7 +12,7 @@ from symbolon.registry import RegistryError, build_site, check_registry, pack_di
 
 from .conftest import REPO
 
-LIGHTKONE = REPO / "packs" / "kausalflow" / "lightkone" / "versions" / "1"
+LIGHTKONE = REPO / "tests" / "fixtures" / "lightkone" / "versions" / "1"
 runner = CliRunner()
 
 
@@ -101,7 +101,7 @@ def test_site_shows_checked_evidence_and_keeps_attested_versions(attested, tmp_p
     evidence = json.loads((files / "evidence.json").read_text())
     records = {r["file"]: r for r in evidence["attestations"]}
     assert all(r["valid"] for r in records.values())
-    assert records["attestations/citation-key.go-1.json"]["covers"] == "latest"
+    assert records["attestations/library-file.go-1.json"]["covers"] == "latest"
     tidy = records["attestations/tidy.go-1.json"]
     assert tidy["covers"] == "older" and tidy["pack_version"] == 1
     (entry,) = json.loads((site / "index.json").read_text())["packs"]
@@ -164,6 +164,41 @@ def test_pull_rejects_a_tampered_tarball(site, tmp_path):
         pull("kausalflow/lightkone", str(site), tmp_path / "lk")
 
 
+def test_files_out_keeps_the_site_to_a_few_files_per_pack(registry, tmp_path):
+    site, files = tmp_path / "site", tmp_path / "files"
+    build_site(registry, site, "https://symbola.sh", files_out=files, files_url="https://files.symbola.sh/")
+    pack_site = site / "packs" / "kausalflow" / "lightkone"
+    assert sorted(p.name for p in pack_site.iterdir()) == ["llms.txt", "pack.md"]
+    pack_files = files / "packs" / "kausalflow" / "lightkone"
+    for rel in ("latest.tar.gz", "latest.sha256", "evidence.json", "files/BRIEF.md"):
+        assert (pack_files / rel).is_file(), rel
+    assert list((pack_files / "parts").glob("*.md")) and list((pack_files / "parts").glob("*.tar.gz"))
+    index = json.loads((site / "index.json").read_text())
+    assert index["files_url"] == "https://files.symbola.sh"
+    # Links point at the host that serves each file, so an agent never has to follow a redirect.
+    md = (pack_site / "pack.md").read_text()
+    assert "](https://files.symbola.sh/packs/kausalflow/lightkone/parts/" in md
+    assert "](https://files.symbola.sh/packs/kausalflow/lightkone/files/" in md
+    part = next((pack_files / "parts").glob("*.md")).read_text()
+    assert "[https://symbola.sh/packs/kausalflow/lightkone/pack.md]" in part
+    assert "](https://files.symbola.sh/packs/kausalflow/lightkone/files/" in part
+    llms = (pack_site / "llms.txt").read_text()
+    assert "https://symbola.sh/packs/kausalflow/lightkone/pack.md" in llms
+    assert "https://files.symbola.sh/packs/kausalflow/lightkone/latest.tar.gz" in llms
+
+
+def test_pull_downloads_from_the_files_url(registry, tmp_path):
+    site, files = tmp_path / "site", tmp_path / "files"
+    build_site(registry, site, files_out=files, files_url=files.as_uri())
+    got = pull("kausalflow/lightkone", str(site), tmp_path / "lk")
+    assert got.version == 2 and pack_digest(tmp_path / "lk") == got.digest
+
+
+def test_files_out_needs_a_files_url(registry, tmp_path):
+    with pytest.raises(RegistryError, match="--files-url"):
+        build_site(registry, tmp_path / "site", files_out=tmp_path / "files")
+
+
 def test_pull_does_not_take_a_version(site, tmp_path):
     with pytest.raises(RegistryError, match="only the latest"):
         pull("kausalflow/lightkone@1", str(site), tmp_path / "lk")
@@ -214,6 +249,32 @@ def test_check_registry_rejects_an_edited_released_version(tmp_path):
 def test_check_registry_warns_about_packs_without_recorded_digests(registry):
     assert check_registry(registry) == [
         "kausalflow/lightkone: no digests.txt, so edits to released versions are not caught"]
+
+
+def test_publisher_defaults_to_the_owner_and_shows_support_links(registry, tmp_path):
+    build_site(registry, tmp_path / "a")
+    (entry,) = json.loads((tmp_path / "a" / "index.json").read_text())["packs"]
+    assert entry["publisher"] == {"name": "kausalflow", "url": "https://github.com/kausalflow", "support": []}
+
+    manifest = registry / "kausalflow" / "lightkone" / "versions" / "2" / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text() + '\n[publisher]\nname = "Kausal Flow"\n'
+                        'support = [{ label = "Buy me a coffee", url = "https://buymeacoffee.com/kausal" }]\n')
+    build_site(registry, tmp_path / "b")
+    (entry,) = json.loads((tmp_path / "b" / "index.json").read_text())["packs"]
+    assert entry["publisher"]["name"] == "Kausal Flow"
+    assert entry["publisher"]["support"] == [{"label": "Buy me a coffee", "url": "https://buymeacoffee.com/kausal"}]
+
+
+@pytest.mark.parametrize("bad", [
+    'url = "http://example.com"',
+    'support = [{ label = "x", url = "javascript:alert(1)" }]',
+    'support = [{ url = "https://x.example" }]',
+])
+def test_bad_publisher_links_are_refused(registry, tmp_path, bad):
+    manifest = registry / "kausalflow" / "lightkone" / "versions" / "2" / "symbolon-pack.toml"
+    manifest.write_text(manifest.read_text() + f"\n[publisher]\n{bad}\n")
+    with pytest.raises(RegistryError, match="publisher"):
+        build_site(registry, tmp_path / "site")
 
 
 def _price(registry, amount=1900):

@@ -1,6 +1,0 @@
-[implementation]
-contract = "sha256:57ffa57d338059089c57030aae49c64e16162963902a153cc1de4fb086cd8fd0"
-entrypoint = "impl.py"
-language = "python"
-license = "MIT"
-authors = ["AI builder"]

@@ -33,10 +33,32 @@ the code whenever you make a decision a builder could not have guessed, state a
 fact about the world, or leave something open, and to run `pack validate` after
 each change.
 
+## Publishing from symbola.sh
+
+Sign in at <https://symbola.sh/publish/> with GitHub, or from a terminal:
+
+```
+symbolon login              # GitHub device sign-in; saves a token in ~/.config/symbolon/
+symbolon publish spec       # validates locally, uploads, and follows the request
+```
+
+Your GitHub login is your namespace, so you publish `<login>/<name>`; organisations
+that installed the Symbola GitHub app (or where your membership is public) are
+namespaces too. The registry's publish workflow runs `release` and `site check` on
+the upload and opens a pull request as the Symbola bot. New versions of a pack
+merge when CI passes; a namespace's first pack waits once for a moderator. In CI,
+put a token in `SYMBOLON_PUBLISH_TOKEN` instead of running `login`.
+
+The account page (<https://symbola.sh/account/>) lists your packs and requests,
+edits your publisher profile and support links, revokes CLI tokens, and asks for
+a pack to be removed. `symbolon logout` forgets the local token.
+
+Publishing by pull request, below, still works and needs no account.
+
 ## Releasing
 
 ```
-symbolon release spec --registry ../registry/packs     # in a clone of the registry
+symbolon release spec --registry ../symbolon-registry/packs   # in a clone of kausalflow/symbolon-registry
 ```
 
 `release` validates the pack, sets its manifest version to the next free number,
@@ -91,6 +113,15 @@ packs/<owner>/<name>/
 build, distinct builds, distinct runners, invalid attestations) and its `older`
 attested versions.
 
+Static hosts cap the number of files per site (Cloudflare Pages: 20,000 on the
+free plan), and the list above grows with every file of every pack. With
+`--files-out DIR --files-url URL`, only `index.json`, `llms.txt` and each pack's
+`pack.md` and `llms.txt` stay in `--out`; everything else is written to `DIR`, to
+upload to a bucket served at `URL`. Links in `pack.md`, the parts and `llms.txt`
+then point straight at `URL`, `index.json` names it as `files_url`, and
+`symbolon pull` downloads from there. The site can redirect the old paths to the
+bucket so older CLIs keep working.
+
 ## Evidence
 
 Attestations sit beside the pack in `packs/<owner>/<name>/attestations/`, with
@@ -106,20 +137,24 @@ over the pack folder with the header `symbolon-pack-v1\n`.
 
 ## The site
 
-`registry-site/` is an [Astro](https://astro.build) site over those files, with
-[Pagefind](https://pagefind.app) search built at the same time, so it needs no server.
-It adds a catalog page with search, a page per pack (brief, assumptions, obligations
-by status, download links, file tree), and a rendered view of every file under
+The packs live in [kausalflow/symbolon-registry](https://github.com/kausalflow/symbolon-registry).
+The website is built from them by `spikinglabs/symbolon-store` and hosted on
+Cloudflare Pages at <https://symbola.sh/>. It is an [Astro](https://astro.build)
+site over the files above, with [Pagefind](https://pagefind.app) search built at the
+same time, so it needs no server. It adds a catalog page with search, a page per
+pack (brief, assumptions, obligations by status, evidence, publisher, download
+links, file tree), and a rendered view of every file under
 `packs/<owner>/<name>/view/<file>/`.
 
 ```
-registry-site/build.sh OUT ORIGIN BASE     # e.g. site/registry https://kausalflow.github.io /symbolon/registry
+site/build.sh OUT ORIGIN BASE     # in spikinglabs/symbolon-store, e.g. dist-site https://symbola.sh /
 ```
 
-runs `symbolon site build` into `registry-site/public/`, then `astro build` and
-`pagefind`, and copies the result to `OUT`. The docs workflow runs it on every push
-to `main` and publishes the result at <https://kausalflow.github.io/symbolon/registry/>;
-PR previews get their own copy.
+clones the registry, runs `symbolon site build` over its packs, then `astro build`
+and `pagefind`, and copies the result to `OUT`. Cloudflare runs it on every push to
+the site's repository, and the registry's CI triggers it after every merge to its
+`main`. Both repositories pin the CLI they use in `.symbolon-version`, so a CLI
+change reaches the registry and the site when those pins move.
 
 ## Pulling a pack
 
@@ -133,7 +168,7 @@ older version that some attestation names (the pack page links its digest). It d
 tarball, checks its sha256 against `latest.sha256` and `index.json`, unpacks it,
 and checks the unpacked folder's digest against `index.json`. These checks catch a
 broken download, not a dishonest host: the publisher is not verified until packs
-carry GitHub provenance. The registry defaults to `$SYMBOLON_REGISTRY`, or the kausalflow site.
+carry GitHub provenance. The registry defaults to `$SYMBOLON_REGISTRY`, or <https://symbola.sh>.
 
 An agent that only needs to read a pack can fetch `packs/<owner>/<name>/pack.md`
 instead and skip unpacking. It holds everything that applies to the whole pack and
@@ -141,7 +176,36 @@ links one `parts/` file per component, so the agent reads only the components it
 builds and no file is too big for one read. Data files such as `examples.jsonl`
 show their first lines in the part and link the raw file under `files/`.
 
+## Publisher and support links
+
+Every pack page says who publishes it and links their profile, the owner's GitHub
+page unless the manifest says otherwise. Publishers who want to be paid for their
+work can add up to five support links (Buy Me a Coffee, GitHub Sponsors, Ko-fi,
+and so on), which the page shows as buttons:
+
+```toml
+[publisher]
+name = "Acme Labs"                       # defaults to the owner
+url = "https://acme.example"             # defaults to https://github.com/<owner>
+support = [
+  { label = "Buy me a coffee", url = "https://buymeacoffee.com/acme" },
+  { label = "GitHub Sponsors", url = "https://github.com/sponsors/acme" },
+]
+```
+
+Links must be `https://`. Money goes straight to the publisher; the registry
+takes nothing and handles no payments.
+
+A publisher profile edited on the account page is saved as `publishers/<owner>.toml`
+in the registry and wins over `[publisher]` in the manifest, which is frozen with
+each released version. It takes the same fields plus a short `bio`.
+
 ## Selling a pack
+
+**Not switched on.** For now every pack in the registry is public and free, and
+publishers monetize through support links. The code below stays in place for a
+later stage.
+
 
 Add a price to the pack manifest:
 
@@ -156,7 +220,7 @@ obligations, manifest, evidence and sha256, and `pack.md` names the components
 without including them. Add `preview = "full"` under `[listing]` to publish
 everything anyway. Its tarball is written to `--private-out` instead of the
 public site and is served by the store, a Cloudflare Worker in
-[`store/`](https://github.com/kausalflow/symbolon/tree/main/store). The pack page
+`spikinglabs/symbolon-store` (private). The pack page
 shows a Buy button; after paying through Stripe, the buyer gets a license token:
 
 ```
@@ -164,5 +228,5 @@ symbolon pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
 ```
 
 `site build` refuses a priced pack unless it is given `--private-out` and
-`--store-url`. Deployment steps are in `store/README.md`.
+`--store-url`. Deployment steps are in that repository's README.
 
