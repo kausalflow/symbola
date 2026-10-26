@@ -1398,15 +1398,16 @@ left open and replication then decided counts as <code>replication</code>.</p>
 </tr>
 <tr>
 <td><code>statistical</code></td>
-<td>The output distribution must satisfy it, for software that is random by design, such as a summarizer that calls a model</td>
-<td><code>samples</code> (runs per check), <code>alpha</code> (accepted false-alarm rate), <code>tolerance</code> (its share of the disagreement budget)</td>
+<td>The output distribution must satisfy it, for software that is random by design, such as a simulator with noise or a summarizer that calls a model</td>
+<td>At least one of its checks is a statistical property (see <a href="../CONTRACT_FORMAT/#statistical-properties">Statistical properties</a>)</td>
 </tr>
 </tbody>
 </table>
 <p>An <code>open</code> obligation is the free case: it constrains nothing, so it takes no
 exactness. The terms follow the kit paper (<em>The Probabilistic Minimal Reproduction
-Kit</em>, section 5.4). The runner does not yet repeat statistical checks; until it
-does, the fields record what a check must do.</p>
+Kit</em>, section 5.4). How many runs and which false-alarm rate belong to the check,
+under <code>[spec.statistical]</code> in its contract, so <code>symbola test</code> can run a contract
+on its own.</p>
 <h2 id="what-symbola-pack-validate-checks">What <code>symbola pack validate</code> checks<a class="headerlink" href="#what-symbola-pack-validate-checks" title="Permanent link">&para;</a></h2>
 <ol>
 <li><code>symbolon-pack.toml</code>, <code>BRIEF.md</code> and <code>obligations.toml</code> exist.</li>
@@ -1417,8 +1418,8 @@ does, the fields record what a check must do.</p>
 <li>Every <code>decided</code> or <code>default</code> obligation has checks or an <code>unchecked</code> reason (not
    both), every <code>open</code> one has neither, every constraint has a reason, every check
    exists, and every assumption it names exists.</li>
-<li>A <code>statistical</code> obligation is not <code>open</code> and gives <code>samples</code>, <code>alpha</code> and
-   <code>tolerance</code>; an exact one gives none of them.</li>
+<li>A <code>statistical</code> obligation is not <code>open</code>, and when it has checks, at least one
+   is a statistical property.</li>
 <li>Unchecked obligations are at most <code>max_unchecked</code> of the decided and default ones.</li>
 </ol>
 <p>It then reports obligations by status, source and exactness, assumptions and how many are

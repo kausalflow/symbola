@@ -751,6 +751,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Properties: properties.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#statistical-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Statistical properties
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1167,6 +1184,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Properties: properties.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#statistical-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Statistical properties
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1334,8 +1368,14 @@
 </span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="n">float_rel_tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e-9</span><span class="w">            </span><span class="c1"># tolerance when comparing numbers in examples</span>
 </span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="n">timeout_seconds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">120</span><span class="w">           </span><span class="c1"># per validate or test run</span>
 </span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="k">[runtime]</span>
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=3.11"</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="k">[spec.statistical.test_noise_has_the_stated_spread]</span><span class="w">   </span><span class="c1"># optional, one table per statistical property</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="n">at_least</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.97</span><span class="w">                 </span><span class="c1"># the mean of what the property returns must not be below this</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="n">at_most</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.03</span><span class="w">                  </span><span class="c1"># ...nor above this; give either or both</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="n">samples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="w">                   </span><span class="c1"># seeds per run (default 100)</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.01</span><span class="w">                    </span><span class="c1"># accepted false-alarm rate (default 0.01)</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="k">[runtime]</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=3.11"</span>
 </span></code></pre></div>
 <p>Unknown keys are errors, so a typo cannot silently change a contract's meaning.</p>
 <h2 id="interface-schemapy-and-schemajson">Interface: <code>schema.py</code> and <code>schema/*.json</code><a class="headerlink" href="#interface-schemapy-and-schemajson" title="Permanent link">&para;</a></h2>
@@ -1377,14 +1417,33 @@
 </ul>
 <h2 id="properties-propertiespy">Properties: <code>properties.py</code><a class="headerlink" href="#properties-propertiespy" title="Permanent link">&para;</a></h2>
 <p>Every function named <code>test_*</code> is a property. Its first parameter must be <code>impl</code>. <code>impl</code> takes an <code>Input</code> (or a dict) and returns a validated <code>Output</code>, so an implementation that returns the wrong shape fails every property. Use hypothesis <code>@given</code> freely. Do not use <code>@settings</code>, because seed and budget come from the manifest so runs are reproducible.</p>
+<h3 id="statistical-properties">Statistical properties<a class="headerlink" href="#statistical-properties" title="Permanent link">&para;</a></h3>
+<p>Some behaviour holds for the distribution of outputs, not for each one: a noise
+source has a stated spread, a sampler picks each option about equally often, a
+summarizer names every person in at least nine runs out of ten. A property
+listed under <code>[spec.statistical]</code> checks such a rule. It takes <code>(impl, seed)</code>,
+has no <code>@given</code>, and returns a number for one run (a bool counts as 0 or 1):</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_noise_has_the_stated_spread</span><span class="p">(</span><span class="n">impl</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    <span class="n">out</span> <span class="o">=</span> <span class="n">impl</span><span class="p">(</span><span class="n">Input</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">5000</span><span class="p">))</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="k">return</span> <span class="n">statistics</span><span class="o">.</span><span class="n">stdev</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+</span></code></pre></div>
+<p>The runner calls it with seeds <code>seed</code>, <code>seed + 1</code>, ... (<code>samples</code> of them) and
+fails it only when the mean of the returned numbers is, at false-alarm rate
+<code>alpha</code>, below <code>at_least</code> or above <code>at_most</code>. A correct implementation therefore
+fails at most <code>alpha</code> of the time, and the result shows the interval it saw, so
+you can tell how small a violation the check could catch: raise <code>samples</code> to
+narrow it. Pass the seed into the implementation when the contract has one, so
+the result can be repeated; an implementation with no seed, such as one that
+calls a model, still gets a fresh run each time. All of this runs on your own
+machine inside <code>symbola test</code>; it needs no extra builds.</p>
 <h2 id="mutants-mutantspy">Mutants: <code>mutants/*.py</code><a class="headerlink" href="#mutants-mutantspy" title="Permanent link">&para;</a></h2>
 <p>A mutant is a plausible wrong implementation: the bug a careless builder, or an
 AI fitting the examples, would most likely write. Each file defines the
 entrypoint function and starts with a docstring naming the concern it models.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="sd">"""every fourth year is a leap year, centuries included"""</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="o">...</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="sd">"""every fourth year is a leap year, centuries included"""</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="o">...</span>
 </span></code></pre></div>
 <p><code>validate</code> runs the whole spec (examples and properties) against every mutant
 and fails if any mutant passes. A survivor means one of two things:</p>
@@ -1420,9 +1479,9 @@ that load, differ from the reference, and model a mistake someone would make.</p
 </ol>
 <p>Steps 3 to 9 execute contract code. They run in a separate Python process (<code>python -I -m symbola.worker</code>). <code>symbola attest</code> runs that same worker inside a sandbox (see ATTESTATION.md).</p>
 <h2 id="digest">Digest<a class="headerlink" href="#digest" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sha256( "symbolon-contract-v1\n"
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>        + for each file, sorted by POSIX relative path:
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>            path + "\n" + byte_length + "\n" + content + "\n" )
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sha256( "symbolon-contract-v1\n"
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>        + for each file, sorted by POSIX relative path:
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>            path + "\n" + byte_length + "\n" + content + "\n" )
 </span></code></pre></div>
 <ul>
 <li><code>content</code> has CRLF replaced with LF.</li>
