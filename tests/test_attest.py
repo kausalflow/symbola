@@ -246,3 +246,15 @@ def test_executable_command_implementation_attests(sandbox, key, tmp_path):
     (impl / "impl").chmod(0o755)
     p = statement_of(run_attestation(DATE_PARSE, impl, sandbox, key))["predicate"]
     assert p["result"] == "PASSED", p["symbolon"]["failures"]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")
+def test_node_impl_attests_in_process_sandbox(key, tmp_path):
+    # V8 reserves far more address space than it uses, so a memory cap must not be an address-space cap.
+    if SANDBOXES["process"] is None:
+        pytest.skip("process sandbox not available here")
+    from .test_command_impl import JS_LOOP, command_impl
+
+    impl = command_impl(tmp_path, "js", JS_LOOP, ["node", "impl.mjs"])
+    p = statement_of(run_attestation(DATE_PARSE, impl, SANDBOXES["process"], key))["predicate"]
+    assert p["result"] == "PASSED", p["symbolon"]["failures"]
