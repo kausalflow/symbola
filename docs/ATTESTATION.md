@@ -71,7 +71,7 @@ symbola attest <contract-dir> <impl-dir> -o att.json  # exit code 0 = PASSED
 | Network | none, unless the contract declares hosts | none, via a separate network namespace (`unshare -rn`) |
 | Filesystem | read-only root and inputs; 64 MB `/tmp` | **not isolated** |
 | User | 65534, all capabilities dropped, `no-new-privileges` | separate user namespace |
-| Limits | 1 GB memory, 1 CPU, 256 processes, contract timeout | 1 GB address space, CPU time = contract timeout |
+| Limits | 1 GB memory, 1 CPU, 256 processes, contract timeout | 1 GB data (heap) size, CPU time = contract timeout |
 | Image | `python:3.13-slim` pinned by digest, plus pinned pydantic, hypothesis and Node.js | the host Python and Node.js |
 
 Choose one with `--sandbox container|process`. Each attestation records which sandbox ran it and how it isolated the run. When a contract declares network hosts, the sandbox allows network access and the attestation's evidence strength is `observed` instead of `reproducible`.

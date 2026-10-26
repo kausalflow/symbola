@@ -166,8 +166,10 @@ class ProcessSandbox(Sandbox):
             cmd = ["unshare", "-rn"] + cmd
 
         def limit() -> None:
+            # RLIMIT_DATA, not RLIMIT_AS: Node's V8 reserves far more address space than it uses, so an
+            # address-space cap kills every Node implementation at start while DATA still caps the heap.
             mem = limits.memory_mb * 1024 * 1024
-            resource.setrlimit(resource.RLIMIT_AS, (mem, mem))
+            resource.setrlimit(resource.RLIMIT_DATA, (mem, mem))
             resource.setrlimit(resource.RLIMIT_CPU, (limits.timeout_seconds, limits.timeout_seconds))
 
         env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "PYTHONDONTWRITEBYTECODE": "1", "HOME": str(ws.root)}
