@@ -7,7 +7,7 @@ import tomllib
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 MANIFEST_FILE = "symbolon.toml"
 
@@ -72,11 +72,43 @@ class Requires(_Strict):
     permissions: list[str] = []
 
 
+class Statistical(_Strict):
+    """A property that holds for the distribution of outputs, not for every output.
+
+    Its function takes (impl, seed) and returns a number (a bool counts as 0 or 1).
+    The runner calls it with `samples` seeds and fails it only when the mean is,
+    at false-alarm rate `alpha`, below `at_least` or above `at_most`.
+    """
+
+    at_least: float | None = None
+    at_most: float | None = None
+    samples: int = Field(default=100, ge=2, le=100_000)
+    alpha: float = Field(default=0.01, gt=0, lt=1)
+
+    @model_validator(mode="after")
+    def _check_band(self) -> "Statistical":
+        if self.at_least is None and self.at_most is None:
+            raise ValueError("give at_least, at_most or both")
+        if self.at_least is not None and self.at_most is not None and self.at_least > self.at_most:
+            raise ValueError("at_least is above at_most")
+        return self
+
+
 class Spec(_Strict):
     seed: int = 0
     max_examples: int = Field(default=200, ge=1, le=100_000)
     float_rel_tol: float = Field(default=1e-9, ge=0)
     timeout_seconds: int = Field(default=120, ge=1)
+    # Property name -> how to run it over seeds, as [spec.statistical.test_name].
+    statistical: dict[str, Statistical] = {}
+
+    @field_validator("statistical")
+    @classmethod
+    def _check_names(cls, v: dict[str, Statistical]) -> dict[str, Statistical]:
+        bad = [k for k in v if not (k.startswith("test_") and IDENTIFIER_RE.match(k))]
+        if bad:
+            raise ValueError(f"keys must name test_* properties in properties.py, not {', '.join(bad)}")
+        return v
 
 
 class Runtime(_Strict):

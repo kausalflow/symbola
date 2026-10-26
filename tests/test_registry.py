@@ -208,6 +208,18 @@ def test_pull_tries_the_site_path_for_the_tarball_first(registry, tmp_path, monk
     assert tarballs == [(site / "packs" / "kausalflow" / "lightkone" / "latest.tar.gz").as_uri()]
 
 
+def test_pull_names_itself_to_the_site(registry, tmp_path, monkeypatch):
+    # Cloudflare in front of symbola.sh answers 403 to Python's default "Python-urllib/3.x".
+    site = tmp_path / "site"
+    build_site(registry, site)
+    agents = []
+    real = registry_mod.urllib.request.urlopen
+    monkeypatch.setattr(registry_mod.urllib.request, "urlopen",
+                        lambda req, timeout: agents.append(req.get_header("User-agent")) or real(req, timeout=timeout))
+    pull("kausalflow/lightkone", str(site), tmp_path / "lk")
+    assert agents and all(a and a.startswith("symbola/") for a in agents)
+
+
 def test_files_out_needs_a_files_url(registry, tmp_path):
     with pytest.raises(RegistryError, match="--files-url"):
         build_site(registry, tmp_path / "site", files_out=tmp_path / "files")

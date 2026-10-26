@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+from . import USER_AGENT
 from .pack import validate_pack
 from .registry import PACK_MANIFEST_FILE, PACK_REF_RE, RegistryError, _manifest, make_tarball
 
@@ -36,7 +37,7 @@ def credentials_path() -> Path:
 
 
 def _request(url: str, data: bytes | None = None, headers: dict | None = None, method: str | None = None) -> dict:
-    req = urllib.request.Request(url, data=data, headers={"accept": "application/json", "user-agent": "symbola-cli",
+    req = urllib.request.Request(url, data=data, headers={"accept": "application/json", "user-agent": USER_AGENT,
                                                           **(headers or {})}, method=method)
     try:
         with urllib.request.urlopen(req, timeout=60) as r:

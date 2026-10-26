@@ -37,7 +37,7 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import keys
+from . import USER_AGENT, keys
 from .digest import contract_files, hex_of, tree_digest
 from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, PRODUCT_FILE, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
                    VERSIONS_DIR, summary_line, validate_pack)
@@ -747,7 +747,8 @@ def _base(registry: str) -> str:
 
 
 def _fetch(url: str, token: str | None = None) -> bytes:
-    request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"} if token else {})
+    headers = {"User-Agent": USER_AGENT, **({"Authorization": f"Bearer {token}"} if token else {})}
+    request = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(request, timeout=60) as r:
             return r.read()
