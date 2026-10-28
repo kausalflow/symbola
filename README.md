@@ -13,6 +13,20 @@ symbola --help
 
 The package and command are `symbola` (after [symbola.sh](https://symbola.sh)). `pip install symbolon` is an unrelated project.
 
+## Use with AI tools
+
+Assistants and coding agents can find and build packs through the Symbola connector (`https://symbola.sh/mcp`) or a skill. Setup for ChatGPT, Claude, Cursor, VS Code, Codex and Gemini CLI is at <https://symbola.sh/connect/>.
+
+```bash
+npx skills add kausalflow/symbola --skill symbola-build   # the build skill, for most coding agents
+```
+
+In Claude Code, the plugin adds both skills and the connector:
+
+```
+/plugin install symbola --marketplace kausalflow/symbola
+```
+
 ## Quick start
 
 From a clone of this repository:
