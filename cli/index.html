@@ -825,6 +825,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pack-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack questions</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pack-answer" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack answer</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#site-build" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1377,6 +1399,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pack-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack questions</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pack-answer" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack answer</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#site-build" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1810,7 +1854,7 @@ See <a href="../guides/replicating-a-pack/">Replicating a pack</a>.</p>
 <h2 id="pack-validate"><code>pack validate</code><a class="headerlink" href="#pack-validate" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbola pack validate PATH [--json]
 </span></code></pre></div>
-<p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections (and <code>PRODUCT.md</code>'s, if present), assumptions and obligations, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbola pack validate</code> checks</a>.</p>
+<p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections (and <code>PRODUCT.md</code>'s, if present), assumptions and obligations, and that no two example lines of a component have the same input but expect different results, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbola pack validate</code> checks</a>.</p>
 <h2 id="mutants"><code>mutants</code><a class="headerlink" href="#mutants" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbola mutants PATH [--mutants DIR] [--json]
 </span></code></pre></div>
@@ -1847,20 +1891,28 @@ the implementation's digest.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>symbola pack init PACK_ID [--dir spec] [--author you@example.com]
 </span></code></pre></div>
 <p>Creates a pack folder (by default <code>spec/</code>, next to your code) with a manifest, <code>BRIEF.md</code>, a placeholder open obligation, a placeholder assumption, <code>components/</code> and <code>AGENTS.md</code>. Fails if the folder exists and is not empty. See <a href="../REGISTRY/#making-a-pack">Pack registry</a>.</p>
+<h2 id="pack-questions"><code>pack questions</code><a class="headerlink" href="#pack-questions" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>symbola pack questions [PATH] [--json]
+</span></code></pre></div>
+<p>Lists the questions in <code>PATH/.symbolon/questions.toml</code> that have no obligation yet, with their choices and the recommended one. For writing a pack before any code; see <a href="../REGISTRY/#deciding-before-building">Deciding before building</a>.</p>
+<h2 id="pack-answer"><code>pack answer</code><a class="headerlink" href="#pack-answer" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>symbola pack answer PATH QUESTION_ID CHOICE
+</span></code></pre></div>
+<p>Records the publisher's answer to a question as an obligation. <code>CHOICE</code> is a choice key (<code>decided</code>), <code>default</code> (the recommended choice, as <code>default</code>) or <code>open</code> (no check). For a question about a component it appends the chosen outcome to that component's <code>examples.jsonl</code>, names that line as the obligation's check and updates the component's digest in the manifest; a question with no component becomes an <code>unchecked</code> obligation. The first answer replaces <code>pack init</code>'s placeholder. An answered question is refused; remove its obligation and example line to answer again.</p>
 <h2 id="site-build"><code>site build</code><a class="headerlink" href="#site-build" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>symbola site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>symbola site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
 </span></code></pre></div>
 <p>Validates the latest version of every pack under <code>REGISTRY</code> and writes <code>index.json</code>, <code>llms.txt</code>, and each pack's tarball, sha256, <code>pack.md</code> and <code>parts/</code>, <code>llms.txt</code>, raw files, and <code>evidence.json</code> with every attestation checked. A priced pack's tarball goes to <code>--private-out</code> for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See <a href="../REGISTRY/#building-the-site">Pack registry</a>.</p>
 <h2 id="pull"><code>pull</code><a class="headerlink" href="#pull" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>symbola pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>symbola pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
 </span></code></pre></div>
 <p>Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into <code>DEST</code> (default <code>./&lt;name&gt;</code>) and prints the commands to start building. <code>PACK_ID</code> can also be the pack's page link, such as <code>https://symbola.sh/packs/acme/invoice-desk/</code>; the registry is then the site that serves it. A priced pack is downloaded from the store with <code>--token</code> (or <code>$SYMBOLON_LICENSE</code>). <code>--digest</code> pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See <a href="../REGISTRY/#pulling-a-pack">Pack registry</a>.</p>
 <h2 id="site-check"><code>site check</code><a class="headerlink" href="#site-check" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>symbola site check [REGISTRY=packs]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>symbola site check [REGISTRY=packs]
 </span></code></pre></div>
 <p>Builds the registry in a temporary folder, so every latest version must validate, and checks that every version in a pack's <code>digests.txt</code> still has its recorded digest. Prints a warning for packs without a <code>digests.txt</code>. See <a href="../REGISTRY/#submission-checks">Pack registry</a>.</p>
 <h2 id="release"><code>release</code><a class="headerlink" href="#release" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>symbola release [SPEC=spec] --registry PACKS
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>symbola release [SPEC=spec] --registry PACKS
 </span></code></pre></div>
 <p>Validates <code>SPEC</code>, writes it to <code>PACKS/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code> as the next version, and records its digest in <code>digests.txt</code>. Does nothing if the content is unchanged since the latest version. See <a href="../REGISTRY/#releasing">Pack registry</a>.</p>
 

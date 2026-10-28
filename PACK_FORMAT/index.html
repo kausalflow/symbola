@@ -1411,7 +1411,8 @@ on its own.</p>
 <h2 id="what-symbola-pack-validate-checks">What <code>symbola pack validate</code> checks<a class="headerlink" href="#what-symbola-pack-validate-checks" title="Permanent link">&para;</a></h2>
 <ol>
 <li><code>symbolon-pack.toml</code>, <code>BRIEF.md</code> and <code>obligations.toml</code> exist.</li>
-<li>Every component listed in the manifest is present with the same digest, and none is unlisted.</li>
+<li>Every component listed in the manifest is present with the same digest, and none is unlisted.
+   No two example lines of a component have the same input but expect different results.</li>
 <li><code>BRIEF.md</code> has the three required sections, and <code>PRODUCT.md</code>, if present, has its three.</li>
 <li>Every assumption file is well-formed, with a unique id.</li>
 <li>Every obligation is well-formed, with a unique id.</li>
