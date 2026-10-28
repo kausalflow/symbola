@@ -696,11 +696,16 @@ def publish(
     spec: Path = typer.Argument(Path("spec"), help="Your pack folder, the one `pack init` made."),
     site: str = SITE_OPTION,
     wait: bool = typer.Option(True, help="Follow the request until its pull request is open (or it fails)."),
+    evidence: Path | None = typer.Option(None, help="Attestations from a test build of this pack (a folder of *.json), "
+                                                    "listed on the pack's page. Strongly recommended."),
 ) -> None:
     """Validate a pack and publish it to the registry website as its next version."""
     site = site.rstrip("/")
+    if evidence is None:
+        typer.echo("  No --evidence: the pack's page will say no build has passed yet. "
+                   "A test build first is strongly recommended (`symbola replicate`).")
     try:
-        got = publish_pack(spec, site)
+        got = publish_pack(spec, site, evidence)
     except PublishError as e:
         _line(False, str(e))
         raise typer.Exit(1)

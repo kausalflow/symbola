@@ -123,17 +123,31 @@ It shows that the checks can all pass at once. It is not the product and is
 never published; keep it rough. A failure that is the checks' fault, not the
 sketch's, means two answers conflict: ask the user which one wins.
 
-## 7. Review and publish
+## 7. Test build (strongly recommended)
+
+Answers alone rarely make a pack that builds right the first time. Before publishing,
+have a fresh agent build it from the pack alone, which shows what the pack fails to say:
+
+```
+symbola keygen            # once
+symbola replicate spec --builds 1 -o spec/.symbolon/test-build
+```
+
+It costs one build run. Read the build's `NOTES.md` and flags: each question the
+builder had to guess is a missing decision, so add it to `questions.toml` and ask the
+user. Fix failing components the same way, then build again. Tell the user if they
+skip this: the pack's page will say no build has passed.
+
+## 8. Review and publish
 
 Show the user every decision as one sentence with their answer, grouped by
 component. When they agree:
 
 ```
 symbola login            # once
-symbola publish spec
+symbola publish spec --evidence spec/.symbolon/test-build/attestations
 ```
 
-Give them the request link it prints. Nobody has built the product yet, so the
-first build that passes becomes the reference later builds are compared with.
-Builders who find two checks that cannot both pass report it with `symbola flag`;
-each report is one more question for the user and a new pack version.
+Give them the request link it prints. Leave out `--evidence` only if they skipped the
+test build. Builders who later find two checks that cannot both pass report it with
+`symbola flag`; each report is one more question for the user and a new pack version.

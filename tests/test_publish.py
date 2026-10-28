@@ -105,3 +105,39 @@ def test_publish_refuses_a_folder_that_is_not_a_pack(fake, tmp_path):
     pub.save_credentials(SITE, {"token": "sym_abc", "login": "ada"})
     out = CliRunner().invoke(app, ["publish", str(tmp_path), "--site", SITE])
     assert out.exit_code == 1 and "no symbolon-pack.toml" in out.output
+
+
+def test_publish_carries_evidence_that_covers_the_pack(tmp_path):
+    import shutil
+
+    from symbola import keys
+    from symbola.attest import run_attestation
+    from symbola.extract import sync_components
+    from symbola.sandbox import ProcessSandbox, SandboxUnavailable
+
+    from .test_attest import DATE_PARSE, STRICT
+
+    try:
+        sandbox = ProcessSandbox()
+    except SandboxUnavailable:
+        pytest.skip("process sandbox not available here")
+    spec = scaffold_pack("acme/demo", tmp_path / "spec", "me@example.com")
+    component = spec / "components" / "date-parse" / "versions" / "1"
+    shutil.copytree(DATE_PARSE, component, ignore=shutil.ignore_patterns("__pycache__"))
+    sync_components(spec)
+    key = keys.load_private(keys.generate(tmp_path / "runner.key"))
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    (evidence / "date-parse.build-1.json").write_text(json.dumps(run_attestation(component, STRICT, sandbox, key)))
+
+    _, tarball = pub.package(spec, evidence)
+    with tarfile.open(fileobj=io.BytesIO(gzip.decompress(tarball))) as tar:
+        names = tar.getnames()
+    assert "demo/.evidence/date-parse.build-1.json" in names and "demo/.evidence/runner-1.pub" in names
+
+    # Evidence for an earlier state of the pack is refused before upload.
+    with (component / "examples.jsonl").open("a") as f:
+        f.write('{"input": {"text": "2024-02-29", "locale": "ISO"}, "output": {"date": "2024-02-29"}}\n')
+    sync_components(spec)
+    with pytest.raises(pub.PublishError, match="not a component of this pack as it is now"):
+        pub.package(spec, evidence)

@@ -6,6 +6,18 @@ them. There is no server. Only the **latest** version of each pack is published;
 older versions stay in the registry's folders and git history so that attestations
 naming them can still be re-checked.
 
+## Three ways to make a pack
+
+| You have | Use | Start with |
+| --- | --- | --- |
+| A product that already works | `symbola extract`: an agent reads the code and drafts the pack, checked against the original | `symbola extract ./my-product --pack you/my-product` |
+| A product you are building now | The [`symbola-pack`](https://github.com/kausalflow/symbola/blob/main/skills/symbola-pack/SKILL.md) skill: your agent records decisions as you make them | `npx skills add kausalflow/symbola --skill symbola-pack` |
+| An idea, no code yet | The [`symbola-decide`](https://github.com/kausalflow/symbola/blob/main/skills/symbola-decide/SKILL.md) skill: your agent asks you multiple-choice questions and writes the pack | `npx skills add kausalflow/symbola --skill symbola-decide` |
+
+All three end in the same pack format and the same `symbola publish`. Before publishing,
+build the pack once from the pack alone (`symbola replicate spec --builds 1`) and publish
+with `--evidence`; a pack without it is listed as having no passing build.
+
 ## Making a pack
 
 ```
@@ -61,6 +73,19 @@ Sign in at <https://symbola.sh/publish/> with GitHub, or from a terminal:
 symbola login              # GitHub device sign-in; saves a token in ~/.config/symbolon/
 symbola publish spec       # validates locally, uploads, and follows the request
 ```
+
+To show on the pack's page that it builds, publish the attestations of a test build
+with it. `symbola replicate` hands the pack alone to a fresh coding agent and attests
+what it builds:
+
+```
+symbola keygen                                         # once
+symbola replicate spec --builds 1 -o spec/.symbolon/test-build
+symbola publish spec --evidence spec/.symbolon/test-build/attestations
+```
+
+Each attestation must name a component of the pack as it is now; the registry places
+them beside the pack. Without evidence the page says no build has passed yet.
 
 Your GitHub login is your namespace, so you publish `<login>/<name>`; organisations
 that installed the Symbola GitHub app (or where your membership is public) are
