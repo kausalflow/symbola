@@ -21,7 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 
 from .digest import contract_digest
 from .manifest import load_manifest
-from .spec import CheckResult
+from .spec import CheckResult, SpecError, load_examples
 
 PACK_MANIFEST_FILE = "symbolon-pack.toml"
 OBLIGATIONS_FILE = "obligations.toml"
@@ -151,6 +151,10 @@ def _available_checks(contract_dir: Path) -> set[str]:
     return out
 
 
+def _expected(example: dict) -> str:
+    return json.dumps({k: example[k] for k in ("output", "raises") if k in example}, sort_keys=True)
+
+
 def _brief_headings(text: str) -> set[str]:
     return {m.group(1).strip().lower() for m in re.finditer(r"^#+\s+(.+?)\s*#*\s*$", text, re.M)}
 
@@ -195,6 +199,25 @@ def validate_pack(pack_dir: Path) -> PackReport:
     problems += [f"{alias}: present but not listed in {PACK_MANIFEST_FILE}" for alias in by_alias if alias not in listed]
     add(CheckResult("component digests match the pack manifest", not problems,
                     "\n".join(problems) or f"{len(listed)} components"))
+
+    # Examples: two lines with the same input must expect the same result. Without a
+    # product to run them against (a pack written before any code), this is the one
+    # check that catches decisions recorded twice, differently.
+    problems = []
+    for name, d in components.items():
+        try:
+            examples = load_examples(d / "examples.jsonl")
+        except (SpecError, OSError) as e:
+            problems.append(f"{name}: {e}")
+            continue
+        seen: dict[str, dict] = {}
+        for ex in examples:
+            key = json.dumps(ex["input"], sort_keys=True)
+            first = seen.setdefault(key, ex)
+            if first is not ex and _expected(first) != _expected(ex):
+                problems.append(f"{name}: examples {first['_line']} and {ex['_line']} have the same input "
+                                "but expect different results")
+    add(CheckResult("examples do not contradict each other", not problems, "\n".join(problems)))
 
     # BRIEF.md: purpose plus the sections an agent cannot infer.
     headings = _brief_headings((root / BRIEF_FILE).read_text())

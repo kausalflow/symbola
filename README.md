@@ -21,7 +21,9 @@ Assistants and coding agents can find and build packs through the Symbola connec
 npx skills add kausalflow/symbola --skill symbola-build   # the build skill, for most coding agents
 ```
 
-In Claude Code, the plugin adds both skills and the connector:
+Publishers without code yet can write a pack by answering questions: `npx skills add kausalflow/symbola --skill symbola-decide`.
+
+In Claude Code, the plugin adds the skills and the connector:
 
 ```
 /plugin install symbola --marketplace kausalflow/symbola

@@ -147,6 +147,7 @@ on its own.
 
 1. `symbolon-pack.toml`, `BRIEF.md` and `obligations.toml` exist.
 2. Every component listed in the manifest is present with the same digest, and none is unlisted.
+   No two example lines of a component have the same input but expect different results.
 3. `BRIEF.md` has the three required sections, and `PRODUCT.md`, if present, has its three.
 4. Every assumption file is well-formed, with a unique id.
 5. Every obligation is well-formed, with a unique id.

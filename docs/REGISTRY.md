@@ -34,6 +34,25 @@ the code whenever you make a decision a builder could not have guessed, state a
 fact about the world, or leave something open, and to run `pack validate` after
 each change.
 
+## Deciding before building
+
+A pack needs no code: a decision's check can be an example line, an input and the
+output the publisher wants. The [`symbola-decide`](https://github.com/kausalflow/symbola/blob/main/skills/symbola-decide/SKILL.md)
+skill has the publisher's coding agent interview them instead. It writes `PRODUCT.md`
+and `BRIEF.md` from a description, then asks only where good builders would choose
+differently, as multiple-choice questions with a concrete input, kept in
+`spec/.symbolon/questions.toml` (not published):
+
+```
+symbola pack questions spec                          # what is still unanswered
+symbola pack answer spec search.year-is-publication-year a
+```
+
+`pack answer` turns each answer into an obligation and the example line that checks
+it, so the pack stays in format whatever the agent writes. Install the skill with
+`npx skills add kausalflow/symbola --skill symbola-decide`; the Claude Code plugin
+includes it.
+
 ## Publishing from symbola.sh
 
 Sign in at <https://symbola.sh/publish/> with GitHub, or from a terminal:

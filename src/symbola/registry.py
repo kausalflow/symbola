@@ -141,6 +141,10 @@ when the user makes a choice you could not have guessed, add it to
 assumption; record only what the user decided, not what the code happens to do.
 Keep holdout tests outside this folder. Run `symbola pack validate <this folder>`
 after each change.
+
+If two checks cannot both pass, don't code around them: run
+`symbola flag <component>#example:<line> "<what disagrees, and the reading you chose>" --dir <impl-dir>`,
+build the reading closest to `BRIEF.md`, and carry on.
 '''
 
 
