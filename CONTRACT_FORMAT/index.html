@@ -28,7 +28,7 @@
     
     
       
-        <title>Contract format - Symbolon</title>
+        <title>Contract format - Symbola</title>
       
     
     
@@ -97,7 +97,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="./.." title="Symbolon" class="md-header__button md-logo" aria-label="Symbolon" data-md-component="logo">
+    <a href="./.." title="Symbola" class="md-header__button md-logo" aria-label="Symbola" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
@@ -112,7 +112,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Symbolon
+            Symbola
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -218,13 +218,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="./.." title="Symbolon" class="md-nav__button md-logo" aria-label="Symbolon" data-md-component="logo">
+    <a href="./.." title="Symbola" class="md-nav__button md-logo" aria-label="Symbola" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
 
     </a>
-    Symbolon
+    Symbola
   </label>
   
     <div class="md-nav__source">
@@ -1326,7 +1326,7 @@
   
 
 
-<h1 id="symbolon-contract-format-v1">Symbolon contract format, v1<a class="headerlink" href="#symbolon-contract-format-v1" title="Permanent link">&para;</a></h1>
+<h1 id="symbola-contract-format-v1">Symbola contract format, v1<a class="headerlink" href="#symbola-contract-format-v1" title="Permanent link">&para;</a></h1>
 <p>This is the format for <strong>capability contracts</strong>, the first contract kind. A contract is a directory. Its identity is the digest of that directory's contents, and nothing else.</p>
 <h2 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>contracts/&lt;namespace&gt;/&lt;name&gt;/versions/&lt;version&gt;/
@@ -1381,7 +1381,7 @@
 <h2 id="interface-schemapy-and-schemajson">Interface: <code>schema.py</code> and <code>schema/*.json</code><a class="headerlink" href="#interface-schemapy-and-schemajson" title="Permanent link">&para;</a></h2>
 <p><code>schema.py</code> must define <code>Input</code> and <code>Output</code> as pydantic models. The JSON Schema files are generated from them with <code>symbola schema &lt;dir&gt;</code>, and <code>validate</code> fails if they drift apart. The JSON Schema is the language-neutral interface. Pydantic is the authoring convenience.</p>
 <h2 id="implementations">Implementations<a class="headerlink" href="#implementations" title="Permanent link">&para;</a></h2>
-<p>An implementation is a Python file that defines the entrypoint function. It receives the input as plain JSON values (a dict matching <code>schema/input.json</code>) and returns plain JSON values matching <code>schema/output.json</code>. It reports invalid input by raising an exception, normally <code>ValueError</code>. Because implementations exchange only JSON values, any tool or model can produce one without importing Symbolon.</p>
+<p>An implementation is a Python file that defines the entrypoint function. It receives the input as plain JSON values (a dict matching <code>schema/input.json</code>) and returns plain JSON values matching <code>schema/output.json</code>. It reports invalid input by raising an exception, normally <code>ValueError</code>. Because implementations exchange only JSON values, any tool or model can produce one without importing Symbola.</p>
 <p><code>symbola test</code> accepts a single file. <code>symbola attest</code> needs an implementation directory with a manifest and optional lockfile; see <a href="../ATTESTATION/">ATTESTATION.md</a>.</p>
 <h3 id="command-lines">Command lines<a class="headerlink" href="#command-lines" title="Permanent link">&para;</a></h3>
 <p>With <code>driver = "cli"</code>, an implementation is the real program (<code>language = "command"</code>, <code>command = ["./mytool"]</code>), not an adapter. <code>Input</code> has <code>argv</code> and optionally <code>files</code> (name -&gt; text) and <code>stdin</code>. For each call symbola writes <code>files</code> into an empty scratch directory, runs <code>command + argv</code> there with <code>stdin</code>, and collects</p>
