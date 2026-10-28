@@ -1,8 +1,8 @@
-# Symbolon
+# Symbola
 
 **Trustable contracts between agents.** A contract is a precise, content-addressed promise. Evidence that someone kept it can be checked by anyone.
 
-Agents increasingly call tools, run code they generated, and rebuild software on someone's behalf. Each of those is an implicit promise that something behaves a certain way. Symbolon writes the promise down in a form a machine can check, and records signed evidence that a specific implementation kept it.
+Agents increasingly call tools, run code they generated, and rebuild software on someone's behalf. Each of those is an implicit promise that something behaves a certain way. Symbola writes the promise down in a form a machine can check, and records signed evidence that a specific implementation kept it.
 
 Software capabilities are the first vertical. A contract specifies a capability, and any implementation, hand-written or AI-generated, in any language, is checked against it.
 

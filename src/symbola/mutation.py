@@ -110,7 +110,7 @@ def run_mutants(contract: LoadedContract, mutants_dir: Path) -> list[MutantResul
             continue
         seen[norm] = path.name
         try:
-            fn = contract.load_impl(path, f"symbolon_mutant_{i}")
+            fn = contract.load_impl(path, f"symbola_mutant_{i}")
         except Exception as e:
             res.problem = f"does not load: {type(e).__name__}: {e}"
             continue

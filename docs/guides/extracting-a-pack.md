@@ -4,7 +4,7 @@
 follows design v0.5, sections 5.1 and 5.2: an AI reads the product and drafts a
 minimal pack, and the original product is the oracle the draft must pass.
 
-Symbolon does not read code or write software itself. It hands that to a coding
+Symbola does not read code or write software itself. It hands that to a coding
 agent you already use, then checks what the agent leaves behind.
 
 ## Run it
@@ -15,7 +15,7 @@ symbola extract ~/code/lightkone --pack kausalflow/lightkone \
 ```
 
 The agent works in `packs/kausalflow/lightkone/` and may read the source, which
-Symbolon never changes. When it finishes you have:
+Symbola never changes. When it finishes you have:
 
 | Path | What it is | Ships |
 | --- | --- | --- |

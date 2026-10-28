@@ -1,4 +1,4 @@
-# Symbolon contract format, v1
+# Symbola contract format, v1
 
 This is the format for **capability contracts**, the first contract kind. A contract is a directory. Its identity is the digest of that directory's contents, and nothing else.
 
@@ -66,7 +66,7 @@ Unknown keys are errors, so a typo cannot silently change a contract's meaning.
 
 ## Implementations
 
-An implementation is a Python file that defines the entrypoint function. It receives the input as plain JSON values (a dict matching `schema/input.json`) and returns plain JSON values matching `schema/output.json`. It reports invalid input by raising an exception, normally `ValueError`. Because implementations exchange only JSON values, any tool or model can produce one without importing Symbolon.
+An implementation is a Python file that defines the entrypoint function. It receives the input as plain JSON values (a dict matching `schema/input.json`) and returns plain JSON values matching `schema/output.json`. It reports invalid input by raising an exception, normally `ValueError`. Because implementations exchange only JSON values, any tool or model can produce one without importing Symbola.
 
 `symbola test` accepts a single file. `symbola attest` needs an implementation directory with a manifest and optional lockfile; see [ATTESTATION.md](ATTESTATION.md).
 

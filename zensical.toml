@@ -1,5 +1,5 @@
 [project]
-site_name = "Symbolon"
+site_name = "Symbola"
 site_description = "Trustable contracts between agents: checkable specs, verifiable evidence."
 site_url = "https://kausalflow.github.io/symbola/"
 repo_url = "https://github.com/kausalflow/symbola"

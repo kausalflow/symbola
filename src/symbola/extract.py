@@ -1,6 +1,6 @@
 """`symbola extract`: draft a spec pack from software someone already built.
 
-Symbolon does not read the code itself. An external coding agent (see agent.py)
+Symbola does not read the code itself. An external coding agent (see agent.py)
 reads the product and writes the draft; this module sets up the folder, hands
 over the brief, and then checks the result the way a publisher would (design
 v0.5, sections 5.1 and 5.2):
@@ -104,7 +104,7 @@ OBLIGATIONS = '''\
 AGENTS = '''\
 # AGENTS.md
 
-This is a Symbolon spec pack. Build from it; do not look for the original source.
+This is a Symbola pack. Build from it; do not look for the original source.
 
 1. Read `BRIEF.md`: what the product is, its non-goals and priorities.
 2. Read `assumptions/`: what you may take as true about the world. Don't build for cases they rule out.
@@ -137,7 +137,7 @@ build the reading you think is right, and carry on.
 '''
 
 PROMPT = '''\
-You are drafting a Symbolon spec pack from an existing product. Symbolon is a
+You are drafting a Symbola pack from an existing product. Symbola is a
 registry of checkable contracts: other AI agents will rebuild this product from
 the pack alone, without its source, and the pack's checks decide whether a
 rebuild is faithful.

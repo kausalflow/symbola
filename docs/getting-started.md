@@ -2,7 +2,7 @@
 
 ## Install
 
-Symbolon needs Python 3.11 or newer. The package and command are `symbola`.
+Symbola needs Python 3.11 or newer. The package and command are `symbola`.
 
 ```bash
 uv tool install symbola      # or: pipx install symbola

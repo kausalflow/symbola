@@ -152,7 +152,7 @@ def check(root: Path) -> list[CheckResult]:
     ref = root / "reference" / "impl.py"
     if ref.exists():
         try:
-            result = run_spec(contract, contract.load_impl(ref, "symbolon_reference"))
+            result = run_spec(contract, contract.load_impl(ref, "symbola_reference"))
         except Exception as e:
             return fail(name, f"{type(e).__name__}: {e}")
         if not result.passed:
@@ -241,7 +241,7 @@ def main(argv: list[str]) -> int:
         impls = {}
         try:
             for i, (name, path) in enumerate(config["impls"]):
-                impls[name] = contract.load_any(Path(path), f"symbolon_impl_{i}")
+                impls[name] = contract.load_any(Path(path), f"symbola_impl_{i}")
             payload = run_diff(contract, impls, config)
         except Exception as e:
             payload = {"error": f"{type(e).__name__}: {e}"}

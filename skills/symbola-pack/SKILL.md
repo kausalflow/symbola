@@ -1,9 +1,9 @@
 ---
-name: symbolon-pack
-description: Keep a Symbolon spec pack current while building a product, and release it to the pack registry. Use when the repo has a spec/ folder with symbolon-pack.toml, or when the user asks to create, update, or release a spec pack.
+name: symbola-pack
+description: Keep a Symbola pack current while building a product, and release it to the pack registry. Use when the repo has a spec/ folder with symbolon-pack.toml, or when the user asks to create, update, or release a spec pack.
 ---
 
-# Keeping a Symbolon spec pack while you build
+# Keeping a Symbola pack while you build
 
 A spec pack records the decisions another builder would need to rebuild this
 product, each with a check. You keep it in `spec/` next to the code. Format:

@@ -100,7 +100,7 @@ How it went:
 
 The pack now has 63 obligations, all decided. Four defaults that were lightkone bugs are fixed and decided: papers in the trash are left out of `library.bib`, and top-level keys of `library.json` that lightkone does not use are kept on save (lightkone#51); a user folder named in capitals (`ML`, `2019`) is no longer taken for a Paperpile author folder unless it is an author's surname, and blank DOIs no longer match each other in tidy (lightkone#52). On 2026-10-24 kausalflow settled the last five: an empty `journal` no longer hides the `booktitle` as the venue, and a `library.json` saved by a newer lightkone is refused rather than read as version 1 (lightkone#53); a mistyped `year:` filter still filters nothing, title sort keeps Unicode collation, and import keeps JavaScript's whitespace set.
 
-Two Symbolon bugs turned up and are fixed: examples containing U+2028 were split into two lines, and the container sandbox removed the execute bit, so no compiled implementation could run.
+Two Symbola bugs turned up and are fixed: examples containing U+2028 were split into two lines, and the container sandbox removed the execute bit, so no compiled implementation could run.
 
 ## Results (milestone 1)
 
