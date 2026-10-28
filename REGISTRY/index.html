@@ -24,7 +24,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.72">
+      <meta name="generator" content="zensical-0.0.73">
     
     
       
@@ -1288,9 +1288,10 @@ assumption.</p>
 <p>Holdout tests must stay <strong>outside</strong> the pack folder. <code>site build</code> refuses a pack that
 contains a <code>holdout</code> path.</p>
 <h2 id="keeping-a-pack-while-you-build">Keeping a pack while you build<a class="headerlink" href="#keeping-a-pack-while-you-build" title="Permanent link">&para;</a></h2>
-<p>The repository ships a Claude Code skill, <a href="https://github.com/kausalflow/symbola/blob/main/skills/symbolon-pack/SKILL.md"><code>skills/symbolon-pack/SKILL.md</code></a>.
-Copy it into your project's <code>.claude/skills/</code> (or point another coding tool at it
-from your <code>AGENTS.md</code>). It tells the agent to update <code>spec/</code> in the same change as
+<p>The repository ships an agent skill, <a href="https://github.com/kausalflow/symbola/blob/main/skills/symbolon-pack/SKILL.md"><code>skills/symbolon-pack/SKILL.md</code></a>.
+Install it with <code>npx skills add kausalflow/symbola --skill symbolon-pack</code> (or copy it
+into your project's <code>.claude/skills/</code>, or point another coding tool at it from your
+<code>AGENTS.md</code>). It tells the agent to update <code>spec/</code> in the same change as
 the code whenever you make a decision a builder could not have guessed, state a
 fact about the world, or leave something open, and to run <code>pack validate</code> after
 each change.</p>
@@ -1550,7 +1551,7 @@ shows a Buy button; after paying through Stripe, the buyer gets a license token:
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.annotate","content.code.copy","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"redirect":null,"search":"../assets/javascripts/workers/search.c47bb847.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
-      <script src="../assets/javascripts/bundle.10ee5ab6.min.js"></script>
+      <script src="../assets/javascripts/bundle.77dd0ce9.min.js"></script>
       
     
   </body>
