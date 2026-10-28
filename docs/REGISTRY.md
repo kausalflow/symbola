@@ -26,9 +26,10 @@ contains a `holdout` path.
 
 ## Keeping a pack while you build
 
-The repository ships a Claude Code skill, [`skills/symbolon-pack/SKILL.md`](https://github.com/kausalflow/symbola/blob/main/skills/symbolon-pack/SKILL.md).
-Copy it into your project's `.claude/skills/` (or point another coding tool at it
-from your `AGENTS.md`). It tells the agent to update `spec/` in the same change as
+The repository ships an agent skill, [`skills/symbolon-pack/SKILL.md`](https://github.com/kausalflow/symbola/blob/main/skills/symbolon-pack/SKILL.md).
+Install it with `npx skills add kausalflow/symbola --skill symbolon-pack` (or copy it
+into your project's `.claude/skills/`, or point another coding tool at it from your
+`AGENTS.md`). It tells the agent to update `spec/` in the same change as
 the code whenever you make a decision a builder could not have guessed, state a
 fact about the world, or leave something open, and to run `pack validate` after
 each change.
