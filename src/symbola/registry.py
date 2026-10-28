@@ -141,6 +141,10 @@ when the user makes a choice you could not have guessed, add it to
 assumption; record only what the user decided, not what the code happens to do.
 Keep holdout tests outside this folder. Run `symbola pack validate <this folder>`
 after each change.
+
+If two checks cannot both pass, don't code around them: run
+`symbola flag <component>#example:<line> "<what disagrees, and the reading you chose>" --dir <impl-dir>`,
+build the reading closest to `BRIEF.md`, and carry on.
 '''
 
 
@@ -190,13 +194,16 @@ def _files(root: Path) -> list[Path]:
     return files
 
 
-def make_tarball(root: Path, top: str) -> bytes:
-    """A gzipped tar of the pack's files that is byte-identical on every build."""
+def make_tarball(root: Path, top: str, extra: dict[str, bytes] | None = None) -> bytes:
+    """A gzipped tar of the pack's files that is byte-identical on every build.
+
+    `extra` adds files that are not part of the pack, by path under `top`.
+    """
     raw = io.BytesIO()
+    files = [(path.relative_to(root).as_posix(), path.read_bytes()) for path in _files(root)]
     with tarfile.open(fileobj=raw, mode="w", format=tarfile.PAX_FORMAT) as tar:
-        for path in _files(root):
-            data = path.read_bytes()
-            info = tarfile.TarInfo(f"{top}/{path.relative_to(root).as_posix()}")
+        for rel, data in files + sorted((extra or {}).items()):
+            info = tarfile.TarInfo(f"{top}/{rel}")
             info.size, info.mtime, info.mode = len(data), 0, 0o644
             info.uid = info.gid = 0
             info.uname = info.gname = ""

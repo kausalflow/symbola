@@ -20,6 +20,7 @@ from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_site, publish as publish_pack, \
     request_state, start_login
+from .questions import QuestionError, answer as answer_question, unanswered
 from .pack import PRODUCT_FILE, component_name, report_json, summary_line, validate_pack
 from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, pull as pull_pack, release as release_pack, scaffold_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
@@ -563,6 +564,45 @@ def pack_init(
     typer.echo(f"\nNext: replace the placeholders, then run `symbola pack validate {target}`")
 
 
+@pack_app.command(name="questions")
+def pack_questions(
+    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    as_json: bool = typer.Option(False, "--json", help="Print the questions as JSON."),
+) -> None:
+    """List the questions in .symbolon/questions.toml that the publisher has not answered yet."""
+    try:
+        todo = unanswered(path)
+    except QuestionError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    if as_json:
+        typer.echo(json.dumps([q.model_dump(exclude_defaults=True) for q in todo], indent=2, ensure_ascii=False))
+        return
+    for n, q in enumerate(todo, 1):
+        typer.echo(f"{n}. {q.ask}  [{q.id}]")
+        for c in q.choice:
+            typer.echo(f"   ({c.key}) {c.label}" + ("  (recommended)" if c.key == q.recommended else ""))
+        typer.echo("")
+    typer.echo(f"{len(todo)} unanswered. Record each with `symbola pack answer {path} <id> <choice|default|open>`.")
+
+
+@pack_app.command(name="answer")
+def pack_answer(
+    path: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    question: str = typer.Argument(..., help="Question id from .symbolon/questions.toml."),
+    pick: str = typer.Argument(..., help="A choice key (decided), 'default' (the recommended choice, "
+                                         "left to the builder's pack) or 'open' (builds may differ)."),
+) -> None:
+    """Record the publisher's answer as an obligation and the example line that checks it."""
+    try:
+        o = answer_question(path, question, pick)
+    except QuestionError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    detail = ", ".join(o.get("checks", [])) or ("unchecked" if o.get("unchecked") else "no check")
+    _line(True, f"{o['id']}: {o['status']}", f"{o['statement']} ({detail})")
+
+
 site_app = typer.Typer(no_args_is_help=True, help="Build the static pack registry.")
 app.add_typer(site_app, name="site")
 
@@ -656,11 +696,16 @@ def publish(
     spec: Path = typer.Argument(Path("spec"), help="Your pack folder, the one `pack init` made."),
     site: str = SITE_OPTION,
     wait: bool = typer.Option(True, help="Follow the request until its pull request is open (or it fails)."),
+    evidence: Path | None = typer.Option(None, help="Attestations from a test build of this pack (a folder of *.json), "
+                                                    "listed on the pack's page. Strongly recommended."),
 ) -> None:
     """Validate a pack and publish it to the registry website as its next version."""
     site = site.rstrip("/")
+    if evidence is None:
+        typer.echo("  No --evidence: the pack's page will say no build has passed yet. "
+                   "A test build first is strongly recommended (`symbola replicate`).")
     try:
-        got = publish_pack(spec, site)
+        got = publish_pack(spec, site, evidence)
     except PublishError as e:
         _line(False, str(e))
         raise typer.Exit(1)

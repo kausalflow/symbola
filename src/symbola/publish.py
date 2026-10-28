@@ -5,6 +5,10 @@
 /api/cli/token. Only the Symbola token is kept, in ~/.config/symbolon/credentials.json.
 `publish` validates a pack locally, then uploads it as a .tar.gz to /api/publish. The site's
 registry workflow runs `release` and `site check` again and opens the pull request.
+
+With `--evidence`, the upload also carries attestations from a test build of the pack, in
+`.evidence/` (a dot folder, so not part of the pack), with each runner's public key. The
+registry places them beside the pack, where its page lists them as evidence.
 """
 
 from __future__ import annotations
@@ -19,12 +23,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-from . import USER_AGENT
-from .pack import validate_pack
+from cryptography.hazmat.primitives import serialization
+
+from . import USER_AGENT, keys
+from .attest import AttestError, verify_attestation
+from .digest import contract_digest, hex_of
+from .pack import _component_dirs, validate_pack
 from .registry import PACK_MANIFEST_FILE, PACK_REF_RE, RegistryError, _manifest, make_tarball
 
 DEFAULT_SITE = "https://symbola.sh"
 MAX_UPLOAD = 5 * 1024 * 1024
+EVIDENCE_DIR = ".evidence"
 
 
 class PublishError(Exception):
@@ -125,8 +134,40 @@ def token_for(site: str) -> str:
     return data[site]["token"]
 
 
-def package(spec: Path) -> tuple[str, bytes]:
-    """Validate a pack folder and return its id and a .tar.gz of its files."""
+def evidence_files(spec: Path, evidence: Path) -> dict[str, bytes]:
+    """Attestations in `evidence` that cover this pack's components, with their runners' keys.
+
+    Each must verify and name a component of the pack as it is now; anything else is
+    refused here rather than by the registry. Keys are written from the attestations.
+    """
+    digests = {hex_of(contract_digest(d)): name for name, d in _component_dirs(Path(spec)).items()}
+    found = sorted(Path(evidence).rglob("*.json"))
+    if not found:
+        raise PublishError(f"{evidence}: no attestations (*.json); make them with `symbola attest` or `symbola replicate`")
+    files, runners = {}, {}
+    for path in found:
+        try:
+            envelope = json.loads(path.read_text())
+            check = verify_attestation(envelope)
+        except (AttestError, ValueError) as e:
+            raise PublishError(f"{path}: {e}") from None
+        if check.problems:
+            raise PublishError(f"{path}: {'; '.join(check.problems)}")
+        contract = next(c for c in check.predicate["configuration"] if c["name"].startswith("contract:"))
+        if contract["digest"]["sha256"] not in digests:
+            raise PublishError(f"{path}: attests {contract['name'].split(':', 1)[1]}, which is not a component of "
+                               "this pack as it is now; build and attest again")
+        files[f"{EVIDENCE_DIR}/{path.name}"] = path.read_bytes()
+        runners[check.keyid] = check.predicate["symbolon"]["runner"]["publicKey"]
+    for n, (kid, b64) in enumerate(sorted(runners.items()), 1):
+        pem = keys.public_from_b64(b64).public_bytes(serialization.Encoding.PEM,
+                                                      serialization.PublicFormat.SubjectPublicKeyInfo)
+        files[f"{EVIDENCE_DIR}/runner-{n}.pub"] = pem
+    return files
+
+
+def package(spec: Path, evidence: Path | None = None) -> tuple[str, bytes]:
+    """Validate a pack folder and return its id and a .tar.gz of its files (and evidence)."""
     spec = Path(spec)
     if not (spec / PACK_MANIFEST_FILE).is_file():
         raise PublishError(f"{spec}: no {PACK_MANIFEST_FILE}; is this the folder `symbola pack init` made?")
@@ -138,7 +179,8 @@ def package(spec: Path) -> tuple[str, bytes]:
     if not PACK_REF_RE.match(pack_id):
         raise PublishError(f"{PACK_MANIFEST_FILE}: id must look like 'owner/name', got {pack_id!r}")
     try:
-        tarball = make_tarball(spec, pack_id.split("/")[1])
+        extra = evidence_files(spec, evidence) if evidence else None
+        tarball = make_tarball(spec, pack_id.split("/")[1], extra)
     except RegistryError as e:
         raise PublishError(str(e)) from None
     if len(tarball) > MAX_UPLOAD:
@@ -146,10 +188,10 @@ def package(spec: Path) -> tuple[str, bytes]:
     return pack_id, tarball
 
 
-def publish(spec: Path, site: str) -> dict:
+def publish(spec: Path, site: str, evidence: Path | None = None) -> dict:
     """Upload a pack; returns the API's answer ({request, url})."""
     token = token_for(site)
-    _, tarball = package(spec)
+    _, tarball = package(spec, evidence)
     return _request(f"{site}/api/publish", tarball,
                     {"authorization": f"Bearer {token}", "content-type": "application/gzip"}, method="POST")
 

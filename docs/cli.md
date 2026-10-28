@@ -192,7 +192,7 @@ See [Replicating a pack](guides/replicating-a-pack.md).
 symbola pack validate PATH [--json]
 ```
 
-`PATH` is the pack directory holding `symbolon-pack.toml`. Checks the manifest, component digests, `BRIEF.md` sections (and `PRODUCT.md`'s, if present), assumptions and obligations, then reports obligations by status and source. It does not run contract code; run `validate` on each component for that. See [What `symbola pack validate` checks](PACK_FORMAT.md#what-symbolon-pack-validate-checks).
+`PATH` is the pack directory holding `symbolon-pack.toml`. Checks the manifest, component digests, `BRIEF.md` sections (and `PRODUCT.md`'s, if present), assumptions and obligations, and that no two example lines of a component have the same input but expect different results, then reports obligations by status and source. It does not run contract code; run `validate` on each component for that. See [What `symbola pack validate` checks](PACK_FORMAT.md#what-symbolon-pack-validate-checks).
 
 ## `mutants`
 
@@ -249,6 +249,22 @@ symbola pack init PACK_ID [--dir spec] [--author you@example.com]
 ```
 
 Creates a pack folder (by default `spec/`, next to your code) with a manifest, `BRIEF.md`, a placeholder open obligation, a placeholder assumption, `components/` and `AGENTS.md`. Fails if the folder exists and is not empty. See [Pack registry](REGISTRY.md#making-a-pack).
+
+## `pack questions`
+
+```
+symbola pack questions [PATH] [--json]
+```
+
+Lists the questions in `PATH/.symbolon/questions.toml` that have no obligation yet, with their choices and the recommended one. For writing a pack before any code; see [Deciding before building](REGISTRY.md#deciding-before-building).
+
+## `pack answer`
+
+```
+symbola pack answer PATH QUESTION_ID CHOICE
+```
+
+Records the publisher's answer to a question as an obligation. `CHOICE` is a choice key (`decided`), `default` (the recommended choice, as `default`) or `open` (no check). For a question about a component it appends the chosen outcome to that component's `examples.jsonl`, names that line as the obligation's check and updates the component's digest in the manifest; a question with no component becomes an `unchecked` obligation. The first answer replaces `pack init`'s placeholder. An answered question is refused; remove its obligation and example line to answer again.
 
 ## `site build`
 
