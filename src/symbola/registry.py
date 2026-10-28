@@ -121,7 +121,7 @@ monitor = "none"
 AGENTS = '''\
 # AGENTS.md
 
-This is a Symbolon spec pack. If you are building from it:
+This is a Symbola pack. If you are building from it:
 
 1. Read `BRIEF.md`: what the product is, its non-goals and priorities.
 2. Read `assumptions/`: what you may take as true about the world.
@@ -638,7 +638,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
     (out / "index.json").write_text(json.dumps(index, indent=2) + "\n")
     root_prefix = base_url.rstrip("/") + "/" if base_url else ""
     (out / "llms.txt").write_text(
-        "# Symbolon pack registry\n\n> Spec packs that AI coding agents can build from. "
+        "# Symbola pack registry\n\n> Packs that AI coding agents can build from. "
         "Each pack holds a brief, assumptions, obligations and component contracts with tests.\n\n"
         "To build a pack, open its llms.txt below and follow its \"Build this pack\" steps. "
         f"Install the CLI with `{INSTALL}`.\n\n"

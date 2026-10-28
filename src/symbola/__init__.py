@@ -1,4 +1,4 @@
-"""Symbolon: trustable contracts between agents."""
+"""Symbola: trustable contracts between agents."""
 
 __version__ = "0.1.1"
 

@@ -1,4 +1,4 @@
-# Symbolon spec pack format, v1
+# Symbola pack format, v1
 
 A **spec pack** is a product contract packaged for building: what the product is
 for, what may be assumed about the world, and the decisions a builder must keep,

@@ -1,6 +1,6 @@
 """Hand work to an external coding agent.
 
-Symbolon does not build software or read code itself. Commands that need that,
+Symbola does not build software or read code itself. Commands that need that,
 `extract` and `replicate`, run an outside coding agent (Claude Code by default)
 as a subprocess and check what it leaves behind.
 

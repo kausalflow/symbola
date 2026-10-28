@@ -24,7 +24,7 @@ Implementations have digests too, computed the same way over their source, manif
 
 ## Implementation
 
-An **implementation** is any code that claims to satisfy a contract. It is pinned to one contract digest in its `symbolon-impl.toml`. It exchanges only plain JSON values, so any tool or model can write one without importing Symbolon:
+An **implementation** is any code that claims to satisfy a contract. It is pinned to one contract digest in its `symbolon-impl.toml`. It exchanges only plain JSON values, so any tool or model can write one without importing Symbola:
 
 - **Python:** a function, normally `run(input: dict) -> dict`, that raises `ValueError` on invalid input.
 - **Any other language:** a program that reads one JSON input per line on stdin and writes `{"output": ...}` or `{"error": {...}}` per line.

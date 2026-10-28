@@ -1,6 +1,6 @@
 """`symbola replicate`: rebuild a pack with outside coding agents and measure the result.
 
-Symbolon does not write code. Replication hands a builder's copy of a spec
+Symbola does not write code. Replication hands a builder's copy of a spec
 pack to an external coding agent (Claude Code by default; any agent CLI
 through `agent.py`), several times, then checks what came back:
 
@@ -49,7 +49,7 @@ BUILD_DIR = "build"   # where the agent writes one implementation per component
 LOG_FILE = "agent.log"
 
 DEFAULT_PROMPT = """\
-You are building software from a Symbolon spec pack, in a clean room: build only
+You are building software from a Symbola pack, in a clean room: build only
 from the pack. It is in `$pack/`. Start with `$pack/AGENTS.md` if it exists, then
 `$pack/BRIEF.md`, `$pack/assumptions/` and `$pack/obligations.toml`. Do not look for
 the original product's source, and do not read anything outside this directory.
@@ -94,7 +94,7 @@ also be checked on inputs you have not seen.
 PROSE_ONLY_HIDDEN = ("examples.jsonl", "properties.py")
 
 PROSE_ONLY_PROMPT = """\
-You are building software from a Symbolon spec pack, in a clean room: build only
+You are building software from a Symbola pack, in a clean room: build only
 from the pack. It is in `$pack/`. Start with `$pack/AGENTS.md` if it exists, then
 `$pack/BRIEF.md`, `$pack/assumptions/` and `$pack/obligations.toml`. Do not look for
 the original product's source, and do not read anything outside this directory.

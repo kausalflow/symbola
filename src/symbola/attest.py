@@ -1,7 +1,7 @@
 """Signed attestations: an in-toto Test Result statement in a DSSE envelope.
 
 The statement's subject is the implementation digest. The contract digest
-and the environment digest are configuration entries. Symbolon-specific
+and the environment digest are configuration entries. Symbola-specific
 details (seed, budget, failures, resources, sandbox, runner key) live under
 `predicate.symbolon`, which in-toto consumers that only know the Test Result
 predicate can ignore. See docs/ATTESTATION.md.
@@ -147,7 +147,7 @@ def verify_attestation(envelope: dict, *, trusted_keys: list[Path] = (),
         public = keys.public_from_b64(runner["publicKey"])
         payload = keys.verify_envelope(envelope, public)
     except Exception as e:
-        raise AttestError(f"not a valid Symbolon attestation: {e}") from None
+        raise AttestError(f"not a valid Symbola attestation: {e}") from None
     statement = json.loads(payload)
     kid = keys.keyid(public)
     problems = []

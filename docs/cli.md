@@ -144,7 +144,7 @@ plus an oracle adapter per component and a `REVIEW.md`. The draft is then checke
 pack validates, every component validates, and the original product passes every
 component through its adapter. Failures go back to the agent for another round, up
 to `--rounds` runs in all. Component digests in `symbolon-pack.toml` are filled in
-for the agent. Symbolon never changes `SOURCE`.
+for the agent. Symbola never changes `SOURCE`.
 
 | Option | Effect |
 | --- | --- |
@@ -167,7 +167,7 @@ symbola replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--prose-only 0] 
 
 Gives a builder's copy of the pack at `PACK` to an outside coding agent once per
 build, then attests every component of every build, runs the holdout, and runs
-`diff` per component across the builds that passed. Symbolon does not build
+`diff` per component across the builds that passed. Symbola does not build
 anything itself. Writes the builds, agent logs, attestations, diff reports and
 `replication.json` into the `-o` directory, which must not exist.
 

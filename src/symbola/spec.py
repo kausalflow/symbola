@@ -97,7 +97,7 @@ class LoadedContract:
         module = load_module("properties", self.root / "properties.py")
         return collect_properties(module)
 
-    def load_impl(self, path: Path, module_name: str = "symbolon_impl") -> Callable:
+    def load_impl(self, path: Path, module_name: str = "symbola_impl") -> Callable:
         path = Path(path).resolve()
         sys.path.insert(0, str(path.parent))
         module = load_module(module_name, path)
@@ -107,7 +107,7 @@ class LoadedContract:
             raise SpecError(f"{path.name} does not define the entrypoint function '{fn_name}'")
         return fn
 
-    def load_any(self, path: Path, module_name: str = "symbolon_impl") -> Callable:
+    def load_any(self, path: Path, module_name: str = "symbola_impl") -> Callable:
         """An implementation file (Python), or a directory with symbolon-impl.toml."""
         path = Path(path).resolve()
         if not path.is_dir():
