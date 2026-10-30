@@ -70,10 +70,10 @@ Prints `sha256:<hex>` for a contract directory. See [Digest](CONTRACT_FORMAT.md#
 ## `impl-init`
 
 ```
-symbola impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0]
+symbola impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0] [--repin]
 ```
 
-Creates `IMPL_DIR` if needed and writes `symbolon-impl.toml` pinned to the contract's current digest. For implementations in other languages, edit the manifest to `language = "command"` and set `command`; see [Implementations in other languages](ATTESTATION.md#implementations-in-other-languages).
+Creates `IMPL_DIR` if needed and writes `symbolon-impl.toml` pinned to the contract's current digest. With `--repin`, only updates the pin of an existing `symbolon-impl.toml`, after the contract changed in a pack upgrade. For implementations in other languages, edit the manifest to `language = "command"` and set `command`; see [Implementations in other languages](ATTESTATION.md#implementations-in-other-languages).
 
 ## `keygen`
 
@@ -296,4 +296,20 @@ Builds the registry in a temporary folder, so every latest version must validate
 symbola release [SPEC=spec] --registry PACKS
 ```
 
-Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next version, and records its digest in `digests.txt`. Does nothing if the content is unchanged since the latest version. See [Pack registry](REGISTRY.md#releasing).
+Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next version, and records its digest in `digests.txt`. Prints what changed since the previous version. Does nothing if the content is unchanged since the latest version. See [Pack registry](REGISTRY.md#releasing).
+
+## `changes`
+
+```
+symbola changes OLD NEW [-o changes.md] [--json]
+```
+
+Lists what changed between two pack folders: decisions and assumptions added, removed or changed (by id, field by field), components whose contract changed and which files, and a diff of each top-level Markdown document. The site writes the same report for the latest version of every pack. See [Pack registry](REGISTRY.md#upgrading-a-build).
+
+## `upgrade`
+
+```
+symbola upgrade [SPEC=spec] [--dest SPEC.new] [--registry URL-or-folder] [--impl impl] [--overrides overrides.toml] [--report UPGRADE.md]
+```
+
+For a build made from an earlier version of a pack: pulls the latest version into `DEST`, compares it with `SPEC`, and writes `REPORT` with the changes, the commands to re-check and re-pin each changed component, and steps for the agent. Decisions listed in `--overrides` (the build's own departures, by decision id) are marked, with a warning when the new version changes one. Prints "up to date" and removes `DEST` when there is nothing new. See [Pack registry](REGISTRY.md#upgrading-a-build).

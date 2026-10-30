@@ -1,6 +1,6 @@
 ---
 name: symbola-build
-description: Find and build software from a Symbola pack (symbola.sh). Use when the user shares a symbola.sh pack link or an owner/name pack id, asks to build or rebuild a pack, or wants a pack for some kind of software.
+description: Find and build software from a Symbola pack (symbola.sh). Use when the user shares a symbola.sh pack link or an owner/name pack id, asks to build, rebuild or upgrade a pack (update a build to its latest version), or wants a pack for some kind of software.
 ---
 
 # Building software from a Symbola pack
@@ -47,6 +47,28 @@ one. In outline:
 
 You are done when every flow in `spec/PRODUCT.md` works and attest reports
 PASSED for every component. Write open questions and the readings you chose in
-`NOTES.md`. Packs released before the CLI was renamed say
+`NOTES.md`. When you depart from the pack on purpose, because the user asked for it, add
+an entry to `overrides.toml` beside `spec/` (`[[override]]` with `id`, the
+decision id, `reason`, and optionally `instead`), so a later upgrade keeps it.
+
+Packs released before the CLI was renamed say
 `symbolon <command>`: run `symbola <command>` instead. Every command is
 described at https://kausalflow.github.io/symbola/cli/.
+
+## Upgrade a build
+
+When the user asks to update a build to the pack's latest version, run
+`symbola upgrade` beside `spec/`. If it says "up to date", tell the user. If
+not, it unpacks the new version into `spec.new/` and writes `UPGRADE.md`;
+follow it:
+
+1. Change only what the new version changes, and leave the rest of the build,
+   including the user's own changes, as it is.
+2. Make the build follow each changed or added decision, except decisions in
+   `overrides.toml`. Where the new version changes a decision the build
+   overrides, ask the user whether to keep the override.
+3. Re-run the checks of each changed component against `spec.new/`, fix what
+   fails, and re-pin it with `symbola impl-init <impl> --contract <contract> --repin`.
+4. Check the flows in `PRODUCT.md` that changed.
+5. Replace `spec/` with `spec.new/`, attest the changed components again, and
+   add what you changed to `NOTES.md`.
