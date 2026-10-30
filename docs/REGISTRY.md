@@ -111,6 +111,10 @@ copies it to `packs/<owner>/<name>/versions/<n>/`, and appends the version's
 digest to `packs/<owner>/<name>/digests.txt`. Releasing unchanged content does
 nothing. Then commit and open a pull request.
 
+A release is also how you ship an upgrade, and it needs nothing extra from you:
+`release` prints what changed since the last version, and the site shows it on the
+pack's page (see [Upgrading a build](#upgrading-a-build)).
+
 There are no publisher keys. Who may release under an owner is decided by who
 can merge into the registry; once packs move to their publishers' own
 repositories as GitHub Releases, GitHub's provenance attestation will identify
@@ -222,6 +226,43 @@ instead and skip unpacking. It holds everything that applies to the whole pack a
 links one `parts/` file per component, so the agent reads only the components it
 builds and no file is too big for one read. Data files such as `examples.jsonl`
 show their first lines in the part and link the raw file under `files/`.
+
+## Upgrading a build
+
+When a pack has more than one version, the site lists what its latest version
+changed, worked out from the two version folders: decisions (obligations) and
+assumptions matched by id, components whose contract changed and which of their
+files, and a diff of each top-level document such as `PRODUCT.md`. It is written as
+`changes.json` and `changes.md` beside the pack, summed up in `index.json` and the
+pack's `llms.txt`. `symbola changes OLD NEW` prints the same report for any two pack
+folders.
+
+A builder who already built from an earlier version runs, beside their `spec/`:
+
+```
+symbola upgrade [SPEC=spec] [--dest spec.new] [--impl impl] [--overrides overrides.toml]
+```
+
+It pulls the latest version into `spec.new/` and compares it with `spec/`, the
+version the build came from, so the registry does not need to keep that version.
+If nothing changed it says so and removes `spec.new/`. Otherwise it writes
+`UPGRADE.md`: the changes, the commands that re-check and re-pin each changed
+component, and steps for the agent. The agent changes only what the new version
+changes, then replaces `spec/` with `spec.new/` and attests again.
+
+A build may depart from the pack on purpose. Record each departure in
+`overrides.toml`, by decision id, so an upgrade keeps it:
+
+```toml
+[[override]]
+id = "search.trash"
+reason = "Our library has no trash; deleted papers are gone."
+instead = "is:trash matches nothing."
+```
+
+`UPGRADE.md` marks each override, and `upgrade` warns when the new version changes
+or removes a decision the build overrides, so the agent asks the user instead of
+silently undoing the override or ignoring the publisher's change.
 
 ## Publisher and support links
 

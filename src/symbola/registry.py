@@ -6,7 +6,8 @@ into static files that any web host can serve (distribution design, sections 2-4
     index.json, llms.txt
     packs/<owner>/<name>/latest.tar.gz, latest.sha256,
                          pack.md, parts/*.md, llms.txt, files/...,
-                         evidence.json, attestations/, by-digest/<digest>.tar.gz
+                         evidence.json, attestations/, by-digest/<digest>.tar.gz,
+                         changes.json, changes.md (what the latest version changed)
 
 With a files folder (`--files-out`, served from `--files-url`), only index.json and
 each pack's pack.md and llms.txt stay in the site folder; the rest, which grows with
@@ -38,6 +39,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from . import USER_AGENT, keys
+from .changes import compare, markdown as changes_markdown, summary_text as changes_summary
 from .digest import contract_files, hex_of, tree_digest
 from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, PRODUCT_FILE, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
                    VERSIONS_DIR, summary_line, validate_pack)
@@ -47,6 +49,7 @@ PACK_REF_RE = re.compile(r"^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$")
 TARBALL_FILE = "latest.tar.gz"
 SHA_FILE = "latest.sha256"
 DIGESTS_FILE = "digests.txt"
+CHANGES_FILE = "changes.json"
 
 
 class RegistryError(Exception):
@@ -183,6 +186,13 @@ class BuiltPack:
 
 def latest_version(pack_root: Path) -> Path | None:
     versions = [p for p in (pack_root / VERSIONS_DIR).glob("*") if p.is_dir() and p.name.isdigit()]
+    return max(versions, key=lambda p: int(p.name)) if versions else None
+
+
+def previous_version(pack_root: Path, version_dir: Path) -> Path | None:
+    """The newest version before `version_dir`, if any."""
+    n = int(Path(version_dir).name)
+    versions = [p for p in (pack_root / VERSIONS_DIR).glob("*") if p.is_dir() and p.name.isdigit() and int(p.name) < n]
     return max(versions, key=lambda p: int(p.name)) if versions else None
 
 
@@ -612,6 +622,14 @@ def build_site(registry: Path, out: Path, base_url: str = "",
                 if path.suffix in (".json", ".pub"):
                     shutil.copyfile(path, bulk / ATTESTATIONS_DIR / path.name)
         (bulk / EVIDENCE_FILE).write_text(json.dumps(evidence, indent=2) + "\n")
+        previous = previous_version(pack_root, version_dir)
+        changes = None
+        if previous is not None and preview == "full":
+            changes = compare(previous, version_dir)
+            changes["from"], changes["to"] = int(previous.name), version
+            (bulk / CHANGES_FILE).write_text(json.dumps(changes, indent=2, ensure_ascii=False) + "\n")
+            (bulk / "changes.md").write_text(changes_markdown(
+                changes, f"{pack_id}: what changed from version {previous.name} to {version}"))
         listed = [p.relative_to(version_dir).as_posix() for p in public]
         download = (f"buy it for {price['amount'] / 100:.2f} {price['currency'].upper()} and pull it with "
                     f"`symbola pull {pack_id} --token <license>`" if price else f"download {site_prefix}/{TARBALL_FILE}")
@@ -621,6 +639,9 @@ def build_site(registry: Path, out: Path, base_url: str = "",
             f"Version {version}, digest {digest}. {summary_line(report.summary)}.\n\n"
             + build_steps(pack_id, page, components_of(version_dir), price, base_url,
                           product=(version_dir / PRODUCT_FILE).is_file())
+            + (f"## What changed in version {version}\n\n{changes_summary(changes)}. "
+               f"Details: {files_prefix}/changes.md. To take this version into a build you already have, "
+               "run `symbola upgrade` beside its spec/ folder.\n\n" if changes else "")
             + "## Read it online\n\n"
             f"Start with {site_prefix}/pack.md (brief, assumptions, "
             + (f"obligations, and links to one file per component under {files_prefix}/parts/), or {download}.\n\n"
@@ -635,6 +656,8 @@ def build_site(registry: Path, out: Path, base_url: str = "",
             "files": listed, "price": price, "preview": preview,
             "publisher": listing_publisher(version_dir, owner),
             "evidence": evidence["summary"], "older": older,
+            "changes": ({"from": changes["from"], "summary": changes["summary"], "line": changes_summary(changes)}
+                        if changes else None),
         })
         built.append(BuiltPack(pack_id, version, digest, sha))
     index = {"format": 1, "packs": entries}
@@ -842,3 +865,36 @@ def _unpack(tarball: bytes, pack_id: str, dest: Path, expected: str) -> str:
             dest.rmdir()
         shutil.copytree(unpacked, dest)
     return digest
+
+
+# ---------------------------------------------------------------- upgrade
+
+@dataclass
+class Upgrade:
+    id: str
+    from_version: int | None
+    to_version: int
+    digest: str
+    changes: dict | None  # None: the spec already is the latest version
+
+
+def upgrade(spec: Path, registry: str, dest: Path, token: str | None = None) -> Upgrade:
+    """Pull the latest version of the pack `spec` was pulled from into `dest`, and compare.
+
+    The builder's own `spec/` is the base, so the registry does not need to keep the
+    version they built from. `dest` is removed again when there is nothing new.
+    """
+    spec, dest = Path(spec), Path(dest)
+    if not (spec / PACK_MANIFEST_FILE).is_file():
+        raise RegistryError(f"{spec} has no {PACK_MANIFEST_FILE}; give the folder `symbola pull` made")
+    meta = _manifest(spec)
+    pack_id = meta.get("id", "")
+    if not PACK_REF_RE.match(pack_id):
+        raise RegistryError(f"{spec / PACK_MANIFEST_FILE}: id must look like 'owner/name', got {pack_id!r}")
+    got = pull(pack_id, registry, dest, token)
+    if got.digest == pack_digest(spec):
+        shutil.rmtree(dest)
+        return Upgrade(pack_id, meta.get("version"), got.version, got.digest, None)
+    changes = compare(spec, dest)
+    changes["from"], changes["to"] = meta.get("version"), got.version
+    return Upgrade(pack_id, meta.get("version"), got.version, got.digest, changes)

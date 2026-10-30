@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tempfile
 import time
 from dataclasses import asdict
@@ -12,6 +13,8 @@ import typer
 
 from . import canary as canary_mod, keys
 from .agent import AgentError, parse_agents, resolve_agent
+from .changes import OVERRIDES_FILE, compare as compare_packs, conflicts as override_conflicts, load_overrides, \
+    markdown as changes_markdown, summary_text as changes_summary
 from .attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
 from .diff import TIERS, load_member, measure, member_name
 from .extract import ExtractError, extract as run_extract
@@ -21,8 +24,8 @@ from .manifest import ID_RE, load_manifest
 from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_site, publish as publish_pack, \
     request_state, start_login
 from .questions import QuestionError, answer as answer_question, unanswered
-from .pack import PRODUCT_FILE, component_name, report_json, summary_line, validate_pack
-from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, pull as pull_pack, release as release_pack, scaffold_pack
+from .pack import PACK_MANIFEST_FILE, PRODUCT_FILE, component_name, report_json, summary_line, validate_pack
+from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, previous_version, pull as pull_pack, release as release_pack, scaffold_pack, upgrade as upgrade_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
 from .sandbox import SandboxError, select
 from .scaffold import scaffold
@@ -149,13 +152,25 @@ def impl_init(
     entrypoint: str = typer.Option("impl.py", help="Python file defining the entrypoint function."),
     author: str = typer.Option("you@example.com", help="Author recorded in the manifest."),
     license: str = typer.Option("Apache-2.0", help="License of the implementation."),
+    repin: bool = typer.Option(False, help="Only re-pin an existing implementation to the contract, after an upgrade."),
 ) -> None:
     """Write symbolon-impl.toml, pinned to the contract's current digest."""
     manifest_path = impl_dir / IMPL_MANIFEST_FILE
+    digest = contract_digest(contract)
+    if repin:
+        if not manifest_path.is_file():
+            _line(False, f"{manifest_path} does not exist; run without --repin to create it")
+            raise typer.Exit(1)
+        text, n = re.subn(r'(?m)^contract\s*=\s*"[^"]*"', f'contract = "{digest}"', manifest_path.read_text(), count=1)
+        if not n:
+            _line(False, f"{manifest_path} has no contract = \"...\" line")
+            raise typer.Exit(1)
+        manifest_path.write_text(text)
+        _line(True, f"re-pinned {manifest_path}", f"targets {load_manifest(contract).alias} {digest[:19]}…")
+        return
     if manifest_path.exists():
         _line(False, f"{manifest_path} already exists")
         raise typer.Exit(1)
-    digest = contract_digest(contract)
     impl_dir.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(
         "[implementation]\n"
@@ -658,6 +673,9 @@ def release(
         _line(True, f"{r.id} version {r.version} already has this content; nothing to release", r.digest)
         return
     _line(True, f"{r.id} version {r.version} written to {r.path}", r.digest)
+    before = previous_version(r.path.parent.parent, r.path)
+    if before is not None:
+        typer.echo(f"  changes since version {before.name}: {changes_summary(compare_packs(before, r.path))}")
     typer.echo("\nNext: run `symbola site check` in the registry clone, then commit and open a pull request:")
     typer.echo(f"    git checkout -b release/{r.id.replace('/', '-')}-{r.version} && git add -A "
                f"&& git commit -m 'Release {r.id} version {r.version}' && gh pr create --fill")
@@ -764,6 +782,97 @@ def pull(
         c, n = comps[0], comps[0].split("/")[1]
         typer.echo(f"  symbola impl-init impl/{n} --contract {target / c}\n  symbola test {target / c} impl/{n}")
         typer.echo(f"Components: {', '.join(x.split('/')[1] for x in comps)}")
+
+
+@app.command()
+def changes(
+    old: Path = typer.Argument(..., help="The earlier pack folder, such as versions/1."),
+    new: Path = typer.Argument(..., help="The later pack folder, such as versions/2."),
+    out: Path | None = typer.Option(None, "-o", "--out", help="Write the report as Markdown."),
+    as_json: bool = typer.Option(False, "--json", help="Print the changes as JSON."),
+) -> None:
+    """List what changed between two versions of a pack: decisions, assumptions, components, documents."""
+    for p in (old, new):
+        if not (p / PACK_MANIFEST_FILE).is_file():
+            raise typer.BadParameter(f"{p} has no {PACK_MANIFEST_FILE}")
+    found = compare_packs(old, new)
+    if as_json:
+        typer.echo(json.dumps(found, indent=2, ensure_ascii=False))
+        return
+    text = changes_markdown(found, f"What changed from {old} to {new}")
+    if out is not None:
+        out.write_text(text)
+        _line(True, changes_summary(found), f"wrote {out}")
+    else:
+        typer.echo(text, nl=False)
+
+
+UPGRADE_STEPS = """## How to take this version in
+
+You are upgrading a build of this pack. The build may differ from the pack on
+purpose: those departures are listed in `{overrides}`, one per decision id. Keep
+them unless a step below says to ask.
+
+1. Change only what this version changes. Leave every other part of the build alone,
+   including the user's own code and styling.
+2. For each changed or added decision, make the build do what it now says, unless
+   the build overrides that decision. Where this version changes a decision the build
+   overrides, ask the user whether to keep the override, then update `{overrides}`.
+3. For each changed component, re-run its checks against the new contract and fix
+   what fails, then re-pin it to the new contract so attest accepts it.
+{commands}4. Check every flow in PRODUCT.md that this version touches.
+5. When everything passes, replace `{spec}` with `{dest}`, run `symbola attest` again
+   for the changed components, and record what you did in NOTES.md.
+
+If you edited `{spec}` yourself, those edits show up above as changes too; record
+them as overrides instead of editing the pack.
+"""
+
+
+@app.command()
+def upgrade(
+    spec: Path = typer.Argument(Path("spec"), help="The pack folder your build came from (the one `symbola pull` made)."),
+    dest: Path | None = typer.Option(None, help="Where to unpack the latest version; defaults to <spec>.new."),
+    registry: str = typer.Option(DEFAULT_REGISTRY, envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
+    impl: Path = typer.Option(Path("impl"), help="Folder holding one implementation folder per component."),
+    overrides: Path = typer.Option(Path(OVERRIDES_FILE), help="Your build's departures from the pack, by decision id."),
+    report: Path = typer.Option(Path("UPGRADE.md"), help="Where to write the upgrade notes for your agent."),
+    token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid pack."),
+) -> None:
+    """Fetch the latest version of a pack you built, and write what changed for your agent."""
+    target = dest or spec.with_name(spec.name + ".new")
+    try:
+        mine = load_overrides(overrides)
+        up = upgrade_pack(spec, registry, target, token)
+    except (RegistryError, ValueError) as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    if up.changes is None:
+        _line(True, f"{up.id} is up to date (version {up.to_version})", up.digest)
+        return
+    found = up.changes
+    _line(True, f"{up.id} version {up.to_version} unpacked into {target}", up.digest)
+    commands = ""
+    for c in found["components"]["changed"]:
+        folder, contract = impl / c["name"], target / c["to"]
+        note = "" if folder.is_dir() else f"   # no {folder} here: use your folder for {c['name']}"
+        commands += (f"       symbola test {contract} {folder}{note}\n"
+                     f"       symbola impl-init {folder} --contract {contract} --repin\n")
+    for c in found["components"]["added"]:
+        folder, contract = impl / c["name"], target / c["path"]
+        commands += (f"       symbola impl-init {folder} --contract {contract}   # new component\n"
+                     f"       symbola test {contract} {folder}\n")
+    if commands:
+        commands = "   Commands:\n\n" + commands + "\n"
+    text = (changes_markdown(found, f"Upgrade {up.id} from version {up.from_version} to {up.to_version}", mine)
+            + "\n" + UPGRADE_STEPS.format(overrides=overrides, spec=spec, dest=target, commands=commands))
+    report.write_text(text)
+    _line(True, changes_summary(found), f"wrote {report}")
+    clash = override_conflicts(found, mine)
+    if clash:
+        typer.echo(typer.style(f"! this version changes decisions your build overrides: {', '.join(clash)}",
+                               fg=typer.colors.YELLOW))
+    typer.echo(f"\nNext: ask your agent to follow {report}.")
 
 
 @app.command()

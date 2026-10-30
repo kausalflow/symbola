@@ -61,4 +61,7 @@ When the user asks to release:
    request. Tell the user the PR link.
 
 `release` is a no-op when nothing changed since the last version. Each release
-is a new version; only the latest is downloadable.
+is a new version; only the latest is downloadable. A release is also how an
+upgrade ships: `release` prints what changed (decisions by id, components,
+documents) and the pack page lists it, so keep decision ids stable when you
+reword one, and give a decision a new id only when it is a different decision.
