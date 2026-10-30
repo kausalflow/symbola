@@ -856,6 +856,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#upgrading-a-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Upgrading a build
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#publisher-and-support-links" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1201,6 +1212,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#upgrading-a-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Upgrading a build
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#publisher-and-support-links" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1414,6 +1436,9 @@ a pack to be removed. <code>symbola logout</code> forgets the local token.</p>
 copies it to <code>packs/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code>, and appends the version's
 digest to <code>packs/&lt;owner&gt;/&lt;name&gt;/digests.txt</code>. Releasing unchanged content does
 nothing. Then commit and open a pull request.</p>
+<p>A release is also how you ship an upgrade, and it needs nothing extra from you:
+<code>release</code> prints what changed since the last version, and the site shows it on the
+pack's page (see <a href="#upgrading-a-build">Upgrading a build</a>).</p>
 <p>There are no publisher keys. Who may release under an owner is decided by who
 can merge into the registry; once packs move to their publishers' own
 repositories as GitHub Releases, GitHub's provenance attestation will identify
@@ -1500,18 +1525,45 @@ instead and skip unpacking. It holds everything that applies to the whole pack a
 links one <code>parts/</code> file per component, so the agent reads only the components it
 builds and no file is too big for one read. Data files such as <code>examples.jsonl</code>
 show their first lines in the part and link the raw file under <code>files/</code>.</p>
+<h2 id="upgrading-a-build">Upgrading a build<a class="headerlink" href="#upgrading-a-build" title="Permanent link">&para;</a></h2>
+<p>When a pack has more than one version, the site lists what its latest version
+changed, worked out from the two version folders: decisions (obligations) and
+assumptions matched by id, components whose contract changed and which of their
+files, and a diff of each top-level document such as <code>PRODUCT.md</code>. It is written as
+<code>changes.json</code> and <code>changes.md</code> beside the pack, summed up in <code>index.json</code> and the
+pack's <code>llms.txt</code>. <code>symbola changes OLD NEW</code> prints the same report for any two pack
+folders.</p>
+<p>A builder who already built from an earlier version runs, beside their <code>spec/</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbola upgrade [SPEC=spec] [--dest spec.new] [--impl impl] [--overrides overrides.toml]
+</span></code></pre></div>
+<p>It pulls the latest version into <code>spec.new/</code> and compares it with <code>spec/</code>, the
+version the build came from, so the registry does not need to keep that version.
+If nothing changed it says so and removes <code>spec.new/</code>. Otherwise it writes
+<code>UPGRADE.md</code>: the changes, the commands that re-check and re-pin each changed
+component, and steps for the agent. The agent changes only what the new version
+changes, then replaces <code>spec/</code> with <code>spec.new/</code> and attests again.</p>
+<p>A build may depart from the pack on purpose. Record each departure in
+<code>overrides.toml</code>, by decision id, so an upgrade keeps it:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">[[override]]</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"search.trash"</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">reason</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Our library has no trash; deleted papers are gone."</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="n">instead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"is:trash matches nothing."</span>
+</span></code></pre></div>
+<p><code>UPGRADE.md</code> marks each override, and <code>upgrade</code> warns when the new version changes
+or removes a decision the build overrides, so the agent asks the user instead of
+silently undoing the override or ignoring the publisher's change.</p>
 <h2 id="publisher-and-support-links">Publisher and support links<a class="headerlink" href="#publisher-and-support-links" title="Permanent link">&para;</a></h2>
 <p>Every pack page says who publishes it and links their profile, the owner's GitHub
 page unless the manifest says otherwise. Publishers who want to be paid for their
 work can add up to five support links (Buy Me a Coffee, GitHub Sponsors, Ko-fi,
 and so on), which the page shows as buttons:</p>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">[publisher]</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Acme Labs"</span><span class="w">                       </span><span class="c1"># defaults to the owner</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://acme.example"</span><span class="w">             </span><span class="c1"># defaults to https://github.com/&lt;owner&gt;</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">support</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Buy me a coffee"</span><span class="p">,</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"https://buymeacoffee.com/acme"</span><span class="w"> </span><span class="p">},</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"GitHub Sponsors"</span><span class="p">,</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"https://github.com/sponsors/acme"</span><span class="w"> </span><span class="p">},</span>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">]</span>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">[publisher]</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Acme Labs"</span><span class="w">                       </span><span class="c1"># defaults to the owner</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://acme.example"</span><span class="w">             </span><span class="c1"># defaults to https://github.com/&lt;owner&gt;</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">support</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Buy me a coffee"</span><span class="p">,</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"https://buymeacoffee.com/acme"</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"GitHub Sponsors"</span><span class="p">,</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"https://github.com/sponsors/acme"</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="p">]</span>
 </span></code></pre></div>
 <p>Links must be <code>https://</code>. Money goes straight to the publisher; the registry
 takes nothing and handles no payments.</p>
@@ -1523,9 +1575,9 @@ each released version. It takes the same fields plus a short <code>bio</code>.</
 publishers monetize through support links. The code below stays in place for a
 later stage.</p>
 <p>Add a price to the pack manifest:</p>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">[listing]</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">price</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1900</span><span class="w">        </span><span class="c1"># minor units: 19.00</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">currency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"eur"</span>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">[listing]</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">price</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1900</span><span class="w">        </span><span class="c1"># minor units: 19.00</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">currency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"eur"</span>
 </span></code></pre></div>
 <p>A priced pack previews only its brief: the site shows the brief, assumptions,
 obligations, manifest, evidence and sha256, and <code>pack.md</code> names the components
@@ -1534,7 +1586,7 @@ everything anyway. Its tarball is written to <code>--private-out</code> instead 
 public site and is served by the store, a Cloudflare Worker in
 <code>spikinglabs/symbolon-store</code> (private). The pack page
 shows a Buy button; after paying through Stripe, the buyer gets a license token:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbola pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>symbola pull acme/invoice-desk --token sym_…      # or set SYMBOLON_LICENSE
 </span></code></pre></div>
 <p><code>site build</code> refuses a priced pack unless it is given <code>--private-out</code> and
 <code>--store-url</code>. Deployment steps are in that repository's README.</p>

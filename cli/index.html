@@ -890,6 +890,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>changes</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>upgrade</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1464,6 +1486,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>changes</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>upgrade</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1675,9 +1719,9 @@
 </span></code></pre></div>
 <p>Prints <code>sha256:&lt;hex&gt;</code> for a contract directory. See <a href="../CONTRACT_FORMAT/#digest">Digest</a> for exactly what it covers.</p>
 <h2 id="impl-init"><code>impl-init</code><a class="headerlink" href="#impl-init" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>symbola impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>symbola impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0] [--repin]
 </span></code></pre></div>
-<p>Creates <code>IMPL_DIR</code> if needed and writes <code>symbolon-impl.toml</code> pinned to the contract's current digest. For implementations in other languages, edit the manifest to <code>language = "command"</code> and set <code>command</code>; see <a href="../ATTESTATION/#implementations-in-other-languages">Implementations in other languages</a>.</p>
+<p>Creates <code>IMPL_DIR</code> if needed and writes <code>symbolon-impl.toml</code> pinned to the contract's current digest. With <code>--repin</code>, only updates the pin of an existing <code>symbolon-impl.toml</code>, after the contract changed in a pack upgrade. For implementations in other languages, edit the manifest to <code>language = "command"</code> and set <code>command</code>; see <a href="../ATTESTATION/#implementations-in-other-languages">Implementations in other languages</a>.</p>
 <h2 id="keygen"><code>keygen</code><a class="headerlink" href="#keygen" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>symbola keygen [--out ~/.config/symbolon/runner.key]
 </span></code></pre></div>
@@ -1914,7 +1958,15 @@ the implementation's digest.</p>
 <h2 id="release"><code>release</code><a class="headerlink" href="#release" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>symbola release [SPEC=spec] --registry PACKS
 </span></code></pre></div>
-<p>Validates <code>SPEC</code>, writes it to <code>PACKS/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code> as the next version, and records its digest in <code>digests.txt</code>. Does nothing if the content is unchanged since the latest version. See <a href="../REGISTRY/#releasing">Pack registry</a>.</p>
+<p>Validates <code>SPEC</code>, writes it to <code>PACKS/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code> as the next version, and records its digest in <code>digests.txt</code>. Prints what changed since the previous version. Does nothing if the content is unchanged since the latest version. See <a href="../REGISTRY/#releasing">Pack registry</a>.</p>
+<h2 id="changes"><code>changes</code><a class="headerlink" href="#changes" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>symbola changes OLD NEW [-o changes.md] [--json]
+</span></code></pre></div>
+<p>Lists what changed between two pack folders: decisions and assumptions added, removed or changed (by id, field by field), components whose contract changed and which files, and a diff of each top-level Markdown document. The site writes the same report for the latest version of every pack. See <a href="../REGISTRY/#upgrading-a-build">Pack registry</a>.</p>
+<h2 id="upgrade"><code>upgrade</code><a class="headerlink" href="#upgrade" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>symbola upgrade [SPEC=spec] [--dest SPEC.new] [--registry URL-or-folder] [--impl impl] [--overrides overrides.toml] [--report UPGRADE.md]
+</span></code></pre></div>
+<p>For a build made from an earlier version of a pack: pulls the latest version into <code>DEST</code>, compares it with <code>SPEC</code>, and writes <code>REPORT</code> with the changes, the commands to re-check and re-pin each changed component, and steps for the agent. Decisions listed in <code>--overrides</code> (the build's own departures, by decision id) are marked, with a warning when the new version changes one. Prints "up to date" and removes <code>DEST</code> when there is nothing new. See <a href="../REGISTRY/#upgrading-a-build">Pack registry</a>.</p>
 
 
 
