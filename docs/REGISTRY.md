@@ -10,7 +10,7 @@ naming them can still be re-checked.
 
 | You have | Use | Start with |
 | --- | --- | --- |
-| A product that already works | `symbola extract`: an agent reads the code and drafts the pack, checked against the original | `symbola extract ./my-product --pack you/my-product` |
+| A product that already works | `symbola extract`: an agent reads the code, the docs or the running product (any mix) and drafts the pack, checked against the original | `symbola extract ./my-product --pack you/my-product` |
 | A product you are building now | The [`symbola-pack`](https://github.com/kausalflow/symbola/blob/main/skills/symbola-pack/SKILL.md) skill: your agent records decisions as you make them | `npx skills add kausalflow/symbola --skill symbola-pack` |
 | An idea, no code yet | The [`symbola-decide`](https://github.com/kausalflow/symbola/blob/main/skills/symbola-decide/SKILL.md) skill: your agent asks you multiple-choice questions and writes the pack | `npx skills add kausalflow/symbola --skill symbola-decide` |
 

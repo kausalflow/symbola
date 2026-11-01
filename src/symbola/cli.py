@@ -17,7 +17,7 @@ from .changes import OVERRIDES_FILE, compare as compare_packs, conflicts as over
     markdown as changes_markdown, summary_text as changes_summary
 from .attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
 from .diff import TIERS, load_member, measure, member_name
-from .extract import ExtractError, extract as run_extract
+from .extract import DEFAULT_MAX_OBLIGATIONS, DEFAULT_MAX_PRODUCT_WORDS, ExtractError, extract as run_extract
 from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
@@ -877,23 +877,41 @@ def upgrade(
 
 @app.command()
 def extract(
-    source: Path = typer.Argument(..., help="The product's source directory. It is read, never changed."),
+    source: Path | None = typer.Argument(None, help="The product's source directory, if there is one. "
+                                                    "It is read, never changed."),
     pack_id: str = typer.Option(..., "--pack", help="Pack id to draft, like 'kausalflow/lightkone'."),
+    docs: list[str] = typer.Option([], "--docs", help="A document about the product: a file, folder or URL "
+                                                      "(manual, help pages, changelog, API spec, sample files). "
+                                                      "Repeat for more."),
+    live: list[str] = typer.Option([], "--live", help="The running product: a URL, or a command that runs it. "
+                                                      "Repeat for more."),
     root: Path = typer.Option(Path("packs"), help="Directory that holds packs; the draft goes in <root>/<pack>/."),
     version: int = typer.Option(1, min=1, help="Pack version to draft."),
     agent: str | None = typer.Option(None, help="Coding agent command; defaults to $SYMBOLON_AGENT, then Claude Code."),
     hint: str = typer.Option("", help="Guidance for the agent, such as which parts of the product to cover."),
     rounds: int = typer.Option(2, min=1, help="Agent runs at most: the draft, then fixes for what fails."),
     timeout: int = typer.Option(3600, help="Seconds each agent run may take."),
-    oracle: bool = typer.Option(True, help="Require the original product to pass each component through an adapter."),
+    oracle: bool = typer.Option(True, help="Require the original product to pass each component through an adapter "
+                                           "(only where there is source code; otherwise adapters are optional)."),
+    max_obligations: int = typer.Option(DEFAULT_MAX_OBLIGATIONS, min=1,
+                                        help="Size budget: the most obligations the draft may hold."),
+    max_product_words: int = typer.Option(DEFAULT_MAX_PRODUCT_WORDS, min=1,
+                                          help="Size budget: the most words PRODUCT.md may hold."),
 ) -> None:
-    """Have a coding agent draft a spec pack from an existing product, then check the draft."""
+    """Have a coding agent draft a spec pack from an existing product, then check the draft.
+
+    Give any mix of sources: the source code, documents (--docs) and the running
+    product (--live). Without source code the draft is built from what the documents
+    say and what the product does.
+    """
     try:
         command = resolve_agent(agent)
     except AgentError as e:
         _line(False, "no agent", str(e))
         raise typer.Exit(1)
-    typer.echo(f"drafting {pack_id} from {source} with {command.name} (up to {rounds} rounds)")
+    given = ([str(source)] if source else []) + list(docs) + list(live)
+    typer.echo(f"drafting {pack_id} from {', '.join(given) or 'nothing'} with {command.name} "
+               f"(up to {rounds} rounds)")
 
     def show(n, rnd):
         typer.echo(f"\nround {n}: agent {'finished' if rnd.run.ok else 'failed'} after {rnd.run.seconds:.0f}s")
@@ -902,7 +920,8 @@ def extract(
 
     try:
         result = run_extract(source, pack_id, agent=command, root=root, version=version, hint=hint,
-                             rounds=rounds, timeout=timeout, oracle=oracle, on_round=show)
+                             rounds=rounds, timeout=timeout, oracle=oracle, on_round=show, docs=docs, live=live,
+                             max_obligations=max_obligations, max_product_words=max_product_words)
     except (ExtractError, AgentError) as e:
         _line(False, "extract failed", str(e))
         raise typer.Exit(1)
@@ -911,7 +930,10 @@ def extract(
         typer.echo(f"{OK} draft pack {result.pack_dir}")
         if result.pack_report:
             typer.echo(f"    {summary_line(result.pack_report.summary)}")
-        typer.echo(f"\nNext: answer {result.product_dir / 'REVIEW.md'}, settle the default and open "
+        questions = result.pack_dir / ".symbolon" / "questions.toml"
+        also = (f", answer the questions in {questions} with `symbola pack answer`"
+                if questions.is_file() else "")
+        typer.echo(f"\nNext: answer {result.product_dir / 'REVIEW.md'}{also}, settle the default and open "
                    "obligations, then hand the pack to builders.")
     else:
         typer.echo(typer.style(f"draft is not valid yet: {result.pack_dir}", fg=typer.colors.RED))

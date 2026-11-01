@@ -80,6 +80,8 @@ def draft(tmp_path):
         f'[implementation]\ncontract = "{contract_digest(comp)}"\nentrypoint = "impl.py"\n'
         'language = "python"\nlicense = "MIT"\nauthors = ["acme"]\n')
     (d / "REVIEW.md").write_text("# Review\n\n- Confirm the non-goals.\n")
+    (d / "EVIDENCE.toml").write_text(
+        '[evidence]\n"upper.ascii" = ["code: shout.py, shout"]\n"upper.non-ascii" = "docs: README, Usage"\n')
     return d
 
 
@@ -196,6 +198,68 @@ def test_extract_requires_an_oracle_adapter(tmp_path, source, stub, draft):
     assert result.ok
 
 
+def test_extract_without_source_code(tmp_path, stub, draft):
+    """Documents and the running product are enough; adapters are then optional."""
+    manual = tmp_path / "manual.md"
+    manual.write_text("# Shout\n\nShout upper-cases what you type.\n")
+    shutil.rmtree(draft / "oracle")
+    result = extract(None, "acme/shout", agent=stub, root=tmp_path / "packs",
+                     docs=[str(manual), "https://example.com/help"], live=["https://shout.example.com"])
+    failed = [(c.name, c.detail) for r in result.rounds for c in r.checks if not c.ok]
+    assert result.ok, failed
+    product = tmp_path / "packs" / "acme" / "shout"
+    prompt = (product / "stub-prompts.txt").read_text()
+    assert f"documents        {manual}" in prompt and "running product  https://shout.example.com" in prompt
+    assert "source code      " not in prompt.split("## Sources")[1].split("Use every source")[0]
+    assert "oracle adapters are optional" in prompt
+    assert f"SYMBOLON_EXTRA_DIRS={tmp_path}" in (product / "stub-env.txt").read_text()
+    evidence = next(c for c in result.rounds[0].checks if c.name.startswith("every obligation has evidence"))
+    assert evidence.ok and evidence.detail == "1 code, 1 docs"
+
+
+def test_extract_needs_a_source_that_exists(tmp_path, stub):
+    with pytest.raises(ExtractError, match="at least one source"):
+        extract(None, "acme/shout", agent=stub, root=tmp_path / "packs")
+    with pytest.raises(ExtractError, match="does not exist"):
+        extract(None, "acme/shout", agent=stub, root=tmp_path / "packs", docs=[str(tmp_path / "nope.md")])
+
+
+def test_extract_requires_evidence_for_every_obligation(tmp_path, source, stub, draft):
+    (draft / "EVIDENCE.toml").write_text('[evidence]\n"upper.ascii" = ["guessed it"]\n"gone.away" = ["code: x"]\n')
+    result = extract(source, "acme/shout", agent=stub, root=tmp_path / "packs", rounds=1)
+    failed = {c.name: c.detail for c in result.rounds[0].checks if not c.ok}
+    detail = failed["every obligation has evidence in EVIDENCE.toml"]
+    assert "upper.ascii: 'guessed it' must start with" in detail
+    assert "upper.non-ascii: no evidence" in detail and "gone.away: not an obligation" in detail
+    (draft / "EVIDENCE.toml").unlink()
+    result = extract(source, "acme/shout", agent=stub, root=tmp_path / "other", rounds=1)
+    assert not result.ok
+
+
+def test_extract_keeps_the_pack_within_its_budget(tmp_path, source, stub, draft):
+    (draft / "versions" / "1" / "PRODUCT.md").write_text(
+        "# Shout: the product\n\n## Shape\n\n- A function.\n\n## Surfaces\n\n- shout()\n\n"
+        "## Flows\n\n1. Type, see it shouted, using upper.\n" + "word " * 50)
+    result = extract(source, "acme/shout", agent=stub, root=tmp_path / "packs", rounds=1,
+                     max_obligations=1, max_product_words=40)
+    failed = {c.name: c.detail for c in result.rounds[0].checks if not c.ok}
+    assert failed["at most 1 obligations"].startswith("2: keep only")
+    assert "PRODUCT.md has at most 40 words" in failed
+    prompt = (tmp_path / "packs" / "acme" / "shout" / "stub-prompts.txt").read_text()
+    assert "Keep at most 1\nobligations and 40 words" in prompt or "at most 1" in prompt
+    result = extract(source, "acme/shout", agent=stub, root=tmp_path / "other", rounds=1)
+    assert result.ok
+
+
+def test_extract_checks_questions_for_the_publisher(tmp_path, source, stub, draft):
+    q = draft / "versions" / "1" / ".symbolon" / "questions.toml"
+    q.parent.mkdir()
+    q.write_text("[[question]]\nid = 'oops'\n")
+    result = extract(source, "acme/shout", agent=stub, root=tmp_path / "packs", rounds=1)
+    failed = {c.name for c in result.rounds[0].checks if not c.ok}
+    assert "questions for the publisher are well-formed" in failed
+
+
 def test_extract_stops_when_the_agent_fails(tmp_path, source, stub, monkeypatch):
     monkeypatch.setenv("STUB_MODE", "fail")
     result = extract(source, "acme/shout", agent=stub, root=tmp_path / "packs", rounds=3)
@@ -237,6 +301,17 @@ def test_extract_cli(tmp_path, source, stub):
                                  "--root", str(tmp_path / "packs"), "--agent", STUB])
     assert result.exit_code == 0, result.output
     assert "draft pack" in result.output and "1 decided" in result.output
+
+
+def test_extract_cli_without_source(tmp_path, stub, draft):
+    shutil.rmtree(draft / "oracle")
+    result = runner.invoke(app, ["extract", "--pack", "acme/shout", "--live", "https://shout.example.com",
+                                 "--root", str(tmp_path / "packs"), "--agent", STUB])
+    assert result.exit_code == 0, result.output
+    assert "from https://shout.example.com" in result.output
+    result = runner.invoke(app, ["extract", "--pack", "acme/other", "--root", str(tmp_path / "packs"),
+                                 "--agent", STUB])
+    assert result.exit_code == 1 and "at least one source" in result.output
 
 
 def test_extract_cli_failure(tmp_path, source, stub, monkeypatch):

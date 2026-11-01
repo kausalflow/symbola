@@ -135,14 +135,19 @@ See [Measuring ambiguity](guides/measuring-ambiguity.md).
 ## `extract`
 
 ```
-symbola extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
-                 [--agent COMMAND] [--hint TEXT] [--rounds 2] [--timeout 3600] [--no-oracle]
+symbola extract [SOURCE] --pack NAMESPACE/PRODUCT [--docs PATH_OR_URL ...] [--live URL_OR_COMMAND ...]
+                 [--root packs] [--version 1] [--agent COMMAND] [--hint TEXT] [--rounds 2]
+                 [--timeout 3600] [--no-oracle] [--max-obligations 80] [--max-product-words 2500]
 ```
 
-Hands `SOURCE` to an external coding agent, which drafts `ROOT/NAMESPACE/PRODUCT/versions/VERSION/`
-plus an oracle adapter per component and a `REVIEW.md`. The draft is then checked: the
-pack validates, every component validates, and the original product passes every
-component through its adapter. Failures go back to the agent for another round, up
+Hands what there is about the product to an external coding agent: the source code
+(`SOURCE`), documents about it (`--docs`: manuals, help pages, changelogs, API specs,
+sample files) and the running product (`--live`), in any mix, at least one. The agent
+drafts `ROOT/NAMESPACE/PRODUCT/versions/VERSION/` plus `REVIEW.md`, `EVIDENCE.toml`
+(where each obligation came from) and an oracle adapter per component. The draft is
+then checked: the pack validates, every component validates, the original product
+passes every component through its adapter (required only when there is source code),
+every obligation has evidence, and the pack is within its size budget. Failures go back to the agent for another round, up
 to `--rounds` runs in all. Component digests in `symbolon-pack.toml` are filled in
 for the agent. Symbola never changes `SOURCE`.
 
@@ -150,7 +155,10 @@ for the agent. Symbola never changes `SOURCE`.
 | --- | --- |
 | `--agent` | The agent command; defaults to `$SYMBOLON_AGENT`, then Claude Code headless |
 | `--hint` | Extra guidance for the agent, such as which parts of the product to cover |
+| `--docs` | A document about the product: a file, folder or URL. Repeat for more |
+| `--live` | The running product: a URL or a command. Repeat for more |
 | `--no-oracle` | Skip the oracle check, for products whose code cannot be called from an adapter |
+| `--max-obligations`, `--max-product-words` | The size budget: more sources should make a pack more accurate, not bigger |
 
 See [Extracting a pack](guides/extracting-a-pack.md).
 
