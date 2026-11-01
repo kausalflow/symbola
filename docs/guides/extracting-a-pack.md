@@ -71,6 +71,7 @@ the agent was not sure of is marked for people to review:
 | a `default` obligation | The sources lean one way; you confirm or reject | `symbola pack confirm <pack> <id>` (`--open` to leave it to builders) |
 | an `open` obligation | Builds may reasonably differ | nothing, or a question to decide it |
 | a line in `REVIEW.md` | Suspected bugs, sources that disagreed, what was not seen | edit the pack |
+| a proposed cut from `symbola pack trim` | Something a build likely does not need: a repeated example or obligation, prose an obligation already says | `symbola pack trim <pack> --cut <id>` or `--keep <id>`, then `--apply` |
 
 `symbola pack review <pack>` lists all of these in one place. Then let replication
 show what the pack still leaves undecided ([Measuring ambiguity](measuring-ambiguity.md)).

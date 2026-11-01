@@ -17,6 +17,7 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 | [`extract`](#extract) | Have a coding agent draft a spec pack from an existing product, then check the draft |
 | [`replicate`](#replicate) | Hand a pack to outside coding agents, then test, attest and diff their builds |
 | [`pack validate`](#pack-validate) | Check a spec pack's brief, assumptions and obligations |
+| [`pack trim`](#pack-trim) | Propose cuts that make a pack simpler to build from; remove only the ones the publisher approves |
 | [`pack init`](#pack-init) | Scaffold a spec pack that passes `pack validate` out of the box |
 | [`site build`](#site-build) | Write the static registry for the latest version of every pack |
 | [`pull`](#pull) | Download a pack from the registry, check it, and unpack it |
@@ -280,7 +281,7 @@ Records the publisher's answer to a question as an obligation. `CHOICE` is a cho
 symbola pack review [PATH] [--json]
 ```
 
-Lists what people still have to settle in a pack, typically after `extract`: the unanswered questions (answer with `pack answer`), the `default` obligations to confirm (with `pack confirm`), and the `open` ones left to builders. It points to `REVIEW.md` next to `versions/` when there is one.
+Lists what people still have to settle in a pack, typically after `extract`: the unanswered questions (answer with `pack answer`), the `default` obligations to confirm (with `pack confirm`), and the `open` ones left to builders. It points to `REVIEW.md` next to `versions/` when there is one, and lists the cuts `pack trim` proposed that nobody has approved or rejected yet.
 
 ## `pack confirm`
 
@@ -289,6 +290,20 @@ symbola pack confirm PATH OBLIGATION_ID [--open]
 ```
 
 Settles a `default` obligation after review: it becomes `decided`, or with `--open` it is left to builders and its checks are dropped. To change what it says instead, edit `obligations.toml` or turn it into a question.
+
+## `pack trim`
+
+```
+symbola pack trim [PATH] [--deep [--agent CMD]]
+symbola pack trim PATH --cut ID ... --keep ID ...
+symbola pack trim PATH --apply [--out FOLDER]
+```
+
+Slims a pack so it is simpler to build from, and removes nothing the publisher has not approved.
+
+1. **Propose.** With no options it lists likely cuts and writes them to `PATH/.symbolon/trim.toml`, which never ships. Its screens run no agent and no contract code: an example line with the same input and result as an earlier one; an obligation whose statement and checks another obligation already holds; a sentence of `PRODUCT.md` or of a component's description that restates an obligation. Obligations from `replication` or `counterexample` (builders disagreed on them) are never proposed. `--deep` adds one run of your coding agent, which reads a copy of the pack and proposes more (presentation details, prose that examples already pin); each of its proposals is checked before it is listed. It also reports the pack against the size budget `extract` drafts to (80 obligations, 2,500 words of `PRODUCT.md`). Running it again keeps every decision already made.
+2. **Review.** The undecided cuts also show in `pack review`, with the exact text that would go and why. `--cut ID` approves one, `--keep ID` rejects it; you can also set `decision` in the file.
+3. **Apply.** `--apply` removes the cuts marked `cut`, and only those. Cutting an obligation also removes the examples and properties no other obligation uses; example references are renumbered (a duplicate's references move to the line that stays) and component digests are synced. The result must pass `pack validate`, or nothing is written. A released version is frozen, so trim it into a copy with `--out` and release that. `trim.toml` keeps the record of what was cut. Before release, one `replicate` build is a cheap check that nothing load-bearing went.
 
 ## `site build`
 

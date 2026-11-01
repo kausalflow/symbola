@@ -23,6 +23,7 @@ from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_site, publish as publish_pack, \
     request_state, start_login
+from . import trim as trim_mod
 from .questions import QuestionError, answer as answer_question, confirm as confirm_obligation, review as review_pack, unanswered
 from .pack import PACK_MANIFEST_FILE, PRODUCT_FILE, component_name, report_json, summary_line, validate_pack
 from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, previous_version, pull as pull_pack, release as release_pack, scaffold_pack, upgrade as upgrade_pack
@@ -626,13 +627,14 @@ def pack_review(
     """List what people still have to settle: open questions, decisions to confirm, and what is left open."""
     try:
         todo = review_pack(path)
-    except (QuestionError, OSError, ValueError) as e:
+    except (QuestionError, OSError, ValueError, trim_mod.TrimError) as e:
         _line(False, str(e))
         raise typer.Exit(1)
     review_file = Path(path).resolve().parent.parent / "REVIEW.md"
     if as_json:
         typer.echo(json.dumps({"questions": [q.model_dump(exclude_defaults=True) for q in todo["questions"]],
                                "defaults": todo["defaults"], "open": todo["open"],
+                               "cuts": [asdict(c) for c in todo["cuts"]],
                                "review_file": str(review_file) if review_file.is_file() else None},
                               indent=2, ensure_ascii=False))
         return
@@ -651,9 +653,17 @@ def pack_review(
     for o in todo["open"]:
         typer.echo(f"  [{o['id']}] {o.get('statement', '')}")
     typer.echo("  -> fine as they are; to decide one, add a question for it\n")
+    if todo["cuts"]:
+        typer.echo(f"Proposed cuts to approve ({len(todo['cuts'])}):")
+        for c in todo["cuts"]:
+            typer.echo(f"  [{c.id}] {c.kind} in {c.where()}: {c.why}")
+            for row in c.text.strip().splitlines():
+                typer.echo(f"     - {row.strip()}")
+        typer.echo(f"  -> symbola pack trim {path} --cut <id> (remove it) or --keep <id>; "
+                   "then --apply removes the approved ones\n")
     if review_file.is_file():
         typer.echo(f"Also read {review_file}: suspected bugs, where sources disagreed, what was not seen.")
-    left = len(todo["questions"]) + len(todo["defaults"])
+    left = len(todo["questions"]) + len(todo["defaults"]) + len(todo["cuts"])
     typer.echo(f"{left} to settle." if left else "Nothing left to settle.")
 
 
@@ -670,6 +680,89 @@ def pack_confirm(
         _line(False, str(e))
         raise typer.Exit(1)
     _line(True, f"{o['id']}: {o['status']}", o.get("statement", ""))
+
+@pack_app.command(name="trim")
+def pack_trim(
+    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    deep: bool = typer.Option(False, "--deep", help="Also have your coding agent propose cuts (one agent run). "
+                                                   "It reads a copy and changes nothing."),
+    agent: str | None = typer.Option(None, help="Coding agent command for --deep; defaults to $SYMBOLON_AGENT, "
+                                                "then Claude Code."),
+    cut: list[str] = typer.Option([], "--cut", help="Approve a proposal by id: --apply will remove it. Repeat for more."),
+    keep: list[str] = typer.Option([], "--keep", help="Reject a proposal by id: it stays. Repeat for more."),
+    do_apply: bool = typer.Option(False, "--apply", help="Remove the proposals marked \"cut\", and only those."),
+    out: Path | None = typer.Option(None, "--out", help="With --apply: write the trimmed pack to this new folder "
+                                                         "instead (required for a released version)."),
+    timeout: int = typer.Option(1800, help="Seconds the --deep agent run may take."),
+) -> None:
+    """Propose cuts that make a pack simpler to build from; remove only what the publisher approves.
+
+    Without options it lists likely cuts in .symbolon/trim.toml and removes nothing; they
+    also show in `symbola pack review`. Approve each with --cut ID or reject it with --keep ID
+    (or set its decision in the file), then run with --apply.
+    """
+
+    if do_apply:
+        try:
+            done = trim_mod.apply(path, out)
+        except trim_mod.TrimError as e:
+            _line(False, "trim not applied", str(e))
+            raise typer.Exit(1)
+        words = sum(c.words for c in done.cuts if c.kind == "prose")
+        _line(True, f"cut {len(done.cuts)} proposals from {done.target}",
+              f"obligations {done.before['obligations']} -> {done.after['obligations']}, "
+              f"PRODUCT.md {done.before['product_words']} -> {done.after['product_words']} words, "
+              f"{words} words of prose")
+        for name, lines in done.removed_examples.items():
+            typer.echo(f"    {name}: removed example lines {', '.join(map(str, lines))} (references renumbered)")
+        for name, tests in done.removed_properties.items():
+            typer.echo(f"    {name}: removed properties {', '.join(tests)}")
+        typer.echo("\npack validate passes. Before release, one `symbola replicate` build is a cheap check "
+                   "that nothing load-bearing went.")
+        return
+
+    if cut or keep:
+        try:
+            for c in trim_mod.decide(path, cut, "cut") + trim_mod.decide(path, keep, "keep"):
+                _line(True, f"{c.id}: {c.decision}", f"{c.where()}: {' '.join(c.text.split())[:90]}")
+        except trim_mod.TrimError as e:
+            _line(False, "not recorded", str(e))
+            raise typer.Exit(1)
+        todo = [c for c in trim_mod.load(path) if not c.applied]
+    else:
+        try:
+            found = trim_mod.screen(path)
+            if deep:
+                command = resolve_agent(agent)
+                typer.echo(f"asking {command.name} for more proposals (one run)")
+                more, rejected, run = trim_mod.deep_screen(path, command, found, timeout=timeout,
+                                                           log_dir=Path(path) / ".symbolon")
+                _line(run.ok, f"agent {'finished' if run.ok else 'failed'} after {run.seconds:.0f}s",
+                      "" if run.ok else run.stderr[-2000:])
+                for r in rejected:
+                    _line(False, "proposal dropped", r)
+                found += more
+            cuts = trim_mod.propose(path, found)
+        except (trim_mod.TrimError, AgentError, OSError) as e:
+            _line(False, "trim failed", str(e))
+            raise typer.Exit(1)
+        todo = [c for c in cuts if not c.applied]
+        b = trim_mod.budget(path)
+        over = [f"{b['obligations']} obligations (budget {trim_mod.MAX_OBLIGATIONS})"
+                if b["obligations"] > trim_mod.MAX_OBLIGATIONS else "",
+                f"PRODUCT.md {b['product_words']} words (budget {trim_mod.MAX_PRODUCT_WORDS})"
+                if b["product_words"] > trim_mod.MAX_PRODUCT_WORDS else ""]
+        typer.echo(f"{b['obligations']} obligations, PRODUCT.md {b['product_words']} words"
+                   + (typer.style("; over budget: " + ", ".join(o for o in over if o), fg=typer.colors.YELLOW)
+                      if any(over) else ""))
+        for c in todo:
+            flat = " ".join(c.text.split())
+            typer.echo(f"[{c.id}] {c.decision}: {c.kind} in {c.where()}  ({c.why})")
+            typer.echo(typer.style(f"     {flat[:110]}{'...' if len(flat) > 110 else ''}", dim=True))
+    counts = {d: sum(c.decision == d for c in todo) for d in trim_mod.DECISIONS}
+    typer.echo(f"\n{len(todo)} proposals in {Path(path) / trim_mod.TRIM_FILE}: {counts['cut']} cut, "
+               f"{counts['keep']} keep, {counts['undecided']} undecided. Approve with --cut ID, reject with "
+               f"--keep ID; nothing is removed until `symbola pack trim {path} --apply`.")
 
 
 site_app = typer.Typer(no_args_is_help=True, help="Build the static pack registry.")
