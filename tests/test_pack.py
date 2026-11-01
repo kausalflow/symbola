@@ -158,7 +158,7 @@ def test_cli(pack):
 
     add(pack, id="search.extra", statement="x", status="decided")
     result = runner.invoke(app, ["pack", "validate", str(pack)])
-    assert result.exit_code == 1 and "pack is not valid" in result.output
+    assert result.exit_code == 1 and "Blueprint is not valid" in result.output
 
 
 def make_statistical(pack, prop="test_terms_are_conjunctive"):

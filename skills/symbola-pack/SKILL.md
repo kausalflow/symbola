@@ -1,11 +1,11 @@
 ---
 name: symbola-pack
-description: Keep a Symbola pack current while building a product, and release it to the pack registry. Use when the repo has a spec/ folder with symbolon-pack.toml, or when the user asks to create, update, or release a spec pack.
+description: Keep a Symbola Blueprint (a pack, in the CLI) current while building a product, and release it to symbola.sh. Use when the repo has a spec/ folder with symbolon-pack.toml, or when the user asks to create, update, or release a Blueprint or spec pack.
 ---
 
-# Keeping a Symbola pack while you build
+# Keeping a Symbola Blueprint while you build
 
-A spec pack records the decisions another builder would need to rebuild this
+A Symbola Blueprint (a pack, in the CLI and file names) records the decisions another builder would need to rebuild this
 product, each with a check. You keep it in `spec/` next to the code. Format:
 `docs/PACK_FORMAT.md` in the symbola repository.
 

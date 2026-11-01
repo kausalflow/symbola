@@ -1,6 +1,8 @@
 # Symbola
 
-Trustable contracts between agents. A contract is a precise, content-addressed promise; evidence that someone kept it can be checked by anyone. Software capabilities are the first vertical: a contract specifies a capability, and any implementation, hand-written or AI-generated, is checked against it.
+Software, shipped as blueprints. A Symbola Blueprint describes an app as its decisions, and your coding agent builds it, in any language. This is its command-line tool; the CLI, file names and links call a Blueprint a *pack*.
+
+Under the hood, Blueprints are built on contracts. A contract is a precise, content-addressed promise; evidence that someone kept it can be checked by anyone. Software capabilities are the first vertical: a contract specifies a capability, and any implementation, hand-written or AI-generated, is checked against it.
 
 This repository covers **MVP steps 1 and 2**: the contract format with `init`, `validate`, and `test`, and signed attestations with `attest` and `verify`, run in a container or process sandbox.
 

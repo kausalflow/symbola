@@ -97,7 +97,7 @@ def test_publish_reports_a_refusal(fake, tmp_path, monkeypatch):
     monkeypatch.setenv("SYMBOLON_PUBLISH_TOKEN", "sym_ci")
     fake.states = ["failed"]
     out = CliRunner().invoke(app, ["publish", str(spec), "--site", SITE])
-    assert out.exit_code == 1 and "the registry refused the pack" in out.output
+    assert out.exit_code == 1 and "the registry refused the Blueprint" in out.output
     assert next(s for s in fake.sent if s[1].endswith("/api/publish"))[2]["Authorization"] == "Bearer sym_ci"
 
 

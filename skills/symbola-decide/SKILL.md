@@ -1,11 +1,12 @@
 ---
 name: symbola-decide
-description: Make a Symbola pack before any code exists, by interviewing the publisher about the decisions builders would get wrong. Use when the user wants to publish or write a pack (or "write the decisions") for software they have not built, or describes a product idea and wants it on symbola.sh.
+description: Make a Symbola Blueprint (a pack, in the CLI) before any code exists, by interviewing the publisher about the decisions builders would get wrong. Use when the user wants to publish or write a Blueprint or pack (or "write the decisions") for software they have not built, or describes a product idea and wants it on symbola.sh.
 ---
 
-# Writing a pack by deciding first
+# Writing a Blueprint by deciding first
 
-The user has an idea, not code. You interview them and write a Symbola pack: what
+The user has an idea, not code. You interview them and write a Symbola Blueprint
+(called a pack in the CLI and file names): what
 the product is, and the decisions where good builders would choose differently,
 each pinned by a worked example. Other coding agents then build the product from
 the pack. Format: `docs/PACK_FORMAT.md` in the symbola repository.

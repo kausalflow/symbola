@@ -1,11 +1,11 @@
 ---
 name: symbola-build
-description: Find and build software from a Symbola pack (symbola.sh). Use when the user shares a symbola.sh pack link or an owner/name pack id, asks to build, rebuild or upgrade a pack (update a build to its latest version), or wants a pack for some kind of software.
+description: Find and build software from a Symbola Blueprint (symbola.sh; the CLI calls it a pack). Use when the user shares a symbola.sh Blueprint or pack link or an owner/name id, asks to build, rebuild or upgrade a Blueprint or pack (update a build to its latest version), or wants one for some kind of software.
 ---
 
-# Building software from a Symbola pack
+# Building software from a Symbola Blueprint
 
-A pack on [symbola.sh](https://symbola.sh) is a piece of software shipped as its
+A Symbola Blueprint (a pack, in the CLI and links) on [symbola.sh](https://symbola.sh) is a piece of software shipped as its
 decisions: a product description (`PRODUCT.md`), a brief, assumptions, the
 decisions a builder could get wrong, and components with examples and checks.
 You build the software from the pack, in the language the user wants.
