@@ -8,7 +8,7 @@ from typer.testing import CliRunner
 from symbola.agent import AgentCommand, AgentError, parse_agents, resolve_agent, run_agent
 from symbola.cli import app
 from symbola.digest import contract_digest
-from symbola.extract import ExtractError, extract, scaffold_pack, sync_components
+from symbola.extract import ExtractError, _obligation_ids, check_evidence, extract, scaffold_pack, sync_components
 from symbola.pack import validate_pack
 from symbola.scaffold import scaffold
 from symbola.validate import regenerate_schema
@@ -229,11 +229,30 @@ def test_extract_requires_evidence_for_every_obligation(tmp_path, source, stub, 
     result = extract(source, "acme/shout", agent=stub, root=tmp_path / "packs", rounds=1)
     failed = {c.name: c.detail for c in result.rounds[0].checks if not c.ok}
     detail = failed["every obligation has evidence in EVIDENCE.toml"]
-    assert "upper.ascii: 'guessed it' must start with" in detail
+    assert "upper.ascii: 'guessed it' must be '<kind>: <where>'" in detail
     assert "upper.non-ascii: no evidence" in detail and "gone.away: not an obligation" in detail
     (draft / "EVIDENCE.toml").unlink()
     result = extract(source, "acme/shout", agent=stub, root=tmp_path / "other", rounds=1)
     assert not result.ok
+
+
+@pytest.mark.parametrize("text, problem", [
+    ('evidence = 1\n', "must be a table"),
+    ('[evidence]\n"upper.ascii" = 1\n"upper.non-ascii" = "docs: x"\n', "upper.ascii: must be a string or a list"),
+    ('[evidence]\n"upper.ascii" = ["code:"]\n"upper.non-ascii" = ["docs:   "]\n', "upper.non-ascii: 'docs:   '"),
+])
+def test_check_evidence_reports_bad_shapes(tmp_path, text, problem):
+    path = tmp_path / "EVIDENCE.toml"
+    path.write_text(text)
+    result = check_evidence(path, ["upper.ascii", "upper.non-ascii"])
+    assert not result.ok and problem in result.detail
+
+
+def test_obligation_ids_survive_a_malformed_file(tmp_path):
+    (tmp_path / "obligations.toml").write_text("obligation = 1\n")
+    assert _obligation_ids(tmp_path) == []
+    (tmp_path / "obligations.toml").write_text('[[obligation]]\nid = 3\n[[obligation]]\nid = "a.b"\n')
+    assert _obligation_ids(tmp_path) == ["a.b"]
 
 
 def test_extract_keeps_the_pack_within_its_budget(tmp_path, source, stub, draft):

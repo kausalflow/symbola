@@ -541,7 +541,10 @@ def _obligation_ids(pack_dir: Path) -> list[str]:
             data = tomllib.load(f)
     except (OSError, tomllib.TOMLDecodeError):
         return []  # validate_pack reports it
-    return [o.get("id") for o in data.get("obligation", []) if isinstance(o, dict) and o.get("id")]
+    found = data.get("obligation", [])
+    if not isinstance(found, list):
+        return []  # validate_pack reports it
+    return [o["id"] for o in found if isinstance(o, dict) and isinstance(o.get("id"), str) and o["id"]]
 
 
 def check_evidence(path: Path, ids: list[str]) -> CheckResult:
@@ -554,7 +557,9 @@ def check_evidence(path: Path, ids: list[str]) -> CheckResult:
             table = tomllib.load(f).get("evidence", {})
     except tomllib.TOMLDecodeError as e:
         return CheckResult(label, False, f"{EVIDENCE_FILE} is not valid TOML: {e}")
-    problems = []
+    if not isinstance(table, dict):
+        return CheckResult(label, False, "[evidence] must be a table of obligation id = [\"<kind>: <where>\", ...]")
+    problems, kinds = [], Counter()
     for oid in ids:
         items = table.get(oid)
         if isinstance(items, str):
@@ -562,16 +567,20 @@ def check_evidence(path: Path, ids: list[str]) -> CheckResult:
         if not items:
             problems.append(f"{oid}: no evidence")
             continue
+        if not isinstance(items, list):
+            problems.append(f"{oid}: must be a string or a list of strings")
+            continue
         for item in items:
-            kind = str(item).split(":", 1)[0].strip()
-            if kind not in EVIDENCE_KINDS or ":" not in str(item):
-                problems.append(f"{oid}: {item!r} must start with one of {', '.join(k + ':' for k in EVIDENCE_KINDS)}")
+            kind, _, where = str(item).partition(":") if isinstance(item, str) else ("", "", "")
+            if kind.strip() not in EVIDENCE_KINDS or not where.strip():
+                problems.append(f"{oid}: {item!r} must be '<kind>: <where>' with kind one of "
+                                f"{', '.join(EVIDENCE_KINDS)}")
+            else:
+                kinds[kind.strip()] += 1
     stale = sorted(set(table) - set(ids))
     problems += [f"{oid}: not an obligation of the pack" for oid in stale]
     if problems:
         return CheckResult(label, False, "\n".join(problems))
-    kinds = Counter(str(i).split(":", 1)[0].strip()
-                    for oid in ids for i in ([table[oid]] if isinstance(table[oid], str) else table[oid]))
     return CheckResult(label, True, ", ".join(f"{n} {k}" for k, n in sorted(kinds.items())))
 
 
