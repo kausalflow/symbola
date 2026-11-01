@@ -271,7 +271,7 @@ def test_product_pack_is_built_as_the_product(registry, tmp_path):
     r = runner.invoke(app, ["pull", "kausalflow/lightkone", "--registry", str(tmp_path / "site"),
                             "--dest", str(tmp_path / "lk")])
     assert r.exit_code == 0, r.output
-    assert "This is a product pack" in r.output
+    assert "This is a product Blueprint" in r.output
 
 
 def test_pack_ref_takes_an_id_or_a_page_link():
