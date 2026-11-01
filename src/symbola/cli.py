@@ -23,7 +23,7 @@ from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_site, publish as publish_pack, \
     request_state, start_login
-from .questions import QuestionError, answer as answer_question, unanswered
+from .questions import QuestionError, answer as answer_question, confirm as confirm_obligation, review as review_pack, unanswered
 from .pack import PACK_MANIFEST_FILE, PRODUCT_FILE, component_name, report_json, summary_line, validate_pack
 from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, previous_version, pull as pull_pack, release as release_pack, scaffold_pack, upgrade as upgrade_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
@@ -618,6 +618,60 @@ def pack_answer(
     _line(True, f"{o['id']}: {o['status']}", f"{o['statement']} ({detail})")
 
 
+@pack_app.command(name="review")
+def pack_review(
+    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    as_json: bool = typer.Option(False, "--json", help="Print the list as JSON."),
+) -> None:
+    """List what people still have to settle: open questions, decisions to confirm, and what is left open."""
+    try:
+        todo = review_pack(path)
+    except (QuestionError, OSError, ValueError) as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    review_file = Path(path).resolve().parent.parent / "REVIEW.md"
+    if as_json:
+        typer.echo(json.dumps({"questions": [q.model_dump(exclude_defaults=True) for q in todo["questions"]],
+                               "defaults": todo["defaults"], "open": todo["open"],
+                               "review_file": str(review_file) if review_file.is_file() else None},
+                              indent=2, ensure_ascii=False))
+        return
+    typer.echo(f"Questions to answer ({len(todo['questions'])}):")
+    for q in todo["questions"]:
+        typer.echo(f"  [{q.id}] {q.ask}")
+        for c in q.choice:
+            typer.echo(f"     ({c.key}) {c.label}" + ("  (recommended)" if c.key == q.recommended else ""))
+    typer.echo(f"  -> symbola pack answer {path} <id> <choice|default|open>\n")
+    typer.echo(f"Decisions to confirm ({len(todo['defaults'])}):")
+    for o in todo["defaults"]:
+        typer.echo(f"  [{o['id']}] {o.get('statement', '')}")
+    typer.echo(f"  -> symbola pack confirm {path} <id>   (keep it; --open leaves it to builders; "
+               "to change it, edit obligations.toml)\n")
+    typer.echo(f"Left open for builders ({len(todo['open'])}):")
+    for o in todo["open"]:
+        typer.echo(f"  [{o['id']}] {o.get('statement', '')}")
+    typer.echo("  -> fine as they are; to decide one, add a question for it\n")
+    if review_file.is_file():
+        typer.echo(f"Also read {review_file}: suspected bugs, where sources disagreed, what was not seen.")
+    left = len(todo["questions"]) + len(todo["defaults"])
+    typer.echo(f"{left} to settle." if left else "Nothing left to settle.")
+
+
+@pack_app.command(name="confirm")
+def pack_confirm(
+    path: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    obligation: str = typer.Argument(..., help="Id of a `default` obligation."),
+    leave_open: bool = typer.Option(False, "--open", help="Leave it to builders instead (drops its checks)."),
+) -> None:
+    """Settle a `default` obligation after review: keep it as decided, or leave it open."""
+    try:
+        o = confirm_obligation(path, obligation, to="open" if leave_open else "decided")
+    except QuestionError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    _line(True, f"{o['id']}: {o['status']}", o.get("statement", ""))
+
+
 site_app = typer.Typer(no_args_is_help=True, help="Build the static pack registry.")
 app.add_typer(site_app, name="site")
 
@@ -930,11 +984,8 @@ def extract(
         typer.echo(f"{OK} draft pack {result.pack_dir}")
         if result.pack_report:
             typer.echo(f"    {summary_line(result.pack_report.summary)}")
-        questions = result.pack_dir / ".symbolon" / "questions.toml"
-        also = (f", answer the questions in {questions} with `symbola pack answer`"
-                if questions.is_file() else "")
-        typer.echo(f"\nNext: answer {result.product_dir / 'REVIEW.md'}{also}, settle the default and open "
-                   "obligations, then hand the pack to builders.")
+        typer.echo(f"\nNext: `symbola pack review {result.pack_dir}` lists the questions to answer and the "
+                   "decisions to confirm; settle them, then hand the pack to builders.")
     else:
         typer.echo(typer.style(f"draft is not valid yet: {result.pack_dir}", fg=typer.colors.RED))
         typer.echo(f"Agent logs are in {result.product_dir / '.symbolon'}. Fix the draft by hand, or remove "

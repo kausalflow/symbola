@@ -274,6 +274,22 @@ symbola pack answer PATH QUESTION_ID CHOICE
 
 Records the publisher's answer to a question as an obligation. `CHOICE` is a choice key (`decided`), `default` (the recommended choice, as `default`) or `open` (no check). For a question about a component it appends the chosen outcome to that component's `examples.jsonl`, names that line as the obligation's check and updates the component's digest in the manifest; a question with no component becomes an `unchecked` obligation. The first answer replaces `pack init`'s placeholder. An answered question is refused; remove its obligation and example line to answer again.
 
+## `pack review`
+
+```
+symbola pack review [PATH] [--json]
+```
+
+Lists what people still have to settle in a pack, typically after `extract`: the unanswered questions (answer with `pack answer`), the `default` obligations to confirm (with `pack confirm`), and the `open` ones left to builders. It points to `REVIEW.md` next to `versions/` when there is one.
+
+## `pack confirm`
+
+```
+symbola pack confirm PATH OBLIGATION_ID [--open]
+```
+
+Settles a `default` obligation after review: it becomes `decided`, or with `--open` it is left to builders and its checks are dropped. To change what it says instead, edit `obligations.toml` or turn it into a question.
+
 ## `site build`
 
 ```

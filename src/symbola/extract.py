@@ -304,7 +304,11 @@ exist; `unchecked` is for a requirement the publisher would hold a build to but
 no example or property can express (at most a tenth of them). Every example and
 property should trace to some obligation.
 
-When you are unsure what the publisher wants, choose `default` and ask in {review}.
+Leave nothing unclear unmarked; people review it after you (`symbola pack review`):
+  - the sources settle it: decided
+  - they lean one way but the publisher may want otherwise: default (they confirm or reject it)
+  - they don't settle it and a wrong guess would matter: a question (below)
+  - builds may reasonably differ: open
 
 A gap no source settles, where a wrong guess would matter, is a question rather than an
 obligation: add it to {pack}/{questions} and the publisher answers it with

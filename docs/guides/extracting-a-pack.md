@@ -62,10 +62,18 @@ If anything fails, the failures go back to the agent for another round, up to
 fix by hand.
 
 A draft that passes is a starting point, not a finished pack. The examples were
-recorded from the original, so they show what it does, including its bugs. The
-statuses are the agent's guesses: answer `REVIEW.md`, settle each `default` and
-`open` obligation, and then let replication show what the pack still leaves
-undecided ([Measuring ambiguity](measuring-ambiguity.md)).
+recorded from the original, so they show what it does, including its bugs. Anything
+the agent was not sure of is marked for people to review:
+
+| Marked as | Meaning | You settle it with |
+| --- | --- | --- |
+| a question in `questions.toml` | No source settled it and a wrong guess would matter | `symbola pack answer <pack> <id> <choice>` |
+| a `default` obligation | The sources lean one way; you confirm or reject | `symbola pack confirm <pack> <id>` (`--open` to leave it to builders) |
+| an `open` obligation | Builds may reasonably differ | nothing, or a question to decide it |
+| a line in `REVIEW.md` | Suspected bugs, sources that disagreed, what was not seen | edit the pack |
+
+`symbola pack review <pack>` lists all of these in one place. Then let replication
+show what the pack still leaves undecided ([Measuring ambiguity](measuring-ambiguity.md)).
 
 ## Without the code
 
