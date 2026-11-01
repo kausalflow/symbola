@@ -847,6 +847,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pack-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack review</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pack-confirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack confirm</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#site-build" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1443,6 +1465,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pack-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack review</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pack-confirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>pack confirm</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#site-build" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1960,28 +2004,36 @@ the implementation's digest.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>symbola pack answer PATH QUESTION_ID CHOICE
 </span></code></pre></div>
 <p>Records the publisher's answer to a question as an obligation. <code>CHOICE</code> is a choice key (<code>decided</code>), <code>default</code> (the recommended choice, as <code>default</code>) or <code>open</code> (no check). For a question about a component it appends the chosen outcome to that component's <code>examples.jsonl</code>, names that line as the obligation's check and updates the component's digest in the manifest; a question with no component becomes an <code>unchecked</code> obligation. The first answer replaces <code>pack init</code>'s placeholder. An answered question is refused; remove its obligation and example line to answer again.</p>
+<h2 id="pack-review"><code>pack review</code><a class="headerlink" href="#pack-review" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>symbola pack review [PATH] [--json]
+</span></code></pre></div>
+<p>Lists what people still have to settle in a pack, typically after <code>extract</code>: the unanswered questions (answer with <code>pack answer</code>), the <code>default</code> obligations to confirm (with <code>pack confirm</code>), and the <code>open</code> ones left to builders. It points to <code>REVIEW.md</code> next to <code>versions/</code> when there is one.</p>
+<h2 id="pack-confirm"><code>pack confirm</code><a class="headerlink" href="#pack-confirm" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>symbola pack confirm PATH OBLIGATION_ID [--open]
+</span></code></pre></div>
+<p>Settles a <code>default</code> obligation after review: it becomes <code>decided</code>, or with <code>--open</code> it is left to builders and its checks are dropped. To change what it says instead, edit <code>obligations.toml</code> or turn it into a question.</p>
 <h2 id="site-build"><code>site build</code><a class="headerlink" href="#site-build" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>symbola site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>symbola site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
 </span></code></pre></div>
 <p>Validates the latest version of every pack under <code>REGISTRY</code> and writes <code>index.json</code>, <code>llms.txt</code>, and each pack's tarball, sha256, <code>pack.md</code> and <code>parts/</code>, <code>llms.txt</code>, raw files, and <code>evidence.json</code> with every attestation checked. A priced pack's tarball goes to <code>--private-out</code> for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See <a href="../REGISTRY/#building-the-site">Pack registry</a>.</p>
 <h2 id="pull"><code>pull</code><a class="headerlink" href="#pull" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>symbola pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>symbola pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
 </span></code></pre></div>
 <p>Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into <code>DEST</code> (default <code>./&lt;name&gt;</code>) and prints the commands to start building. <code>PACK_ID</code> can also be the pack's page link, such as <code>https://symbola.sh/packs/acme/invoice-desk/</code>; the registry is then the site that serves it. A priced pack is downloaded from the store with <code>--token</code> (or <code>$SYMBOLON_LICENSE</code>). <code>--digest</code> pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See <a href="../REGISTRY/#pulling-a-pack">Pack registry</a>.</p>
 <h2 id="site-check"><code>site check</code><a class="headerlink" href="#site-check" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>symbola site check [REGISTRY=packs]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>symbola site check [REGISTRY=packs]
 </span></code></pre></div>
 <p>Builds the registry in a temporary folder, so every latest version must validate, and checks that every version in a pack's <code>digests.txt</code> still has its recorded digest. Prints a warning for packs without a <code>digests.txt</code>. See <a href="../REGISTRY/#submission-checks">Pack registry</a>.</p>
 <h2 id="release"><code>release</code><a class="headerlink" href="#release" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>symbola release [SPEC=spec] --registry PACKS
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>symbola release [SPEC=spec] --registry PACKS
 </span></code></pre></div>
 <p>Validates <code>SPEC</code>, writes it to <code>PACKS/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code> as the next version, and records its digest in <code>digests.txt</code>. Prints what changed since the previous version. Does nothing if the content is unchanged since the latest version. See <a href="../REGISTRY/#releasing">Pack registry</a>.</p>
 <h2 id="changes"><code>changes</code><a class="headerlink" href="#changes" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>symbola changes OLD NEW [-o changes.md] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>symbola changes OLD NEW [-o changes.md] [--json]
 </span></code></pre></div>
 <p>Lists what changed between two pack folders: decisions and assumptions added, removed or changed (by id, field by field), components whose contract changed and which files, and a diff of each top-level Markdown document. The site writes the same report for the latest version of every pack. See <a href="../REGISTRY/#upgrading-a-build">Pack registry</a>.</p>
 <h2 id="upgrade"><code>upgrade</code><a class="headerlink" href="#upgrade" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>symbola upgrade [SPEC=spec] [--dest SPEC.new] [--registry URL-or-folder] [--impl impl] [--overrides overrides.toml] [--report UPGRADE.md]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>symbola upgrade [SPEC=spec] [--dest SPEC.new] [--registry URL-or-folder] [--impl impl] [--overrides overrides.toml] [--report UPGRADE.md]
 </span></code></pre></div>
 <p>For a build made from an earlier version of a pack: pulls the latest version into <code>DEST</code>, compares it with <code>SPEC</code>, and writes <code>REPORT</code> with the changes, the commands to re-check and re-pin each changed component, and steps for the agent. Decisions listed in <code>--overrides</code> (the build's own departures, by decision id) are marked, with a warning when the new version changes one. Prints "up to date" and removes <code>DEST</code> when there is nothing new. See <a href="../REGISTRY/#upgrading-a-build">Pack registry</a>.</p>
 

@@ -1195,10 +1195,41 @@ Symbola never changes. When it finishes you have:</p>
 <code>--rounds</code> runs (default 2). A draft that still fails is left in place for you to
 fix by hand.</p>
 <p>A draft that passes is a starting point, not a finished pack. The examples were
-recorded from the original, so they show what it does, including its bugs. The
-statuses are the agent's guesses: answer <code>REVIEW.md</code>, settle each <code>default</code> and
-<code>open</code> obligation, and then let replication show what the pack still leaves
-undecided (<a href="../measuring-ambiguity/">Measuring ambiguity</a>).</p>
+recorded from the original, so they show what it does, including its bugs. Anything
+the agent was not sure of is marked for people to review:</p>
+<table>
+<thead>
+<tr>
+<th>Marked as</th>
+<th>Meaning</th>
+<th>You settle it with</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a question in <code>questions.toml</code></td>
+<td>No source settled it and a wrong guess would matter</td>
+<td><code>symbola pack answer &lt;pack&gt; &lt;id&gt; &lt;choice&gt;</code></td>
+</tr>
+<tr>
+<td>a <code>default</code> obligation</td>
+<td>The sources lean one way; you confirm or reject</td>
+<td><code>symbola pack confirm &lt;pack&gt; &lt;id&gt;</code> (<code>--open</code> to leave it to builders)</td>
+</tr>
+<tr>
+<td>an <code>open</code> obligation</td>
+<td>Builds may reasonably differ</td>
+<td>nothing, or a question to decide it</td>
+</tr>
+<tr>
+<td>a line in <code>REVIEW.md</code></td>
+<td>Suspected bugs, sources that disagreed, what was not seen</td>
+<td>edit the pack</td>
+</tr>
+</tbody>
+</table>
+<p><code>symbola pack review &lt;pack&gt;</code> lists all of these in one place. Then let replication
+show what the pack still leaves undecided (<a href="../measuring-ambiguity/">Measuring ambiguity</a>).</p>
 <h2 id="without-the-code">Without the code<a class="headerlink" href="#without-the-code" title="Permanent link">&para;</a></h2>
 <p>From the outside, an agent gets the product layer well (screens, flows, formats,
 wording) and hidden rules poorly. In a blind test on Aura from its live site alone,
