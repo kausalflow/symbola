@@ -216,17 +216,22 @@ _BLOCK_RE = re.compile(r"^\[\[obligation\]\][^\n]*\n", re.M)
 
 
 def review(pack_dir: Path) -> dict:
-    """What people still have to settle: unanswered questions, `default` obligations, `open` ones."""
+    """What people still have to settle: unanswered questions, `default` obligations, `open` ones,
+    and proposed cuts from `symbola pack trim` that nobody has approved or rejected yet."""
+    from .trim import TRIM_FILE, undecided  # trim imports pack, which this module also needs
     pack_dir = Path(pack_dir)
     path = pack_dir / OBLIGATIONS_FILE
     obligations = []
     if path.is_file():
         with path.open("rb") as f:
             obligations = [o for o in tomllib.load(f).get("obligation", []) if isinstance(o, dict)]
+    questions = unanswered(pack_dir) if (pack_dir / QUESTIONS_FILE).is_file() or not (pack_dir / TRIM_FILE).is_file() \
+        else []  # a pack that only has proposed cuts has no questions to list
     return {
-        "questions": unanswered(pack_dir),
+        "questions": questions,
         "defaults": [o for o in obligations if o.get("status") == "default"],
         "open": [o for o in obligations if o.get("status") == "open"],
+        "cuts": undecided(pack_dir),
     }
 
 
