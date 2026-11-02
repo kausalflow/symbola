@@ -135,14 +135,19 @@ See [Measuring ambiguity](guides/measuring-ambiguity.md).
 ## `extract`
 
 ```
-symbola extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
-                 [--agent COMMAND] [--hint TEXT] [--rounds 2] [--timeout 3600] [--no-oracle]
+symbola extract [SOURCE] --pack NAMESPACE/PRODUCT [--docs PATH_OR_URL ...] [--live URL_OR_COMMAND ...]
+                 [--root packs] [--version 1] [--agent COMMAND] [--hint TEXT] [--rounds 2]
+                 [--timeout 3600] [--no-oracle] [--max-obligations 80] [--max-product-words 2500]
 ```
 
-Hands `SOURCE` to an external coding agent, which drafts `ROOT/NAMESPACE/PRODUCT/versions/VERSION/`
-plus an oracle adapter per component and a `REVIEW.md`. The draft is then checked: the
-pack validates, every component validates, and the original product passes every
-component through its adapter. Failures go back to the agent for another round, up
+Hands what there is about the product to an external coding agent: the source code
+(`SOURCE`), documents about it (`--docs`: manuals, help pages, changelogs, API specs,
+sample files) and the running product (`--live`), in any mix, at least one. The agent
+drafts `ROOT/NAMESPACE/PRODUCT/versions/VERSION/` plus `REVIEW.md`, `EVIDENCE.toml`
+(where each obligation came from) and an oracle adapter per component. The draft is
+then checked: the pack validates, every component validates, the original product
+passes every component through its adapter (required only when there is source code),
+every obligation has evidence, and the pack is within its size budget. Failures go back to the agent for another round, up
 to `--rounds` runs in all. Component digests in `symbolon-pack.toml` are filled in
 for the agent. Symbola never changes `SOURCE`.
 
@@ -150,7 +155,10 @@ for the agent. Symbola never changes `SOURCE`.
 | --- | --- |
 | `--agent` | The agent command; defaults to `$SYMBOLON_AGENT`, then Claude Code headless |
 | `--hint` | Extra guidance for the agent, such as which parts of the product to cover |
+| `--docs` | A document about the product: a file, folder or URL. Repeat for more |
+| `--live` | The running product: a URL or a command. Repeat for more |
 | `--no-oracle` | Skip the oracle check, for products whose code cannot be called from an adapter |
+| `--max-obligations`, `--max-product-words` | The size budget: more sources should make a pack more accurate, not bigger |
 
 See [Extracting a pack](guides/extracting-a-pack.md).
 
@@ -265,6 +273,22 @@ symbola pack answer PATH QUESTION_ID CHOICE
 ```
 
 Records the publisher's answer to a question as an obligation. `CHOICE` is a choice key (`decided`), `default` (the recommended choice, as `default`) or `open` (no check). For a question about a component it appends the chosen outcome to that component's `examples.jsonl`, names that line as the obligation's check and updates the component's digest in the manifest; a question with no component becomes an `unchecked` obligation. The first answer replaces `pack init`'s placeholder. An answered question is refused; remove its obligation and example line to answer again.
+
+## `pack review`
+
+```
+symbola pack review [PATH] [--json]
+```
+
+Lists what people still have to settle in a pack, typically after `extract`: the unanswered questions (answer with `pack answer`), the `default` obligations to confirm (with `pack confirm`), and the `open` ones left to builders. It points to `REVIEW.md` next to `versions/` when there is one.
+
+## `pack confirm`
+
+```
+symbola pack confirm PATH OBLIGATION_ID [--open]
+```
+
+Settles a `default` obligation after review: it becomes `decided`, or with `--open` it is left to builders and its checks are dropped. To change what it says instead, edit `obligations.toml` or turn it into a question.
 
 ## `site build`
 

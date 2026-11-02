@@ -17,7 +17,7 @@ The package and command are `symbola` (after [symbola.sh](https://symbola.sh)). 
 
 | You have | Use | Start with |
 | --- | --- | --- |
-| A product that already works | `symbola extract`: an agent reads the code and drafts the pack, checked against the original | `symbola extract ./my-product --pack you/my-product` |
+| A product that already works | `symbola extract`: an agent reads the code, the docs or the running product (any mix) and drafts the pack, checked against the original | `symbola extract ./my-product --pack you/my-product` |
 | A product you are building now | The [`symbola-pack`](skills/symbola-pack/SKILL.md) skill: your agent records decisions as you make them | `npx skills add kausalflow/symbola --skill symbola-pack` |
 | An idea, no code yet | The [`symbola-decide`](skills/symbola-decide/SKILL.md) skill: your agent asks you multiple-choice questions and writes the pack | `npx skills add kausalflow/symbola --skill symbola-decide` |
 
@@ -77,7 +77,7 @@ symbola verify att.json --trust ~/.config/symbolon/runner.pub \
 | `symbola attest <contract> <impl>` | Run the spec in a sandbox; write a signed in-toto attestation |
 | `symbola verify <attestation>` | Check signature, trust, digests; `--rerun` reproduces it locally |
 | `symbola diff <contract> <impl> <impl>...` | Run several builds on one input pool; report where they disagree, the ambiguity estimate, and the obligations each split traces to |
-| `symbola extract <source> --pack <ns/product>` | Have a coding agent (Claude Code by default) draft a spec pack from an existing product; check it against the original |
+| `symbola extract [<source>] --pack <ns/product> [--docs ...] [--live ...]` | Have a coding agent (Claude Code by default) draft a spec pack from an existing product's code, docs or running app; check it against the original |
 | `symbola replicate <pack>` | Hand a pack to outside coding agents (Claude Code by default), then attest, holdout-test and diff the builds they make |
 | `symbola pack validate <dir>` | Check a spec pack's brief, assumptions and obligations; report obligations by status |
 | `symbola mutants <dir>` | Show which checks kill which mutants, and the contract's kill rate |
