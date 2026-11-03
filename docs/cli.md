@@ -2,6 +2,8 @@
 
 Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on failure. Commands that print a report accept `--json`.
 
+The `blueprint` commands were called `pack` before symbola 0.5. `symbola pack ...` and `extract --pack` still work and do the same thing; file names such as `symbolon-pack.toml` and links under `/packs/` keep the old word.
+
 | Command | What it does |
 | --- | --- |
 | [`init`](#init) | Scaffold a contract that passes `validate` out of the box |
@@ -14,15 +16,15 @@ Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on fa
 | [`attest`](#attest) | Run the spec in a sandbox and write a signed attestation |
 | [`verify`](#verify) | Check an attestation's signature, trust and digests; optionally reproduce it |
 | [`diff`](#diff) | Run several builds on one input pool and measure where they disagree |
-| [`extract`](#extract) | Have a coding agent draft a spec pack from an existing product, then check the draft |
-| [`replicate`](#replicate) | Hand a pack to outside coding agents, then test, attest and diff their builds |
-| [`pack validate`](#pack-validate) | Check a spec pack's brief, assumptions and obligations |
-| [`pack trim`](#pack-trim) | Propose cuts that make a pack simpler to build from; remove only the ones the publisher approves |
-| [`pack init`](#pack-init) | Scaffold a spec pack that passes `pack validate` out of the box |
-| [`site build`](#site-build) | Write the static registry for the latest version of every pack |
-| [`pull`](#pull) | Download a pack from the registry, check it, and unpack it |
-| [`site check`](#site-check) | The checks a pack submission must pass |
-| [`release`](#release) | Freeze your pack into the registry as its next version, signed |
+| [`extract`](#extract) | Have a coding agent draft a Blueprint from an existing product, then check the draft |
+| [`replicate`](#replicate) | Hand a Blueprint to outside coding agents, then test, attest and diff their builds |
+| [`blueprint validate`](#blueprint-validate) | Check a Blueprint's brief, assumptions and obligations |
+| [`blueprint trim`](#blueprint-trim) | Propose cuts that make a Blueprint simpler to build from; remove only the ones the publisher approves |
+| [`blueprint init`](#blueprint-init) | Scaffold a Blueprint that passes `blueprint validate` out of the box |
+| [`site build`](#site-build) | Write the static registry for the latest version of every Blueprint |
+| [`pull`](#pull) | Download a Blueprint from the registry, check it, and unpack it |
+| [`site check`](#site-check) | The checks a Blueprint submission must pass |
+| [`release`](#release) | Freeze your Blueprint into the registry as its next version, signed |
 | [`mutants`](#mutants) | Show which checks kill which mutants, and the kill rate |
 | [`canary plant`](#canary-plant) | Copy a contract for a builder with one example changed to contradict the spec |
 | [`canary check`](#canary-check) | Tell whether a build followed the spec or was fitted to the planted example |
@@ -74,7 +76,7 @@ Prints `sha256:<hex>` for a contract directory. See [Digest](CONTRACT_FORMAT.md#
 symbola impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0] [--repin]
 ```
 
-Creates `IMPL_DIR` if needed and writes `symbolon-impl.toml` pinned to the contract's current digest. With `--repin`, only updates the pin of an existing `symbolon-impl.toml`, after the contract changed in a pack upgrade. For implementations in other languages, edit the manifest to `language = "command"` and set `command`; see [Implementations in other languages](ATTESTATION.md#implementations-in-other-languages).
+Creates `IMPL_DIR` if needed and writes `symbolon-impl.toml` pinned to the contract's current digest. With `--repin`, only updates the pin of an existing `symbolon-impl.toml`, after the contract changed in a Blueprint upgrade. For implementations in other languages, edit the manifest to `language = "command"` and set `command`; see [Implementations in other languages](ATTESTATION.md#implementations-in-other-languages).
 
 ## `keygen`
 
@@ -136,7 +138,7 @@ See [Measuring ambiguity](guides/measuring-ambiguity.md).
 ## `extract`
 
 ```
-symbola extract [SOURCE] --pack NAMESPACE/PRODUCT [--docs PATH_OR_URL ...] [--live URL_OR_COMMAND ...]
+symbola extract [SOURCE] --blueprint NAMESPACE/PRODUCT [--docs PATH_OR_URL ...] [--live URL_OR_COMMAND ...]
                  [--root packs] [--version 1] [--agent COMMAND] [--hint TEXT] [--rounds 2]
                  [--timeout 3600] [--no-oracle] [--max-obligations 80] [--max-product-words 2500]
 ```
@@ -146,9 +148,9 @@ Hands what there is about the product to an external coding agent: the source co
 sample files) and the running product (`--live`), in any mix, at least one. The agent
 drafts `ROOT/NAMESPACE/PRODUCT/versions/VERSION/` plus `REVIEW.md`, `EVIDENCE.toml`
 (where each obligation came from) and an oracle adapter per component. The draft is
-then checked: the pack validates, every component validates, the original product
+then checked: the Blueprint validates, every component validates, the original product
 passes every component through its adapter (required only when there is source code),
-every obligation has evidence, and the pack is within its size budget. Failures go back to the agent for another round, up
+every obligation has evidence, and the Blueprint is within its size budget. Failures go back to the agent for another round, up
 to `--rounds` runs in all. Component digests in `symbolon-pack.toml` are filled in
 for the agent. Symbola never changes `SOURCE`.
 
@@ -159,9 +161,9 @@ for the agent. Symbola never changes `SOURCE`.
 | `--docs` | A document about the product: a file, folder or URL. Repeat for more |
 | `--live` | The running product: a URL or a command. Repeat for more |
 | `--no-oracle` | Skip the oracle check, for products whose code cannot be called from an adapter |
-| `--max-obligations`, `--max-product-words` | The size budget: more sources should make a pack more accurate, not bigger |
+| `--max-obligations`, `--max-product-words` | The size budget: more sources should make a Blueprint more accurate, not bigger |
 
-See [Extracting a pack](guides/extracting-a-pack.md).
+See [Extracting a Blueprint](guides/extracting-a-pack.md).
 
 ## `replicate`
 
@@ -174,7 +176,7 @@ symbola replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--prose-only 0] 
                    [--max-ambiguity X] [-o replication] [--json]
 ```
 
-Gives a builder's copy of the pack at `PACK` to an outside coding agent once per
+Gives a builder's copy of the Blueprint at `PACK` to an outside coding agent once per
 build, then attests every component of every build, runs the holdout, and runs
 `diff` per component across the builds that passed. Symbola does not build
 anything itself. Writes the builds, agent logs, attestations, diff reports and
@@ -183,8 +185,8 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 | Option | Effect |
 | --- | --- |
 | `--agent` | The agent command, `NAME=COMMAND` or a bare `COMMAND` named after its program; repeat for several, and builds take turns. Default `$SYMBOLON_AGENT`, then Claude Code headless |
-| `--prose-only` | How many of the builds, the last ones, get the pack without any `examples.jsonl` or `properties.py`: they are judged by the full spec, so they show whether the descriptions alone carry it |
-| `--reference` | A directory with one implementation per component, such as a pack's `oracle/`: compared with every build, not part of the ensemble |
+| `--prose-only` | How many of the builds, the last ones, get the Blueprint without any `examples.jsonl` or `properties.py`: they are judged by the full spec, so they show whether the descriptions alone carry it |
+| `--reference` | A directory with one implementation per component, such as a Blueprint's `oracle/`: compared with every build, not part of the ensemble |
 | `--holdout` | A directory of `<component>.jsonl` examples the builders never see, run with `--holdout-seed` and `--holdout-scale` times the property cases |
 | `--no-attest` | Test each build instead of attesting it; no runner key needed |
 | `--jobs` | How many agents run at once |
@@ -193,15 +195,15 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 
 Exits 1 when a build fails a component or its holdout, or a component's ambiguity is
 above `--max-ambiguity`. The agent runs with your permissions, outside the sandbox.
-See [Replicating a pack](guides/replicating-a-pack.md).
+See [Replicating a Blueprint](guides/replicating-a-pack.md).
 
-## `pack validate`
+## `blueprint validate`
 
 ```
-symbola pack validate PATH [--json]
+symbola blueprint validate PATH [--json]
 ```
 
-`PATH` is the pack directory holding `symbolon-pack.toml`. Checks the manifest, component digests, `BRIEF.md` sections (and `PRODUCT.md`'s, if present), assumptions and obligations, and that no two example lines of a component have the same input but expect different results, then reports obligations by status and source. It does not run contract code; run `validate` on each component for that. See [What `symbola pack validate` checks](PACK_FORMAT.md#what-symbolon-pack-validate-checks).
+`PATH` is the Blueprint directory holding `symbolon-pack.toml`. Checks the manifest, component digests, `BRIEF.md` sections (and `PRODUCT.md`'s, if present), assumptions and obligations, and that no two example lines of a component have the same input but expect different results, then reports obligations by status and source. It does not run contract code; run `validate` on each component for that. See [What `symbola blueprint validate` checks](PACK_FORMAT.md#what-symbola-blueprint-validate-checks).
 
 ## `mutants`
 
@@ -245,65 +247,65 @@ symbola flag REF REASON [--dir BUILD_DIR]
 ```
 
 Appends `{"ref", "reason", "flagged_at"}` to `BUILD_DIR/symbolon-flags.jsonl`.
-`REF` is an obligation id, a check in pack form (`search-query#example:40`,
+`REF` is an obligation id, a check in Blueprint form (`search-query#example:40`,
 `search-query#test_name`), or a bare `example:<line>`. Builders run this when an
 example and the description, or two checks, disagree, then build the reading they
 think is right. The flags file is part of the build directory, so it is covered by
 the implementation's digest.
 
-## `pack init`
+## `blueprint init`
 
 ```
-symbola pack init PACK_ID [--dir spec] [--author you@example.com]
+symbola blueprint init PACK_ID [--dir spec] [--author you@example.com]
 ```
 
-Creates a pack folder (by default `spec/`, next to your code) with a manifest, `BRIEF.md`, a placeholder open obligation, a placeholder assumption, `components/` and `AGENTS.md`. Fails if the folder exists and is not empty. See [Pack registry](REGISTRY.md#making-a-pack).
+Creates a Blueprint folder (by default `spec/`, next to your code) with a manifest, `BRIEF.md`, a placeholder open obligation, a placeholder assumption, `components/` and `AGENTS.md`. Fails if the folder exists and is not empty. See [Blueprint registry](REGISTRY.md#making-a-blueprint).
 
-## `pack questions`
-
-```
-symbola pack questions [PATH] [--json]
-```
-
-Lists the questions in `PATH/.symbolon/questions.toml` that have no obligation yet, with their choices and the recommended one. For writing a pack before any code; see [Deciding before building](REGISTRY.md#deciding-before-building).
-
-## `pack answer`
+## `blueprint questions`
 
 ```
-symbola pack answer PATH QUESTION_ID CHOICE
+symbola blueprint questions [PATH] [--json]
 ```
 
-Records the publisher's answer to a question as an obligation. `CHOICE` is a choice key (`decided`), `default` (the recommended choice, as `default`) or `open` (no check). For a question about a component it appends the chosen outcome to that component's `examples.jsonl`, names that line as the obligation's check and updates the component's digest in the manifest; a question with no component becomes an `unchecked` obligation. The first answer replaces `pack init`'s placeholder. An answered question is refused; remove its obligation and example line to answer again.
+Lists the questions in `PATH/.symbolon/questions.toml` that have no obligation yet, with their choices and the recommended one. For writing a Blueprint before any code; see [Deciding before building](REGISTRY.md#deciding-before-building).
 
-## `pack review`
-
-```
-symbola pack review [PATH] [--json]
-```
-
-Lists what people still have to settle in a pack, typically after `extract`: the unanswered questions (answer with `pack answer`), the `default` obligations to confirm (with `pack confirm`), and the `open` ones left to builders. It points to `REVIEW.md` next to `versions/` when there is one, and lists the cuts `pack trim` proposed that nobody has approved or rejected yet.
-
-## `pack confirm`
+## `blueprint answer`
 
 ```
-symbola pack confirm PATH OBLIGATION_ID [--open]
+symbola blueprint answer PATH QUESTION_ID CHOICE
+```
+
+Records the publisher's answer to a question as an obligation. `CHOICE` is a choice key (`decided`), `default` (the recommended choice, as `default`) or `open` (no check). For a question about a component it appends the chosen outcome to that component's `examples.jsonl`, names that line as the obligation's check and updates the component's digest in the manifest; a question with no component becomes an `unchecked` obligation. The first answer replaces `blueprint init`'s placeholder. An answered question is refused; remove its obligation and example line to answer again.
+
+## `blueprint review`
+
+```
+symbola blueprint review [PATH] [--json]
+```
+
+Lists what people still have to settle in a Blueprint, typically after `extract`: the unanswered questions (answer with `blueprint answer`), the `default` obligations to confirm (with `blueprint confirm`), and the `open` ones left to builders. It points to `REVIEW.md` next to `versions/` when there is one, and lists the cuts `blueprint trim` proposed that nobody has approved or rejected yet.
+
+## `blueprint confirm`
+
+```
+symbola blueprint confirm PATH OBLIGATION_ID [--open]
 ```
 
 Settles a `default` obligation after review: it becomes `decided`, or with `--open` it is left to builders and its checks are dropped. To change what it says instead, edit `obligations.toml` or turn it into a question.
 
-## `pack trim`
+## `blueprint trim`
 
 ```
-symbola pack trim [PATH] [--deep [--agent CMD]]
-symbola pack trim PATH --cut ID ... --keep ID ...
-symbola pack trim PATH --apply [--out FOLDER]
+symbola blueprint trim [PATH] [--deep [--agent CMD]]
+symbola blueprint trim PATH --cut ID ... --keep ID ...
+symbola blueprint trim PATH --apply [--out FOLDER]
 ```
 
-Slims a pack so it is simpler to build from, and removes nothing the publisher has not approved.
+Slims a Blueprint so it is simpler to build from, and removes nothing the publisher has not approved.
 
-1. **Propose.** With no options it lists likely cuts and writes them to `PATH/.symbolon/trim.toml`, which never ships. Its screens run no agent and no contract code: an example line with the same input and result as an earlier one; an obligation whose statement and checks another obligation already holds; a sentence of `PRODUCT.md` or of a component's description that restates an obligation. Obligations from `replication` or `counterexample` (builders disagreed on them) are never proposed. `--deep` adds one run of your coding agent, which reads a copy of the pack and proposes more (presentation details, prose that examples already pin); each of its proposals is checked before it is listed. It also reports the pack against the size budget `extract` drafts to (80 obligations, 2,500 words of `PRODUCT.md`). Running it again keeps every decision already made.
-2. **Review.** The undecided cuts also show in `pack review`, with the exact text that would go and why. `--cut ID` approves one, `--keep ID` rejects it; you can also set `decision` in the file.
-3. **Apply.** `--apply` removes the cuts marked `cut`, and only those. Cutting an obligation also removes the examples and properties no other obligation uses; example references are renumbered (a duplicate's references move to the line that stays) and component digests are synced. The result must pass `pack validate`, or nothing is written. A released version is frozen, so trim it into a copy with `--out` and release that. `trim.toml` keeps the record of what was cut. Before release, one `replicate` build is a cheap check that nothing load-bearing went.
+1. **Propose.** With no options it lists likely cuts and writes them to `PATH/.symbolon/trim.toml`, which never ships. Its screens run no agent and no contract code: an example line with the same input and result as an earlier one; an obligation whose statement and checks another obligation already holds; a sentence of `PRODUCT.md` or of a component's description that restates an obligation. Obligations from `replication` or `counterexample` (builders disagreed on them) are never proposed. `--deep` adds one run of your coding agent, which reads a copy of the Blueprint and proposes more (presentation details, prose that examples already pin); each of its proposals is checked before it is listed. It also reports the Blueprint against the size budget `extract` drafts to (80 obligations, 2,500 words of `PRODUCT.md`). Running it again keeps every decision already made.
+2. **Review.** The undecided cuts also show in `blueprint review`, with the exact text that would go and why. `--cut ID` approves one, `--keep ID` rejects it; you can also set `decision` in the file.
+3. **Apply.** `--apply` removes the cuts marked `cut`, and only those. Cutting an obligation also removes the examples and properties no other obligation uses; example references are renumbered (a duplicate's references move to the line that stays) and component digests are synced. The result must pass `blueprint validate`, or nothing is written. A released version is frozen, so trim it into a copy with `--out` and release that. `trim.toml` keeps the record of what was cut. Before release, one `replicate` build is a cheap check that nothing load-bearing went.
 
 ## `site build`
 
@@ -311,7 +313,7 @@ Slims a pack so it is simpler to build from, and removes nothing the publisher h
 symbola site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
 ```
 
-Validates the latest version of every pack under `REGISTRY` and writes `index.json`, `llms.txt`, and each pack's tarball, sha256, `pack.md` and `parts/`, `llms.txt`, raw files, and `evidence.json` with every attestation checked. A priced pack's tarball goes to `--private-out` for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See [Pack registry](REGISTRY.md#building-the-site).
+Validates the latest version of every Blueprint under `REGISTRY` and writes `index.json`, `llms.txt`, and each Blueprint's tarball, sha256, `pack.md` and `parts/`, `llms.txt`, raw files, and `evidence.json` with every attestation checked. A priced Blueprint's tarball goes to `--private-out` for the store instead of the public site. Fails if any Blueprint is invalid or contains holdout files, or is priced without a store. See [Blueprint registry](REGISTRY.md#building-the-site).
 
 ## `pull`
 
@@ -319,7 +321,7 @@ Validates the latest version of every pack under `REGISTRY` and writes `index.js
 symbola pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
 ```
 
-Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into `DEST` (default `./<name>`) and prints the commands to start building. `PACK_ID` can also be the pack's page link, such as `https://symbola.sh/packs/acme/invoice-desk/`; the registry is then the site that serves it. A priced pack is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Pack registry](REGISTRY.md#pulling-a-pack).
+Downloads the latest version of a Blueprint, checks the tarball's sha256 and the unpacked Blueprint's digest against the registry, then unpacks it into `DEST` (default `./<name>`) and prints the commands to start building. `PACK_ID` can also be the Blueprint's page link, such as `https://symbola.sh/packs/acme/invoice-desk/`; the registry is then the site that serves it. A priced Blueprint is downloaded from the store with `--token` (or `$SYMBOLON_LICENSE`). `--digest` pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See [Blueprint registry](REGISTRY.md#pulling-a-blueprint).
 
 ## `site check`
 
@@ -327,7 +329,7 @@ Downloads the latest version of a pack, checks the tarball's sha256 and the unpa
 symbola site check [REGISTRY=packs]
 ```
 
-Builds the registry in a temporary folder, so every latest version must validate, and checks that every version in a pack's `digests.txt` still has its recorded digest. Prints a warning for packs without a `digests.txt`. See [Pack registry](REGISTRY.md#submission-checks).
+Builds the registry in a temporary folder, so every latest version must validate, and checks that every version in a Blueprint's `digests.txt` still has its recorded digest. Prints a warning for Blueprints without a `digests.txt`. See [Blueprint registry](REGISTRY.md#submission-checks).
 
 ## `release`
 
@@ -335,7 +337,7 @@ Builds the registry in a temporary folder, so every latest version must validate
 symbola release [SPEC=spec] --registry PACKS
 ```
 
-Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next version, and records its digest in `digests.txt`. Prints what changed since the previous version. Does nothing if the content is unchanged since the latest version. See [Pack registry](REGISTRY.md#releasing).
+Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next version, and records its digest in `digests.txt`. Prints what changed since the previous version. Does nothing if the content is unchanged since the latest version. See [Blueprint registry](REGISTRY.md#releasing).
 
 ## `changes`
 
@@ -343,7 +345,7 @@ Validates `SPEC`, writes it to `PACKS/<owner>/<name>/versions/<n>/` as the next 
 symbola changes OLD NEW [-o changes.md] [--json]
 ```
 
-Lists what changed between two pack folders: decisions and assumptions added, removed or changed (by id, field by field), components whose contract changed and which files, and a diff of each top-level Markdown document. The site writes the same report for the latest version of every pack. See [Pack registry](REGISTRY.md#upgrading-a-build).
+Lists what changed between two Blueprint folders: decisions and assumptions added, removed or changed (by id, field by field), components whose contract changed and which files, and a diff of each top-level Markdown document. The site writes the same report for the latest version of every pack. See [Blueprint registry](REGISTRY.md#upgrading-a-build).
 
 ## `upgrade`
 
@@ -351,4 +353,4 @@ Lists what changed between two pack folders: decisions and assumptions added, re
 symbola upgrade [SPEC=spec] [--dest SPEC.new] [--registry URL-or-folder] [--impl impl] [--overrides overrides.toml] [--report UPGRADE.md]
 ```
 
-For a build made from an earlier version of a pack: pulls the latest version into `DEST`, compares it with `SPEC`, and writes `REPORT` with the changes, the commands to re-check and re-pin each changed component, and steps for the agent. Decisions listed in `--overrides` (the build's own departures, by decision id) are marked, with a warning when the new version changes one. Prints "up to date" and removes `DEST` when there is nothing new. See [Pack registry](REGISTRY.md#upgrading-a-build).
+For a build made from an earlier version of a Blueprint: pulls the latest version into `DEST`, compares it with `SPEC`, and writes `REPORT` with the changes, the commands to re-check and re-pin each changed component, and steps for the agent. Decisions listed in `--overrides` (the build's own departures, by decision id) are marked, with a warning when the new version changes one. Prints "up to date" and removes `DEST` when there is nothing new. See [Blueprint registry](REGISTRY.md#upgrading-a-build).

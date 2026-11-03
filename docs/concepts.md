@@ -40,17 +40,17 @@ Two separate questions apply to any attestation:
 - **Is it genuine?** The signature verifies against the embedded public key.
 - **Do I trust it?** The key is one you accept, passed with `--trust`. Better still, `verify --rerun` reproduces the run locally.
 
-## Spec pack
+## Blueprint
 
-A **spec pack** is a product-level contract, packaged so a builder can rebuild the product in their own stack. It holds:
+A **Blueprint** is a product-level contract, packaged so a builder can rebuild the product in their own stack. It holds:
 
 - `BRIEF.md`: purpose, non-goals, priorities, and who resolves gaps.
-- `PRODUCT.md` (optional): the whole product a build delivers, its shape, surfaces and flows. A pack with it is a product pack, built as the product with the components as its core.
+- `PRODUCT.md` (optional): the whole product a build delivers, its shape, surfaces and flows. A Blueprint with it is a product Blueprint, built as the product with the components as its core.
 - `assumptions/`: facts about the world a builder may rely on.
 - `obligations.toml`: the decisions a build must keep, each `decided`, `default` or `open`, and each tied to the checks that pin it down.
 - `components/`: ordinary capability contracts.
 
-Packs are meant to be minimal. They don't spell out what any good builder would do anyway; they hold the points where good builders would choose differently and the publisher would reject one choice. Most obligations are found by **replication**: give the pack to independent builders, compare their builds, and turn each disagreement into an obligation with a check. The [lightkone pilot](lightkone-pilot.md) is the first worked example.
+Blueprints are meant to be minimal. They don't spell out what any good builder would do anyway; they hold the points where good builders would choose differently and the publisher would reject one choice. Most obligations are found by **replication**: give the Blueprint to independent builders, compare their builds, and turn each disagreement into an obligation with a check. The [lightkone pilot](lightkone-pilot.md) is the first worked example.
 
 ## How they fit
 

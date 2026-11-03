@@ -16,15 +16,15 @@ nav = [
   { "Guides" = [
     { "Writing a contract" = "guides/writing-a-contract.md" },
     { "Measuring ambiguity" = "guides/measuring-ambiguity.md" },
-    { "Extracting a pack" = "guides/extracting-a-pack.md" },
-    { "Replicating a pack" = "guides/replicating-a-pack.md" },
+    { "Extracting a Blueprint" = "guides/extracting-a-pack.md" },
+    { "Replicating a Blueprint" = "guides/replicating-a-pack.md" },
   ] },
   { "Reference" = [
     { "CLI" = "cli.md" },
     { "Contract format" = "CONTRACT_FORMAT.md" },
     { "Implementations and attestations" = "ATTESTATION.md" },
-    { "Spec pack format" = "PACK_FORMAT.md" },
-    { "Pack registry" = "REGISTRY.md" },
+    { "Blueprint format" = "PACK_FORMAT.md" },
+    { "Blueprint registry" = "REGISTRY.md" },
   ] },
   { "Examples" = [
     { "Seed contracts" = "seed-contracts.md" },

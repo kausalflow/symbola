@@ -1,17 +1,17 @@
-# Symbola pack format, v1
+# Symbola Blueprint format, v1
 
-A **spec pack** is a product contract packaged for building: what the product is
+A **Blueprint** is a product contract packaged for building: what the product is
 for, what may be assumed about the world, and the decisions a builder must keep,
 each tied to the checks that pin it down. Its components are ordinary capability
 contracts ([CONTRACT_FORMAT.md](CONTRACT_FORMAT.md)).
 
-A pack is meant to be **minimal**. AI builders fill gaps well, so a pack does not
+A Blueprint is meant to be **minimal**. AI builders fill gaps well, so a Blueprint does not
 spell out what any good builder would do anyway. It holds the points where good
 builders would choose differently and the publisher would reject one choice, the
 facts about the world no builder can infer, and a check for each. See design v0.5,
 section 4.
 
-## What a pack specifies
+## What a Blueprint specifies
 
 What the product does at the surfaces people use (API, file formats, command line,
 results), not how it is built. Drive the product as a user does rather than through
@@ -33,7 +33,7 @@ packs/<namespace>/<product>/versions/<version>/
 
 ## Selling: `[listing]`
 
-An optional table in `symbolon-pack.toml` prices the pack:
+An optional table in `symbolon-pack.toml` prices the Blueprint:
 
 ```toml
 [listing]
@@ -41,7 +41,7 @@ price = 1900        # minor units: 19.00
 currency = "eur"    # lowercase ISO 4217
 ```
 
-See [Pack registry](REGISTRY.md#selling-a-pack).
+See [Blueprint registry](REGISTRY.md#selling-a-blueprint).
 
 ## `BRIEF.md`
 
@@ -49,7 +49,7 @@ Prose for people and agents. It must have these headings (any level, any case):
 
 - **Non-goals**: what the product deliberately does not do.
 - **Priorities**: the order in which goals win when they conflict.
-- **Who resolves gaps**: who answers questions the pack does not settle.
+- **Who resolves gaps**: who answers questions the Blueprint does not settle.
 
 ## `PRODUCT.md`
 
@@ -67,13 +67,13 @@ people and agents. It must have these headings (any level, any case):
 
 Optional headings such as **Interfaces** (outside services, plugin or storage
 interfaces) and **Order** (what to build first when a build cannot do it all)
-help. Like the rest of the pack it is minimal: what a good builder could not
+help. Like the rest of the Blueprint it is minimal: what a good builder could not
 guess, not layout or styling. Requirements in it that a build must keep and no
 check covers yet can be `unchecked` obligations.
 
-A pack with `PRODUCT.md` is a **product pack**: its build is the product, with the
+A Blueprint with `PRODUCT.md` is a **product Blueprint**: its build is the product, with the
 components as its core, and it is done when every flow works and every component
-passes. A pack without it is a **component library**: its build is the components.
+passes. A Blueprint without it is a **component library**: its build is the components.
 `symbola replicate` always builds the components only, so it costs the same either way.
 
 ## `assumptions/<name>.toml`
@@ -86,7 +86,7 @@ monitor = "none"                       # how a deployment can watch it, or "none
 ```
 
 Assumptions tell builders what they need not handle, and they scope the evidence:
-a build that passes the pack is correct under these assumptions.
+a build that passes the Blueprint is correct under these assumptions.
 
 ## `obligations.toml`
 
@@ -115,7 +115,7 @@ unchecked = ""                         # see "Unchecked obligations" below
 A required behaviour no example or property can express yet is `decided` (or
 `default`) with no checks and an `unchecked` reason naming the check it would need,
 such as `unchecked = "a session check: run to t1 then t2, compared with one run to t2"`.
-Builders treat it as required; `pack validate` counts it as debt and fails above
+Builders treat it as required; `blueprint validate` counts it as debt and fails above
 `[pack] max_unchecked` (a share of decided and default obligations, default 0.1).
 
 A check is `<component>#example:<line>` (a 1-based line of that component's
@@ -125,7 +125,7 @@ requirements; a standalone contract can adopt the same `[[obligation]]` table la
 
 `source` records where the obligation's current binding came from. The share that
 came from `replication` (builders disagreed) rather than `extract` is a measure of
-how much a pack needed to say beyond the obvious, so an obligation that extraction
+how much a Blueprint needed to say beyond the obvious, so an obligation that extraction
 left open and replication then decided counts as `replication`.
 
 ### Exact and statistical obligations
@@ -143,7 +143,7 @@ Kit*, section 5.4). How many runs and which false-alarm rate belong to the check
 under `[spec.statistical]` in its contract, so `symbola test` can run a contract
 on its own.
 
-## What `symbola pack validate` checks
+## What `symbola blueprint validate` checks
 
 1. `symbolon-pack.toml`, `BRIEF.md` and `obligations.toml` exist.
 2. Every component listed in the manifest is present with the same digest, and none is unlisted.

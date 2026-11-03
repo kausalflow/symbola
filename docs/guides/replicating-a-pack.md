@@ -1,8 +1,8 @@
-# Replicating a pack
+# Replicating a Blueprint
 
-A pack is good enough when independent builders, given only the pack, make
+A Blueprint is good enough when independent builders, given only the Blueprint, make
 builds that pass it and behave the same. `symbola replicate` runs that test.
-It does not write code. It hands the pack to outside coding agents, such as
+It does not write code. It hands the Blueprint to outside coding agents, such as
 Claude Code, and then checks what they made, the way the lightkone pilots did by
 hand (design v0.5, section 5.3).
 
@@ -19,7 +19,7 @@ symbola replicate versions/1 --builds 3 \
 
 For each build, `replicate`:
 
-1. makes a work directory with the builder's copy of the pack in `pack/` (without
+1. makes a work directory with the builder's copy of the Blueprint in `pack/` (without
    `reference/` or `mutants/`) and an empty `build/`;
 2. runs the agent there with a prompt that says which components to build into
    `build/<component>/`, how to check them with `symbola test`, and where to write
@@ -42,7 +42,7 @@ ensemble than one agent run three times, because they share fewer defaults.
 
 ## Prose-only builds
 
-`--prose-only N` gives the last N builds (named `<agent>-<n>-prose`) the pack without
+`--prose-only N` gives the last N builds (named `<agent>-<n>-prose`) the Blueprint without
 `examples.jsonl` or `properties.py`; they are still judged by the full spec. A component
 that fails only prose-only has a rule its description does not carry: fix the description.
 
@@ -89,13 +89,13 @@ Each split is labelled:
 | `weak-check` | They trace to a decided or default obligation, whose checks both builds pass | Add the witness as an example, or tighten the property |
 | `review` | They trace only to other obligations | Look at the witness |
 
-A split on a point the pack marks `open` is allowed, but `diff` cannot trace an
+A split on a point the Blueprint marks `open` is allowed, but `diff` cannot trace an
 input to an open obligation, since open obligations have no checks. The builders'
 `readings.toml` entries name the obligation they chose a reading for; the report's
 `readings` section shows where they chose differently.
 
 The run **converges** when every build passes every component and its holdout,
-and the builds agree on every input `diff` tried. Convergence shows the pack is
+and the builds agree on every input `diff` tried. Convergence shows the Blueprint is
 clear, not that it is right: builders can share a wrong default. The reference,
 the holdout and counterexamples cover that.
 

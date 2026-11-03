@@ -538,8 +538,11 @@ def replicate(
     raise typer.Exit(0 if s["all_passed"] and s["holdouts_passed"] and not too_ambiguous else 1)
 
 
-pack_app = typer.Typer(no_args_is_help=True, help="Work with Symbola Blueprints (the spec/ folder that `pack init` makes).")
-app.add_typer(pack_app, name="pack")
+pack_app = typer.Typer(no_args_is_help=True,
+                       help="Work with Symbola Blueprints (the spec/ folder that `blueprint init` makes).")
+app.add_typer(pack_app, name="blueprint")
+# The name before the rename to Symbola Blueprint: released packs, scripts and skills still say `symbola pack`.
+app.add_typer(pack_app, name="pack", hidden=True)
 
 
 @pack_app.command(name="validate")
@@ -567,7 +570,7 @@ def pack_init(
     path: Path = typer.Option(Path("spec"), "--dir", help="Folder to create; by default spec/ next to your code."),
     author: str = typer.Option("you@example.com", help="Author recorded in the manifest and the brief."),
 ) -> None:
-    """Scaffold a Blueprint that passes `pack validate` out of the box."""
+    """Scaffold a Blueprint that passes `blueprint validate` out of the box."""
     try:
         target = scaffold_pack(pack_id, path, author)
     except (ValueError, FileExistsError) as e:
@@ -577,7 +580,7 @@ def pack_init(
     for rel in ["symbolon-pack.toml", "BRIEF.md", "obligations.toml", "assumptions/replace-me.toml",
                 "components/", "AGENTS.md"]:
         typer.echo(f"    {rel}")
-    typer.echo(f"\nNext: replace the placeholders, then run `symbola pack validate {target}`")
+    typer.echo(f"\nNext: replace the placeholders, then run `symbola blueprint validate {target}`")
 
 
 @pack_app.command(name="questions")
@@ -599,7 +602,7 @@ def pack_questions(
         for c in q.choice:
             typer.echo(f"   ({c.key}) {c.label}" + ("  (recommended)" if c.key == q.recommended else ""))
         typer.echo("")
-    typer.echo(f"{len(todo)} unanswered. Record each with `symbola pack answer {path} <id> <choice|default|open>`.")
+    typer.echo(f"{len(todo)} unanswered. Record each with `symbola blueprint answer {path} <id> <choice|default|open>`.")
 
 
 @pack_app.command(name="answer")
@@ -621,7 +624,7 @@ def pack_answer(
 
 @pack_app.command(name="review")
 def pack_review(
-    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    path: Path = typer.Argument(Path("spec"), help="Blueprint folder, the one with symbolon-pack.toml."),
     as_json: bool = typer.Option(False, "--json", help="Print the list as JSON."),
 ) -> None:
     """List what people still have to settle: open questions, decisions to confirm, and what is left open."""
@@ -643,11 +646,11 @@ def pack_review(
         typer.echo(f"  [{q.id}] {q.ask}")
         for c in q.choice:
             typer.echo(f"     ({c.key}) {c.label}" + ("  (recommended)" if c.key == q.recommended else ""))
-    typer.echo(f"  -> symbola pack answer {path} <id> <choice|default|open>\n")
+    typer.echo(f"  -> symbola blueprint answer {path} <id> <choice|default|open>\n")
     typer.echo(f"Decisions to confirm ({len(todo['defaults'])}):")
     for o in todo["defaults"]:
         typer.echo(f"  [{o['id']}] {o.get('statement', '')}")
-    typer.echo(f"  -> symbola pack confirm {path} <id>   (keep it; --open leaves it to builders; "
+    typer.echo(f"  -> symbola blueprint confirm {path} <id>   (keep it; --open leaves it to builders; "
                "to change it, edit obligations.toml)\n")
     typer.echo(f"Left open for builders ({len(todo['open'])}):")
     for o in todo["open"]:
@@ -659,7 +662,7 @@ def pack_review(
             typer.echo(f"  [{c.id}] {c.kind} in {c.where()}: {c.why}")
             for row in c.text.strip().splitlines():
                 typer.echo(f"     - {row.strip()}")
-        typer.echo(f"  -> symbola pack trim {path} --cut <id> (remove it) or --keep <id>; "
+        typer.echo(f"  -> symbola blueprint trim {path} --cut <id> (remove it) or --keep <id>; "
                    "then --apply removes the approved ones\n")
     if review_file.is_file():
         typer.echo(f"Also read {review_file}: suspected bugs, where sources disagreed, what was not seen.")
@@ -669,7 +672,7 @@ def pack_review(
 
 @pack_app.command(name="confirm")
 def pack_confirm(
-    path: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    path: Path = typer.Argument(..., help="Blueprint folder, the one with symbolon-pack.toml."),
     obligation: str = typer.Argument(..., help="Id of a `default` obligation."),
     leave_open: bool = typer.Option(False, "--open", help="Leave it to builders instead (drops its checks)."),
 ) -> None:
@@ -683,7 +686,7 @@ def pack_confirm(
 
 @pack_app.command(name="trim")
 def pack_trim(
-    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    path: Path = typer.Argument(Path("spec"), help="Blueprint folder, the one with symbolon-pack.toml."),
     deep: bool = typer.Option(False, "--deep", help="Also have your coding agent propose cuts (one agent run). "
                                                    "It reads a copy and changes nothing."),
     agent: str | None = typer.Option(None, help="Coding agent command for --deep; defaults to $SYMBOLON_AGENT, "
@@ -691,14 +694,14 @@ def pack_trim(
     cut: list[str] = typer.Option([], "--cut", help="Approve a proposal by id: --apply will remove it. Repeat for more."),
     keep: list[str] = typer.Option([], "--keep", help="Reject a proposal by id: it stays. Repeat for more."),
     do_apply: bool = typer.Option(False, "--apply", help="Remove the proposals marked \"cut\", and only those."),
-    out: Path | None = typer.Option(None, "--out", help="With --apply: write the trimmed pack to this new folder "
+    out: Path | None = typer.Option(None, "--out", help="With --apply: write the trimmed Blueprint to this new folder "
                                                          "instead (required for a released version)."),
     timeout: int = typer.Option(1800, help="Seconds the --deep agent run may take."),
 ) -> None:
-    """Propose cuts that make a pack simpler to build from; remove only what the publisher approves.
+    """Propose cuts that make a Blueprint simpler to build from; remove only what the publisher approves.
 
     Without options it lists likely cuts in .symbolon/trim.toml and removes nothing; they
-    also show in `symbola pack review`. Approve each with --cut ID or reject it with --keep ID
+    also show in `symbola blueprint review`. Approve each with --cut ID or reject it with --keep ID
     (or set its decision in the file), then run with --apply.
     """
 
@@ -717,7 +720,7 @@ def pack_trim(
             typer.echo(f"    {name}: removed example lines {', '.join(map(str, lines))} (references renumbered)")
         for name, tests in done.removed_properties.items():
             typer.echo(f"    {name}: removed properties {', '.join(tests)}")
-        typer.echo("\npack validate passes. Before release, one `symbola replicate` build is a cheap check "
+        typer.echo("\n`blueprint validate` passes. Before release, one `symbola replicate` build is a cheap check "
                    "that nothing load-bearing went.")
         return
 
@@ -762,7 +765,7 @@ def pack_trim(
     counts = {d: sum(c.decision == d for c in todo) for d in trim_mod.DECISIONS}
     typer.echo(f"\n{len(todo)} proposals in {Path(path) / trim_mod.TRIM_FILE}: {counts['cut']} cut, "
                f"{counts['keep']} keep, {counts['undecided']} undecided. Approve with --cut ID, reject with "
-               f"--keep ID; nothing is removed until `symbola pack trim {path} --apply`.")
+               f"--keep ID; nothing is removed until `symbola blueprint trim {path} --apply`.")
 
 
 site_app = typer.Typer(no_args_is_help=True, help="Build the static Blueprint registry (symbola.sh's data).")
@@ -807,7 +810,7 @@ def site_check(
 
 @app.command()
 def release(
-    spec: Path = typer.Argument(Path("spec"), help="Your Blueprint folder, the one `pack init` made."),
+    spec: Path = typer.Argument(Path("spec"), help="Your Blueprint folder, the one `blueprint init` made."),
     registry: Path = typer.Option(..., help="The packs/ folder of your clone of the registry repository."),
 ) -> None:
     """Freeze your Blueprint into the registry as its next version; then open a PR."""
@@ -858,7 +861,7 @@ def logout(site: str = SITE_OPTION) -> None:
 
 @app.command()
 def publish(
-    spec: Path = typer.Argument(Path("spec"), help="Your Blueprint folder, the one `pack init` made."),
+    spec: Path = typer.Argument(Path("spec"), help="Your Blueprint folder, the one `blueprint init` made."),
     site: str = SITE_OPTION,
     wait: bool = typer.Option(True, help="Follow the request until its pull request is open (or it fails)."),
     evidence: Path | None = typer.Option(None, help="Attestations from a test build of this Blueprint (a folder of *.json), "
@@ -1026,14 +1029,14 @@ def upgrade(
 def extract(
     source: Path | None = typer.Argument(None, help="The product's source directory, if there is one. "
                                                     "It is read, never changed."),
-    pack_id: str = typer.Option(..., "--pack", help="Pack id to draft, like 'kausalflow/lightkone'."),
+    pack_id: str = typer.Option(..., "--blueprint", "--pack", help="Blueprint id to draft, like 'kausalflow/lightkone'."),
     docs: list[str] = typer.Option([], "--docs", help="A document about the product: a file, folder or URL "
                                                       "(manual, help pages, changelog, API spec, sample files). "
                                                       "Repeat for more."),
     live: list[str] = typer.Option([], "--live", help="The running product: a URL, or a command that runs it. "
                                                       "Repeat for more."),
-    root: Path = typer.Option(Path("packs"), help="Directory that holds packs; the draft goes in <root>/<pack>/."),
-    version: int = typer.Option(1, min=1, help="Pack version to draft."),
+    root: Path = typer.Option(Path("packs"), help="Directory that holds Blueprints; the draft goes in <root>/<blueprint>/."),
+    version: int = typer.Option(1, min=1, help="Blueprint version to draft."),
     agent: str | None = typer.Option(None, help="Coding agent command; defaults to $SYMBOLON_AGENT, then Claude Code."),
     hint: str = typer.Option("", help="Guidance for the agent, such as which parts of the product to cover."),
     rounds: int = typer.Option(2, min=1, help="Agent runs at most: the draft, then fixes for what fails."),
@@ -1045,7 +1048,7 @@ def extract(
     max_product_words: int = typer.Option(DEFAULT_MAX_PRODUCT_WORDS, min=1,
                                           help="Size budget: the most words PRODUCT.md may hold."),
 ) -> None:
-    """Have a coding agent draft a spec pack from an existing product, then check the draft.
+    """Have a coding agent draft a Blueprint from an existing product, then check the draft.
 
     Give any mix of sources: the source code, documents (--docs) and the running
     product (--live). Without source code the draft is built from what the documents
@@ -1074,11 +1077,11 @@ def extract(
         raise typer.Exit(1)
     typer.echo("")
     if result.ok:
-        typer.echo(f"{OK} draft pack {result.pack_dir}")
+        typer.echo(f"{OK} draft Blueprint {result.pack_dir}")
         if result.pack_report:
             typer.echo(f"    {summary_line(result.pack_report.summary)}")
-        typer.echo(f"\nNext: `symbola pack review {result.pack_dir}` lists the questions to answer and the "
-                   "decisions to confirm; settle them, then hand the pack to builders.")
+        typer.echo(f"\nNext: `symbola blueprint review {result.pack_dir}` lists the questions to answer and the "
+                   "decisions to confirm; settle them, then hand the Blueprint to builders.")
     else:
         typer.echo(typer.style(f"draft is not valid yet: {result.pack_dir}", fg=typer.colors.RED))
         typer.echo(f"Agent logs are in {result.product_dir / '.symbolon'}. Fix the draft by hand, or remove "

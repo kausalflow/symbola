@@ -197,7 +197,7 @@ def validate_pack(pack_dir: Path) -> PackReport:
         elif contract_digest(by_alias[alias]) != digest:
             problems.append(f"{alias}: digest is {contract_digest(by_alias[alias])}, manifest says {digest}")
     problems += [f"{alias}: present but not listed in {PACK_MANIFEST_FILE}" for alias in by_alias if alias not in listed]
-    add(CheckResult("component digests match the pack manifest", not problems,
+    add(CheckResult("component digests match the Blueprint manifest", not problems,
                     "\n".join(problems) or f"{len(listed)} components"))
 
     # Examples: two lines with the same input must expect the same result. Without a

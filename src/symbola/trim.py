@@ -1,4 +1,4 @@
-"""`symbola pack trim`: slim a pack, with the publisher approving every cut.
+"""`symbola blueprint trim`: slim a pack, with the publisher approving every cut.
 
 A pack should hold only what a builder could get wrong, but packs grow: extract
 keeps observations, prose restates obligations, examples repeat. Trimming has
@@ -13,11 +13,11 @@ three steps, and nothing leaves the pack without the publisher saying so:
    presentation details and prose that examples already pin down. It reads a copy
    and only writes proposals; symbola checks each one before listing it.
    Proposals go to `<pack>/.symbolon/trim.toml`, which never ships.
-2. Review. The undecided proposals show in `symbola pack review`, with what would go
+2. Review. The undecided proposals show in `symbola blueprint review`, with what would go
    and why. The publisher approves each (`--cut ID`) or rejects it (`--keep ID`).
 3. Apply. Only "cut" proposals are applied. Cutting an obligation also removes
    the examples and properties no other obligation uses; example references are
-   renumbered and digests synced. The result must pass `pack validate`, or
+   renumbered and digests synced. The result must pass `blueprint validate`, or
    nothing is written. A released version is frozen, so it is trimmed into a
    copy (`--out`) that is then released as the next version.
 
@@ -393,9 +393,9 @@ def budget(pack: Path) -> dict:
 # ---------------------------------------------------------------- the review file
 
 HEADER = '''\
-# Proposed cuts for this pack, from `symbola pack trim`. Nothing has been removed.
-# Set each decision to "cut" or "keep" (or use `symbola pack trim --cut ID` / `--keep ID`), then
-# `symbola pack trim --apply` removes the ones marked "cut", and only those.
+# Proposed cuts for this pack, from `symbola blueprint trim`. Nothing has been removed.
+# Set each decision to "cut" or "keep" (or use `symbola blueprint trim --cut ID` / `--keep ID`), then
+# `symbola blueprint trim --apply` removes the ones marked "cut", and only those.
 # This file is in .symbolon/, so it never ships; keep it as the record of what was cut.
 '''
 
@@ -462,7 +462,7 @@ def decide(pack: Path, ids: list[str], decision: str) -> list[Cut]:
     by_id = {c.id: c for c in cuts}
     unknown = [i for i in ids if i not in by_id]
     if unknown:
-        raise TrimError(f"no proposal {', '.join(unknown)} in {TRIM_FILE.as_posix()}; run `symbola pack trim` first")
+        raise TrimError(f"no proposal {', '.join(unknown)} in {TRIM_FILE.as_posix()}; run `symbola blueprint trim` first")
     done = [i for i in ids if by_id[i].applied]
     if done:
         raise TrimError(f"already applied: {', '.join(done)}")
@@ -520,7 +520,7 @@ def apply(pack: Path, out: Path | None = None) -> Applied:
         report = validate_pack(work)
         if not report.ok:
             bad = "\n".join(f"{c.name}: {c.detail}" for c in report.checks if not c.ok)
-            raise TrimError(f"the trimmed pack would not validate, so nothing was changed:\n{bad}")
+            raise TrimError(f"the trimmed Blueprint would not validate, so nothing was changed:\n{bad}")
         for c in chosen:
             c.applied = True
         save(work, [c if c.id not in {x.id for x in chosen} else next(x for x in chosen if x.id == c.id)

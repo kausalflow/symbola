@@ -115,11 +115,11 @@ def test_contradicting_examples_fail_pack_validate(pack):
 
 
 def test_cli_questions_and_answer(pack):
-    result = runner.invoke(app, ["pack", "questions", str(pack)])
+    result = runner.invoke(app, ["blueprint", "questions", str(pack)])
     assert result.exit_code == 0 and "(recommended)" in result.output and "2 unanswered" in result.output
-    result = runner.invoke(app, ["pack", "answer", str(pack), "shout.keeps-digits", "b"])
+    result = runner.invoke(app, ["blueprint", "answer", str(pack), "shout.keeps-digits", "b"])
     assert result.exit_code == 0, result.output
-    assert "1 unanswered" in runner.invoke(app, ["pack", "questions", str(pack)]).output
+    assert "1 unanswered" in runner.invoke(app, ["blueprint", "questions", str(pack)]).output
 
 
 def test_review_lists_what_people_must_settle(pack):
@@ -150,13 +150,13 @@ def test_confirm_keeps_or_leaves_open_a_default(pack):
 
 def test_cli_review_and_confirm(pack):
     answer(pack, "shout.keeps-digits", "default")
-    result = runner.invoke(app, ["pack", "review", str(pack)])
+    result = runner.invoke(app, ["blueprint", "review", str(pack)])
     assert result.exit_code == 0, result.output
     assert "Questions to answer (1)" in result.output and "[shout.no-accounts]" in result.output
     assert "Decisions to confirm (1)" in result.output and "Digits pass through unchanged." in result.output
     assert "2 to settle." in result.output
-    data = json.loads(runner.invoke(app, ["pack", "review", str(pack), "--json"]).output)
+    data = json.loads(runner.invoke(app, ["blueprint", "review", str(pack), "--json"]).output)
     assert [o["id"] for o in data["defaults"]] == ["shout.keeps-digits"]
-    result = runner.invoke(app, ["pack", "confirm", str(pack), "shout.keeps-digits"])
+    result = runner.invoke(app, ["blueprint", "confirm", str(pack), "shout.keeps-digits"])
     assert result.exit_code == 0 and "shout.keeps-digits: decided" in result.output
-    assert runner.invoke(app, ["pack", "confirm", str(pack), "shout.keeps-digits"]).exit_code == 1
+    assert runner.invoke(app, ["blueprint", "confirm", str(pack), "shout.keeps-digits"]).exit_code == 1

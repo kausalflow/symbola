@@ -1,6 +1,6 @@
 # Symbola
 
-Software, shipped as blueprints. A Symbola Blueprint describes an app as its decisions, and your coding agent builds it, in any language. This is its command-line tool; the CLI, file names and links call a Blueprint a *pack*.
+Software, shipped as blueprints. A Symbola Blueprint describes an app as its decisions, and your coding agent builds it, in any language. This is its command-line tool. File names, links and releases before 0.5 call a Blueprint a *pack*; `symbola pack ...` still works.
 
 Under the hood, Blueprints are built on contracts. A contract is a precise, content-addressed promise; evidence that someone kept it can be checked by anyone. Software capabilities are the first vertical: a contract specifies a capability, and any implementation, hand-written or AI-generated, is checked against it.
 
@@ -15,29 +15,29 @@ symbola --help
 
 The package and command are `symbola` (after [symbola.sh](https://symbola.sh)). `pip install symbolon` is an unrelated project.
 
-## Making a pack
+## Making a Blueprint
 
 | You have | Use | Start with |
 | --- | --- | --- |
-| A product that already works | `symbola extract`: an agent reads the code, the docs or the running product (any mix) and drafts the pack, checked against the original | `symbola extract ./my-product --pack you/my-product` |
+| A product that already works | `symbola extract`: an agent reads the code, the docs or the running product (any mix) and drafts the Blueprint, checked against the original | `symbola extract ./my-product --blueprint you/my-product` |
 | A product you are building now | The [`symbola-pack`](skills/symbola-pack/SKILL.md) skill: your agent records decisions as you make them | `npx skills add kausalflow/symbola --skill symbola-pack` |
-| An idea, no code yet | The [`symbola-decide`](skills/symbola-decide/SKILL.md) skill: your agent asks you multiple-choice questions and writes the pack | `npx skills add kausalflow/symbola --skill symbola-decide` |
+| An idea, no code yet | The [`symbola-decide`](skills/symbola-decide/SKILL.md) skill: your agent asks you multiple-choice questions and writes the Blueprint | `npx skills add kausalflow/symbola --skill symbola-decide` |
 
-All three end in the same pack format and the same `symbola publish`. Before publishing,
-build the pack once from the pack alone (`symbola replicate spec --builds 1`) and publish
-with `--evidence`; a pack without it is listed as having no passing build.
+All three end in the same Blueprint format and the same `symbola publish`. Before publishing,
+build the Blueprint once from the Blueprint alone (`symbola replicate spec --builds 1`) and publish
+with `--evidence`; a Blueprint without it is listed as having no passing build.
 
-See [Pack registry](docs/REGISTRY.md).
+See [Blueprint registry](docs/REGISTRY.md).
 
 ## Use with AI tools
 
-Assistants and coding agents can find and build packs through the Symbola connector (`https://symbola.sh/mcp`) or a skill. Setup for ChatGPT, Claude, Cursor, VS Code, Codex and Gemini CLI is at <https://symbola.sh/connect/>.
+Assistants and coding agents can find and build Blueprints through the Symbola connector (`https://symbola.sh/mcp`) or a skill. Setup for ChatGPT, Claude, Cursor, VS Code, Codex and Gemini CLI is at <https://symbola.sh/connect/>.
 
 ```bash
 npx skills add kausalflow/symbola --skill symbola-build   # the build skill, for most coding agents
 ```
 
-Publishers without code yet can write a pack by answering questions: `npx skills add kausalflow/symbola --skill symbola-decide`.
+Publishers without code yet can write a Blueprint by answering questions: `npx skills add kausalflow/symbola --skill symbola-decide`.
 
 In Claude Code, the plugin adds the skills and the connector:
 
@@ -79,9 +79,9 @@ symbola verify att.json --trust ~/.config/symbolon/runner.pub \
 | `symbola attest <contract> <impl>` | Run the spec in a sandbox; write a signed in-toto attestation |
 | `symbola verify <attestation>` | Check signature, trust, digests; `--rerun` reproduces it locally |
 | `symbola diff <contract> <impl> <impl>...` | Run several builds on one input pool; report where they disagree, the ambiguity estimate, and the obligations each split traces to |
-| `symbola extract [<source>] --pack <ns/product> [--docs ...] [--live ...]` | Have a coding agent (Claude Code by default) draft a spec pack from an existing product's code, docs or running app; check it against the original |
-| `symbola replicate <pack>` | Hand a pack to outside coding agents (Claude Code by default), then attest, holdout-test and diff the builds they make |
-| `symbola pack validate <dir>` | Check a spec pack's brief, assumptions and obligations; report obligations by status |
+| `symbola extract [<source>] --blueprint <ns/product> [--docs ...] [--live ...]` | Have a coding agent (Claude Code by default) draft a Blueprint from an existing product's code, docs or running app; check it against the original |
+| `symbola replicate <pack>` | Hand a Blueprint to outside coding agents (Claude Code by default), then attest, holdout-test and diff the builds they make |
+| `symbola blueprint validate <dir>` | Check a Blueprint's brief, assumptions and obligations; report obligations by status |
 | `symbola mutants <dir>` | Show which checks kill which mutants, and the contract's kill rate |
 | `symbola canary plant <dir> <out>` / `canary check` | Give a builder a copy with one contradictory example; catch builds fitted to the examples |
 | `symbola flag <ref> <reason>` | Report a contradiction in the spec instead of coding around it |
@@ -94,7 +94,7 @@ symbola verify att.json --trust ~/.config/symbolon/runner.pub \
 | `core/csv-to-records@1`, `@2` | Parse RFC 4180 CSV with a header into records (v2 also rejects malformed quoting) |
 | `core/unit-convert@1` | Convert length, mass, and temperature with exact factors |
 
-The contract format is specified in [docs/CONTRACT_FORMAT.md](docs/CONTRACT_FORMAT.md), implementations and attestations in [docs/ATTESTATION.md](docs/ATTESTATION.md), and spec packs in [docs/PACK_FORMAT.md](docs/PACK_FORMAT.md).
+The contract format is specified in [docs/CONTRACT_FORMAT.md](docs/CONTRACT_FORMAT.md), implementations and attestations in [docs/ATTESTATION.md](docs/ATTESTATION.md), and Blueprints in [docs/PACK_FORMAT.md](docs/PACK_FORMAT.md).
 
 ## Documentation
 

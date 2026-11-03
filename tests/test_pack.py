@@ -140,7 +140,7 @@ def test_assumption_fields(pack):
 def test_changed_component_breaks_the_digest(pack):
     examples = pack / "components" / "search-query" / "versions" / "1" / "examples.jsonl"
     examples.write_text(examples.read_text() + "\n")
-    assert "lightkone/search-query@1" in failed(validate_pack(pack))["component digests match the pack manifest"]
+    assert "lightkone/search-query@1" in failed(validate_pack(pack))["component digests match the Blueprint manifest"]
 
 
 def test_missing_obligations_file(pack):

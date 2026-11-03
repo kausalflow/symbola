@@ -169,7 +169,7 @@ def test_rejects_bad_requests(pack):
     (root / "BRIEF.md").write_text("# Dates\n")
     result = runner.invoke(app, ["replicate", str(root), "--no-attest", "--agent", agent("a", "same"),
                                  "-o", str(tmp / "run2")])
-    assert result.exit_code == 1 and "pack is not valid" in result.output
+    assert result.exit_code == 1 and "Blueprint is not valid" in result.output
 
 
 def _process_sandbox():

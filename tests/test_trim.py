@@ -203,17 +203,17 @@ def test_sentences_keep_code_and_brackets_whole():
 
 
 def test_cli_and_review_list(pack):
-    result = runner.invoke(app, ["pack", "trim", str(pack)])
+    result = runner.invoke(app, ["blueprint", "trim", str(pack)])
     assert result.exit_code == 0, result.output
     assert "3 proposals" in result.output and "Nothing" not in result.output.split("proposals")[0]
     todo = review(pack)
     assert len(todo["cuts"]) == 3 and todo["questions"] == []
-    result = runner.invoke(app, ["pack", "review", str(pack)])
+    result = runner.invoke(app, ["blueprint", "review", str(pack)])
     assert "Proposed cuts to approve (3)" in result.output
     ids = [c.id for c in todo["cuts"]]
-    result = runner.invoke(app, ["pack", "trim", str(pack), "--cut", ids[0], "--keep", ids[1]])
+    result = runner.invoke(app, ["blueprint", "trim", str(pack), "--cut", ids[0], "--keep", ids[1]])
     assert result.exit_code == 0 and "1 cut, 1 keep, 1 undecided" in result.output
-    result = runner.invoke(app, ["pack", "trim", str(pack), "--apply"])
+    result = runner.invoke(app, ["blueprint", "trim", str(pack), "--apply"])
     assert result.exit_code == 0, result.output
     assert "cut 1 proposals" in result.output
     assert len(review(pack)["cuts"]) == 1

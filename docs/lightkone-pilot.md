@@ -1,16 +1,16 @@
 # Lightkone pilot
 
-The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in [kausalflow/symbola-registry](https://github.com/kausalflow/symbola-registry), under `packs/kausalflow/lightkone/`.
+The first Blueprint built from a real product: lightkone, a static web app for keeping a personal library of research papers. The Blueprint lives in [kausalflow/symbola-registry](https://github.com/kausalflow/symbola-registry), under `packs/kausalflow/lightkone/`.
 
 | Path | What it is | Ships to buyers |
 | --- | --- | --- |
-| `versions/1/` | The pack, version 1: BRIEF, PRODUCT (the app), AGENTS, assumptions, obligations, and eight component contracts | yes |
+| `versions/1/` | The Blueprint, version 1: BRIEF, PRODUCT (the app), AGENTS, assumptions, obligations, and eight component contracts | yes |
 | `oracle/` | Publisher side: lightkone's own TypeScript bundled as command implementations, fixtures, example recorder, holdout, differential tester | no |
 | `rebuilds/python-1/` | Milestone 1: an AI build in Python (Claude Opus 5.5 in Claude Code) of the first three contracts | no |
 | `rebuilds/go-1/` | Milestone 2: a second AI build in Go of all eight contracts, with its NOTES.md | no |
 | `attestations/` | Signed evidence for both builds, plus the runner keys | yes, as evidence |
 
-## What the pack covers
+## What the Blueprint covers
 
 `PRODUCT.md` describes the app a build delivers: its shape, files, screens, flows and interfaces, and the components each flow uses. The components are the app's core:
 
@@ -25,13 +25,13 @@ The first spec pack built from a real product: lightkone, a static web app for k
 | `lightkone/tidy@1` | Finding duplicate papers and how to merge each group |
 | `lightkone/library-file@1` | Reading `library.json` and writing it back, with `library.bib`, byte for byte |
 
-`symbola pack validate packs/kausalflow/lightkone/versions/1` reports a product pack with 73 obligations (72 decided, 1 open, 5 of them unchecked app decisions) and 4 assumptions, and every one of the components' 360 checks traces to an obligation.
+`symbola blueprint validate packs/kausalflow/lightkone/versions/1` reports a product Blueprint with 73 obligations (72 decided, 1 open, 5 of them unchecked app decisions) and 4 assumptions, and every one of the components' 360 checks traces to an obligation.
 
 ## The field test: components are not the product
 
-On 2026-10-25 kausalflow asked a coding agent to build lightkone from the pack, as a user would. It ported all eight components faithfully and then wrapped them in a demo page that looked nothing like lightkone, because the pack described the app in one paragraph and said later versions would add the rest. Every earlier build had passed because it was asked for the components only. The fix is `PRODUCT.md` ([pack format](PACK_FORMAT.md#productmd)): a pack with it is built as the product, and the build steps on its page say so.
+On 2026-10-25 kausalflow asked a coding agent to build lightkone from the Blueprint, as a user would. It ported all eight components faithfully and then wrapped them in a demo page that looked nothing like lightkone, because the Blueprint described the app in one paragraph and said later versions would add the rest. Every earlier build had passed because it was asked for the components only. The fix is `PRODUCT.md` ([Blueprint format](PACK_FORMAT.md#productmd)): a Blueprint with it is built as the product, and the build steps on its page say so.
 
-## Results (milestone 4: replicate over the whole pack)
+## Results (milestone 4: replicate over the whole Blueprint)
 
 `symbola replicate` gave all eight components to three Claude Code builds: Sonnet, Opus and Haiku. Lightkone was the reference and the holdout was on. All three builders wrote Python, and their logs show no reads outside the builder's copy. The builds took 11, 16 and 21 minutes and cost $1.76, $5.13 and $1.15 in agent time.
 
@@ -42,14 +42,14 @@ Every build passed every component and every holdout: 24 of 24 on both. They sti
 | One build differs from lightkone and the other two, on well-formed input; the checks of a decided obligation miss it | 9 | Opus keeps duplicate tags when merging (`merge.sets`). Haiku does not treat U+FEFF as whitespace in filing and search. Haiku strips a DOI's trailing `/` and a page range's letters. Sonnet takes `annote` over `note`. Sonnet and Haiku print large numbers in `library.json` differently from JavaScript. Haiku reads `"a b"c` differently |
 | One build differs on truncated or broken BibTeX | 9 | Unclosed `\emph{`, a field cut off after `=` |
 | All three builds agree and lightkone differs | 3 | **Lightkone's `tidy` crashes (TypeError) on a paper with no `authors`**, although the contract's `Input` accepts one. On two broken BibTeX inputs, lightkone keeps a stray `"` in a venue, or returns an entry from an unclosed `{{` |
-| Allowed by the pack | 1 | `year:2.017e3`: the contract leaves number spellings other than digits and a fraction unspecified |
+| Allowed by the Blueprint | 1 | `year:2.017e3`: the contract leaves number spellings other than digits and a fraction unspecified |
 | Ordering of rare symbols in title sort (format tier) | 1 | Opus's collation differs on symbols such as `⯛` and `ѽ` |
 
 The row where all builds agree against lightkone is what replication alone cannot show: there is no disagreement among the builds to find. Only the reference shows it. The milestone 1 to 3 builds never reached the `tidy` crash, because no example has a paper without authors.
 
-The weaker builder needed more from the pack. Haiku's splits were on Unicode whitespace and DOI and page normalisation, points Sonnet and Opus got right from the description. Opus, the strongest model, had most of the `bibtex-import` and `library-merge` splits: it read more into the text than the examples pinned. A pack that converges for one builder may not converge for another (design v0.5, "minimal for whom").
+The weaker builder needed more from the pack. Haiku's splits were on Unicode whitespace and DOI and page normalisation, points Sonnet and Opus got right from the description. Opus, the strongest model, had most of the `bibtex-import` and `library-merge` splits: it read more into the text than the examples pinned. A Blueprint that converges for one builder may not converge for another (design v0.5, "minimal for whom").
 
-Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. The pack now lives in kausalflow/symbola-registry. The change is [symbola-registry#5](https://github.com/kausalflow/symbola-registry/pull/5). It records examples from lightkone and adds them to the obligations that missed these points:
+Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. The Blueprint now lives in kausalflow/symbola-registry. The change is [symbola-registry#5](https://github.com/kausalflow/symbola-registry/pull/5). It records examples from lightkone and adds them to the obligations that missed these points:
 
 - `merge.sets`: a tag listed twice is kept once.
 - `filing.paperpile-layout`: U+FEFF is whitespace.
@@ -58,7 +58,7 @@ Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed po
 - `import.draft-fields`: `annote` wins whenever the entry has one, even when it is empty, and pages keep their letters.
 - `file.exact-text`: numbers print as JavaScript prints them.
 
-Lightkone passes the five changed contracts and is re-attested on them by `runner-c`. The `tidy` crash is filed as [kausalflow/lightkone#54](https://github.com/kausalflow/lightkone/issues/54). The pack will record an example once lightkone is fixed.
+Lightkone passes the five changed contracts and is re-attested on them by `runner-c`. The `tidy` crash is filed as [kausalflow/lightkone#54](https://github.com/kausalflow/lightkone/issues/54). The Blueprint will record an example once lightkone is fixed.
 
 ## Results (milestone 3: the first `replicate` runs)
 
@@ -98,7 +98,7 @@ How it went:
 3. **Tightened and rebuilt.** The contracts now state each rule, with 18 new examples recorded from lightkone. The Go builder revised from the new text alone (adding `golang.org/x/text` for collation) and passes. The differential test then found no disagreement on search-query within scope, and 11 in 2,000 heavily mutated BibTeX files, all deliberately broken input (unbalanced braces, a value starting with `#`); those are left for a later version.
 4. **Evidence.** Runner A attested lightkone and the Go build on all eight contracts; runner B re-ran all sixteen in fresh containers with identical outcomes. The Python build's milestone 1 attestations are kept: they are for the earlier digests of search-query and bibtex-import.
 
-The pack now has 63 obligations, all decided. Four defaults that were lightkone bugs are fixed and decided: papers in the trash are left out of `library.bib`, and top-level keys of `library.json` that lightkone does not use are kept on save (lightkone#51); a user folder named in capitals (`ML`, `2019`) is no longer taken for a Paperpile author folder unless it is an author's surname, and blank DOIs no longer match each other in tidy (lightkone#52). On 2026-10-24 kausalflow settled the last five: an empty `journal` no longer hides the `booktitle` as the venue, and a `library.json` saved by a newer lightkone is refused rather than read as version 1 (lightkone#53); a mistyped `year:` filter still filters nothing, title sort keeps Unicode collation, and import keeps JavaScript's whitespace set.
+The Blueprint now has 63 obligations, all decided. Four defaults that were lightkone bugs are fixed and decided: papers in the trash are left out of `library.bib`, and top-level keys of `library.json` that lightkone does not use are kept on save (lightkone#51); a user folder named in capitals (`ML`, `2019`) is no longer taken for a Paperpile author folder unless it is an author's surname, and blank DOIs no longer match each other in tidy (lightkone#52). On 2026-10-24 kausalflow settled the last five: an empty `journal` no longer hides the `booktitle` as the venue, and a `library.json` saved by a newer lightkone is refused rather than read as version 1 (lightkone#53); a mistyped `year:` filter still filters nothing, title sort keeps Unicode collation, and import keeps JavaScript's whitespace set.
 
 Two Symbola bugs turned up and are fixed: examples containing U+2028 were split into two lines, and the container sandbox removed the execute bit, so no compiled implementation could run.
 
@@ -114,7 +114,7 @@ Two Symbola bugs turned up and are fixed: examples containing U+2028 were split 
 2. **Replication.** An AI builder got only `versions/1/`, with lightkone's source and the oracle moved off the machine. It passed all three contracts, then passed the holdout: a different property seed, 5× the generated cases, and 18 examples it never saw.
 3. **Divergence found.** Comparing the two builds on the builder's listed ambiguities found one real gap in how repeated `year:` filters combine. The contract now states the rule, with a property and two examples for it, and both builds pass it.
 4. **Reproduction.** A second runner key re-ran all six attestations in a fresh container, and every check had the same outcome.
-5. **Kill rate.** Plausible wrong versions of the rebuild live in `examples/mutants/lightkone/`, outside the pack so the component digests stay put. search-query rejects 8 of 9; the one survivor ignores a malformed `year:` term, which is exactly what the `open` obligation `search.year-malformed` leaves to the builder. bibtex-export rejects 7 of 7. bibtex-import rejects 7 of 8; the survivor reads a two-digit year like `99` as a number, which the description rules out but no check covers, so it is a gap for the next pack version.
+5. **Kill rate.** Plausible wrong versions of the rebuild live in `examples/mutants/lightkone/`, outside the Blueprint so the component digests stay put. search-query rejects 8 of 9; the one survivor ignores a malformed `year:` term, which is exactly what the `open` obligation `search.year-malformed` leaves to the builder. bibtex-export rejects 7 of 7. bibtex-import rejects 7 of 8; the survivor reads a two-digit year like `99` as a number, which the description rules out but no check covers, so it is a gap for the next Blueprint version.
 
 ## Measuring the remaining ambiguity
 
@@ -124,9 +124,9 @@ Two Symbola bugs turned up and are fixed: examples containing U+2028 were split 
 
 ```bash
 git clone https://github.com/kausalflow/symbola-registry && cd symbola-registry/packs/kausalflow/lightkone
-symbola pack validate 1
+symbola blueprint validate 1
 symbola verify attestations/search-query.go-1.json --trust attestations/runner-a.pub \
   --contract versions/1/components/search-query/versions/1 --impl rebuilds/go-1/search-query --rerun
 ```
 
-The pack's own `README.md` has the full notes, including the three importer bugs the contracts found, now fixed in lightkone#50.
+The Blueprint's own `README.md` has the full notes, including the three importer bugs the contracts found, now fixed in lightkone#50.

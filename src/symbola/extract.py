@@ -304,7 +304,7 @@ exist; `unchecked` is for a requirement the publisher would hold a build to but
 no example or property can express (at most a tenth of them). Every example and
 property should trace to some obligation.
 
-Leave nothing unclear unmarked; people review it after you (`symbola pack review`):
+Leave nothing unclear unmarked; people review it after you (`symbola blueprint review`):
   - the sources settle it: decided
   - they lean one way but the publisher may want otherwise: default (they confirm or reject it)
   - they don't settle it and a wrong guess would matter: a question (below)
@@ -312,7 +312,7 @@ Leave nothing unclear unmarked; people review it after you (`symbola pack review
 
 A gap no source settles, where a wrong guess would matter, is a question rather than an
 obligation: add it to {pack}/{questions} and the publisher answers it with
-`symbola pack answer`, which writes the obligation and its example. One question:
+`symbola blueprint answer`, which writes the obligation and its example. One question:
 
   [[question]]
   id = "area.name"                 # the obligation id the answer becomes
@@ -340,9 +340,9 @@ One entry per obligation, naming where it came from, each item starting with its
   symbola schema <component dir>
   symbola validate <component dir>              every component must be valid
   symbola test <component dir> {oracle}/<name>   the original must pass its own spec
-  symbola pack validate {pack}
+  symbola blueprint validate {pack}
 
-Digests in {manifest} are filled in after you finish, so `pack validate` may
+Digests in {manifest} are filled in after you finish, so `blueprint validate` may
 report digest mismatches while you work; everything else must pass.
 
 ## {review}
@@ -513,7 +513,7 @@ def check_draft(product_dir: Path, pack_dir: Path, *, oracle: bool = True, requi
     checks += [CheckResult(f"pack: {c.name}", c.ok, c.detail) for c in pack_report.checks]
     components = _component_dirs(Path(pack_dir).resolve())
     if not components:
-        checks.append(CheckResult("pack has at least one component", False, f"nothing under {COMPONENTS_DIR}/"))
+        checks.append(CheckResult("Blueprint has at least one component", False, f"nothing under {COMPONENTS_DIR}/"))
     for name, d in components.items():
         report = validate(d)
         failed = [c for c in report.checks if not c.ok]
@@ -643,13 +643,13 @@ def extract(source: Path | None, pack_id: str, *, agent: AgentCommand, root: Pat
     sources = Sources(code=source, docs=list(docs), live=list(live))
     sources.check()
     if not ID_RE.match(pack_id):
-        raise ExtractError("the pack id must look like 'namespace/product'")
+        raise ExtractError("the Blueprint id must look like 'namespace/product'")
     if rounds < 1:
         raise ExtractError("rounds must be at least 1")
     product_dir = (Path(root) / pack_id).resolve()
     code = sources.code
     if code and (product_dir == code or code in product_dir.parents):
-        raise ExtractError("write the pack outside the product's source (see --root)")
+        raise ExtractError("write the Blueprint outside the product's source (see --root)")
     pack_dir = scaffold_pack(pack_id, product_dir, version)
     result = ExtractResult(product_dir, pack_dir)
     state = product_dir / PROMPT_DIR

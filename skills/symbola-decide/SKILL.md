@@ -1,19 +1,19 @@
 ---
 name: symbola-decide
-description: Make a Symbola Blueprint (a pack, in the CLI) before any code exists, by interviewing the publisher about the decisions builders would get wrong. Use when the user wants to publish or write a Blueprint or pack (or "write the decisions") for software they have not built, or describes a product idea and wants it on symbola.sh.
+description: Make a Symbola Blueprint (formerly called a pack) before any code exists, by interviewing the publisher about the decisions builders would get wrong. Use when the user wants to publish or write a Blueprint or pack (or "write the decisions") for software they have not built, or describes a product idea and wants it on symbola.sh.
 ---
 
 # Writing a Blueprint by deciding first
 
 The user has an idea, not code. You interview them and write a Symbola Blueprint
-(called a pack in the CLI and file names): what
+(called a pack in file names and older releases): what
 the product is, and the decisions where good builders would choose differently,
 each pinned by a worked example. Other coding agents then build the product from
 the pack. Format: `docs/PACK_FORMAT.md` in the symbola repository.
 
-Your job is to ask few, sharp questions and keep the pack in format. Every
-decision goes through `symbola pack answer`, never into `obligations.toml` by
-hand, and the pack is done when the validators pass, not when you think so.
+Your job is to ask few, sharp questions and keep the Blueprint in format. Every
+decision goes through `symbola blueprint answer`, never into `obligations.toml` by
+hand, and the Blueprint is done when the validators pass, not when you think so.
 
 Install the CLI if needed: `uv tool install symbola`.
 
@@ -21,10 +21,10 @@ Install the CLI if needed: `uv tool install symbola`.
 
 Ask for one paragraph on what the product is and who uses it, or for material that
 already exists (a README, a product brief, a competitor's docs, screenshots). Ask
-for the pack id (`owner/name`, the owner being their GitHub login or org). Then:
+for the Blueprint id (`owner/name`, the owner being their GitHub login or org). Then:
 
 ```
-symbola pack init <owner>/<name> --dir spec
+symbola blueprint init <owner>/<name> --dir spec
 ```
 
 ## 2. Shape first
@@ -83,18 +83,18 @@ output = '{"ids": ["p1"]}'
 
 JSON values may be written as JSON strings (TOML has no null). A question with no
 component needs `unchecked = "<the check it would need>"`; keep those few, since
-`pack validate` caps them at 10% of decisions.
+`blueprint validate` caps them at 10% of decisions.
 
 ## 5. Ask
 
-Run `symbola pack questions spec` and put at most five questions to the user at a
+Run `symbola blueprint questions spec` and put at most five questions to the user at a
 time, with the concrete input, the choices and your recommendation. Use a
 multiple-choice prompt if your interface has one. Record each answer at once:
 
 ```
-symbola pack answer spec <id> <key>       # the user picked: decided
-symbola pack answer spec <id> default     # "you choose": your recommendation, as default
-symbola pack answer spec <id> open        # "doesn't matter": builds may differ
+symbola blueprint answer spec <id> <key>       # the user picked: decided
+symbola blueprint answer spec <id> default     # "you choose": your recommendation, as default
+symbola blueprint answer spec <id> open        # "doesn't matter": builds may differ
 ```
 
 This writes the obligation and the example line that checks it. Don't edit those
@@ -114,7 +114,7 @@ without asking the user:
 
 ```
 symbola validate spec/components/<component>/versions/1     # each component
-symbola pack validate spec
+symbola blueprint validate spec
 ```
 
 If you can run code, write a quick sketch of each component in
@@ -126,8 +126,8 @@ sketch's, means two answers conflict: ask the user which one wins.
 
 ## 7. Test build (strongly recommended)
 
-Answers alone rarely make a pack that builds right the first time. Before publishing,
-have a fresh agent build it from the pack alone, which shows what the pack fails to say:
+Answers alone rarely make a Blueprint that builds right the first time. Before publishing,
+have a fresh agent build it from the Blueprint alone, which shows what the Blueprint fails to say:
 
 ```
 symbola keygen            # once
@@ -137,7 +137,7 @@ symbola replicate spec --builds 1 -o spec/.symbolon/test-build
 It costs one build run. Read the build's `NOTES.md` and flags: each question the
 builder had to guess is a missing decision, so add it to `questions.toml` and ask the
 user. Fix failing components the same way, then build again. Tell the user if they
-skip this: the pack's page will say no build has passed.
+skip this: the Blueprint's page will say no build has passed.
 
 ## 8. Review and publish
 
@@ -151,4 +151,4 @@ symbola publish spec --evidence spec/.symbolon/test-build/attestations
 
 Give them the request link it prints. Leave out `--evidence` only if they skipped the
 test build. Builders who later find two checks that cannot both pass report it with
-`symbola flag`; each report is one more question for the user and a new pack version.
+`symbola flag`; each report is one more question for the user and a new Blueprint version.

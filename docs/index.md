@@ -20,7 +20,7 @@ Software capabilities are the first vertical. A contract specifies a capability,
 
     ---
 
-    Contracts, implementations, attestations, spec packs, and how digests tie them together.
+    Contracts, implementations, attestations, Blueprints, and how digests tie them together.
 
     [:octicons-arrow-right-24: Concepts](concepts.md)
 
@@ -36,7 +36,7 @@ Software capabilities are the first vertical. A contract specifies a capability,
 
     ---
 
-    The contract, implementation, attestation and spec pack formats.
+    The contract, implementation, attestation and Blueprint formats.
 
     [:octicons-arrow-right-24: Contract format](CONTRACT_FORMAT.md)
 
@@ -70,5 +70,5 @@ The first implementation looks right and passes the obvious examples, but it acc
 | **Validation** | `symbola validate` checks structure, schema drift, examples, and that the spec is not vacuous. |
 | **Testing** | `symbola test` runs a contract's spec against an implementation in Python or any language that speaks a JSON line protocol. |
 | **Attestations** | `symbola attest` runs the spec in a sandbox and writes a signed in-toto attestation; `symbola verify --rerun` reproduces it. |
-| **Spec packs** | Product-level contracts: a brief, assumptions, obligations, and component contracts. `symbola pack validate` checks them. |
-| **Seeds and a pilot** | Three seed contracts and the [lightkone pilot](lightkone-pilot.md), a spec pack extracted from a real product and rebuilt by an AI from the pack alone. |
+| **Blueprints** | Product-level contracts: a brief, assumptions, obligations, and component contracts. `symbola blueprint validate` checks them. |
+| **Seeds and a pilot** | Three seed contracts and the [lightkone pilot](lightkone-pilot.md), a Blueprint extracted from a real product and rebuilt by an AI from the Blueprint alone. |

@@ -1,21 +1,21 @@
 ---
 name: symbola-pack
-description: Keep a Symbola Blueprint (a pack, in the CLI) current while building a product, and release it to symbola.sh. Use when the repo has a spec/ folder with symbolon-pack.toml, or when the user asks to create, update, or release a Blueprint or spec pack.
+description: Keep a Symbola Blueprint (formerly called a pack) current while building a product, and release it to symbola.sh. Use when the repo has a spec/ folder with symbolon-pack.toml, or when the user asks to create, update, or release a Blueprint or spec pack.
 ---
 
 # Keeping a Symbola Blueprint while you build
 
-A Symbola Blueprint (a pack, in the CLI and file names) records the decisions another builder would need to rebuild this
+A Symbola Blueprint (called a pack in file names and older releases) records the decisions another builder would need to rebuild this
 product, each with a check. You keep it in `spec/` next to the code. Format:
 `docs/PACK_FORMAT.md` in the symbola repository.
 
 ## Start
 
-If there is no `spec/` folder and the user wants a pack:
+If there is no `spec/` folder and the user wants a Blueprint:
 
 ```
-symbola pack init <owner>/<name>
-symbola pack validate spec
+symbola blueprint init <owner>/<name>
+symbola blueprint validate spec
 ```
 
 Then replace the placeholders in `spec/BRIEF.md`, `spec/obligations.toml` and
@@ -23,7 +23,7 @@ Then replace the placeholders in `spec/BRIEF.md`, `spec/obligations.toml` and
 
 ## While building
 
-Update the pack in the same change as the code, and only for these:
+Update the Blueprint in the same change as the code, and only for these:
 
 - **The user decides something a good builder could not have guessed** (an
   ordering, a default, an edge case, a rule like "archived items hide from
@@ -44,17 +44,17 @@ builder would make the same way, or architecture. Recording too much is
 cheaper than missing a decision, because release trims it, but don't pad.
 
 Tests meant to catch builds tuned to the visible checks are holdout tests. Keep
-them outside `spec/` (for example `.symbolon/holdout/`); a pack containing a
+them outside `spec/` (for example `.symbolon/holdout/`); a Blueprint containing a
 `holdout` path is refused by the registry.
 
-After every change to `spec/`, run `symbola pack validate spec` and fix what it
+After every change to `spec/`, run `symbola blueprint validate spec` and fix what it
 reports.
 
 ## Releasing
 
 When the user asks to release:
 
-1. `symbola pack validate spec` must pass.
+1. `symbola blueprint validate spec` must pass.
 2. In a clone of the registry repository (github.com/kausalflow/symbola-registry):
    `symbola release spec --registry <clone>/packs`
 3. In the clone: `symbola site check packs`, then commit and open a pull
@@ -63,5 +63,5 @@ When the user asks to release:
 `release` is a no-op when nothing changed since the last version. Each release
 is a new version; only the latest is downloadable. A release is also how an
 upgrade ships: `release` prints what changed (decisions by id, components,
-documents) and the pack page lists it, so keep decision ids stable when you
+documents) and the Blueprint page lists it, so keep decision ids stable when you
 reword one, and give a decision a new id only when it is a different decision.
