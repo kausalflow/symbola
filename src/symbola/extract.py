@@ -1,20 +1,25 @@
 """`symbola extract`: draft a spec pack from software someone already built.
 
-Symbola does not read the code itself. An external coding agent (see agent.py)
-reads the product and writes the draft; this module sets up the folder, hands
-over the brief, and then checks the result the way a publisher would (design
-v0.5, sections 5.1 and 5.2):
+Symbola does not read the product itself. An external coding agent (see agent.py)
+reads whatever there is about the product and writes the draft: its source code,
+documents about it (manuals, help pages, changelogs, API specs, sample files), and
+the running product (a URL or a command), in any mix, so a closed-source product
+can be extracted too. This module sets up the folder, hands over the brief, and
+then checks the result the way a publisher would (design v0.5, sections 5.1 and 5.2):
 
   packs/<namespace>/<product>/
     versions/<n>/      the draft pack, which ships
     oracle/<name>/     adapters that run the original product as an
                        implementation of each component, which do not ship
     REVIEW.md          what the publisher must confirm before publishing
+    EVIDENCE.toml      where each obligation came from, which does not ship
     .symbolon/         the prompt and the agent's logs
 
 A round is one agent run followed by the checks: the pack validates, every
-component contract validates, and every component passes against the original
-product through its oracle adapter. When a round fails, the next round gives
+component contract validates, every component passes against the original
+product through its oracle adapter (required when there is source code to run),
+every obligation names its evidence, and the pack stays within its size budget:
+more sources should make a pack more accurate, not bigger. When a round fails, the next round gives
 the agent the failures to fix. Component digests in symbolon-pack.toml are
 recomputed here, since an agent should not have to copy hashes.
 """
@@ -23,6 +28,7 @@ from __future__ import annotations
 
 import re
 import tomllib
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -37,6 +43,14 @@ from .validate import WorkerError, check_impl, validate
 ORACLE_DIR = "oracle"
 REVIEW_FILE = "REVIEW.md"
 AGENTS_FILE = "AGENTS.md"
+EVIDENCE_FILE = "EVIDENCE.toml"
+EVIDENCE_KINDS = ("code", "docs", "observed", "interview")
+
+# A drafted pack's size budget. The packs made so far hold 61 to 75 obligations
+# and PRODUCT.md files of 1,300 to 3,000 words; a draft over these has kept
+# observations a builder does not need.
+DEFAULT_MAX_OBLIGATIONS = 80
+DEFAULT_MAX_PRODUCT_WORDS = 2500
 
 PACK_MANIFEST = '''\
 [pack]
@@ -142,10 +156,30 @@ registry of checkable contracts: other AI agents will rebuild this product from
 the pack alone, without its source, and the pack's checks decide whether a
 rebuild is faithful.
 
-The product's source is at: {source}
-Read it, its docs and its tests. Do not modify anything there.
 Your working directory is: {workdir}
 {hint}
+## Sources
+
+{sources}
+
+Use every source you were given; each settles different things:
+  source code      the exact rules. Read it, its docs and its tests; change nothing there.
+  documents        intent, terms, flows and formats. Changelogs and known-issue lists are
+                   full of edge cases. Documents go out of date: where the code or the
+                   running product disagrees with them, behaviour wins, and the clash goes
+                   to {review}.
+  running product  real behaviour. Use it as a user would: for a website, a headless
+                   browser (Playwright: visible text, the accessibility tree, screenshots,
+                   clicks, forms, the files it offers to download); for a command, run it
+                   in a scratch directory. Learn from what it does rather than from its
+                   shipped bundles. Use made-up data only, or the test account in the hint.
+                   Survey first (every screen, command and file), then probe the edges of
+                   each rule you saw: boundaries and rounding, empty and extreme values,
+                   midnight, month ends, time zones and leap days, long or odd text and how
+                   it comes out in exports, delete and restore, importing old, foreign or
+                   hand-edited files, two sessions at once. Hidden rules show up there.
+{oracle_note}
+
 Write these files, relative to your working directory:
 
   {pack}/                         the pack (already scaffolded: fill in the TODOs)
@@ -159,6 +193,7 @@ Write these files, relative to your working directory:
   {oracle}/<name>/                 an adapter per component that runs the ORIGINAL product's
                                   code as an implementation of that component's contract
   {review}                       questions the publisher must answer before publishing
+  {evidence}                    where each obligation came from (does not ship)
 
 ## Be minimal
 
@@ -176,6 +211,13 @@ everything, but do not leave out a surface because it is not a pure function:
 an adapter can drive a command line in a scratch directory or a whole run, and a
 property can hold for every seed of a random process. Leave out what concerns
 only the original's own codebase (its module layout, naming, code style).
+
+More sources make a pack more accurate, not bigger. Keep at most {max_obligations}
+obligations and {max_product_words} words in {product}; these are checked. An observation
+earns an obligation only if two good builders would differ on it and the publisher
+would reject one of them. Leave out labels, wording, button order, presets, colours
+and layout unless users would reject a build without them, and merge obligations
+that are one decision. Everything else you learned stays in {evidence} or nowhere.
 
 ## {product}
 
@@ -203,8 +245,9 @@ Each `{components}/<name>/{versions}/1/` has:
   schema.py        pydantic models `Input` and `Output`
   schema/*.json    generated: run `symbola schema <dir>`
   examples.jsonl   one {{"input": ..., "output": ...}} or {{"input": ..., "raises": "ValueError"}}
-                   per line. RECORD outputs by running the original code through your
-                   oracle adapter; never write them from your reading of the code.
+                   per line. RECORD outputs from the original: through your oracle adapter,
+                   or from what the running product showed or produced. Never write them
+                   from your reading of the code or the documents.
   properties.py    hypothesis properties: functions named test_* whose first parameter is
                    `impl` (call impl(input_dict), get a validated Output). No @settings.
                    A rule about a distribution (noise, sampling) is a statistical property:
@@ -261,7 +304,36 @@ exist; `unchecked` is for a requirement the publisher would hold a build to but
 no example or property can express (at most a tenth of them). Every example and
 property should trace to some obligation.
 
-When you are unsure what the publisher wants, choose `default` and ask in {review}.
+Leave nothing unclear unmarked; people review it after you (`symbola pack review`):
+  - the sources settle it: decided
+  - they lean one way but the publisher may want otherwise: default (they confirm or reject it)
+  - they don't settle it and a wrong guess would matter: a question (below)
+  - builds may reasonably differ: open
+
+A gap no source settles, where a wrong guess would matter, is a question rather than an
+obligation: add it to {pack}/{questions} and the publisher answers it with
+`symbola pack answer`, which writes the obligation and its example. One question:
+
+  [[question]]
+  id = "area.name"                 # the obligation id the answer becomes
+  ask = "One concrete situation, as the publisher would see it?"
+  component = "<name>"             # where the example goes; leave out for the product as a whole
+  input = '{{"...": "..."}}'          # the component input, as JSON
+  unchecked = "..."                # only without a component: the check it would need
+  recommended = "a"
+  [[question.choice]]
+  key = "a"
+  label = "short answer"
+  statement = "the obligation, if chosen"
+  output = '{{"...": "..."}}'         # or raises = "ValueError"; leave out without a component
+
+## {evidence}
+
+One entry per obligation, naming where it came from, each item starting with its kind
+({kinds}):
+
+  [evidence]
+  "area.name" = ["code: src/merge.ts, mergeLists", "observed: restored a v2 backup; it was upgraded"]
 
 ## Check your work before you finish
 
@@ -278,7 +350,9 @@ report digest mismatches while you work; everything else must pass.
 List, briefly: the non-goals and priority order to confirm; each `default`
 obligation and each assumption to confirm; any behaviour of the original that
 looks like a bug (the spec should describe what the product should do, and the
-publisher decides); and anything you left out on purpose.
+publisher decides); where the sources disagreed; what you could not see (with
+the access that would show it, such as a test account or an API key); and
+anything you left out on purpose.
 '''
 
 FIX_PROMPT = '''\
@@ -335,15 +409,70 @@ def scaffold_pack(pack_id: str, product_dir: Path, version: int = 1) -> Path:
     return pack_dir
 
 
-def extract_prompt(source: Path, product_dir: Path, pack_dir: Path, hint: str = "") -> str:
+@dataclass
+class Sources:
+    """What there is about the product: its code, documents about it, the running product."""
+    code: Path | None = None
+    docs: list[str] = field(default_factory=list)
+    live: list[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.code = Path(self.code).resolve() if self.code else None
+        self.docs = [d if _is_url(d) else str(Path(d).resolve()) for d in self.docs]
+        self.live = list(self.live)
+
+    def check(self) -> None:
+        if not (self.code or self.docs or self.live):
+            raise ExtractError("give at least one source: the code, --docs or --live")
+        if self.code and not self.code.is_dir():
+            raise ExtractError(f"{self.code} is not a directory")
+        for d in self.docs:
+            if not _is_url(d) and not Path(d).exists():
+                raise ExtractError(f"{d} does not exist")
+
+    def dirs(self) -> list[Path]:
+        """Local folders the agent must be allowed to read."""
+        found = [self.code] if self.code else []
+        for d in self.docs:
+            if not _is_url(d):
+                found.append(Path(d) if Path(d).is_dir() else Path(d).parent)
+        return found
+
+    def describe(self) -> str:
+        rows = []
+        if self.code:
+            rows.append(f"  source code      {self.code}")
+        rows += [f"  documents        {d}" for d in self.docs]
+        rows += [f"  running product  {u}" for u in self.live]
+        return "\n".join(rows)
+
+
+def _is_url(s: str) -> bool:
+    return bool(re.match(r"https?://", s))
+
+
+def extract_prompt(sources: Sources | Path, product_dir: Path, pack_dir: Path, hint: str = "", *,
+                   max_obligations: int = DEFAULT_MAX_OBLIGATIONS,
+                   max_product_words: int = DEFAULT_MAX_PRODUCT_WORDS) -> str:
+    from .questions import QUESTIONS_FILE  # questions imports this module
+    if not isinstance(sources, Sources):
+        sources = Sources(code=sources)
     namespace = Path(product_dir).parent.name
+    if sources.code:
+        oracle_note = ("Every component needs an oracle adapter that runs the original code (see below).")
+    else:
+        oracle_note = ("There is no source code here, so oracle adapters are optional: write one where the\n"
+                       "running product can be driven directly (a command, an API), and otherwise record\n"
+                       "examples from what you observed the product do.")
     return PROMPT.format(
-        source=Path(source).resolve(), workdir=Path(product_dir).resolve(),
+        sources=sources.describe(), oracle_note=oracle_note, workdir=Path(product_dir).resolve(),
         hint=f"\nThe publisher adds: {hint.strip()}\n" if hint.strip() else "",
         pack=pack_dir.relative_to(product_dir).as_posix(), namespace=namespace,
         manifest=PACK_MANIFEST_FILE, brief=BRIEF_FILE, product=PRODUCT_FILE, agents=AGENTS_FILE,
         assumptions=ASSUMPTIONS_DIR, obligations=OBLIGATIONS_FILE, components=COMPONENTS_DIR, versions=VERSIONS_DIR,
-        oracle=ORACLE_DIR, review=REVIEW_FILE)
+        oracle=ORACLE_DIR, review=REVIEW_FILE, evidence=EVIDENCE_FILE, kinds=", ".join(EVIDENCE_KINDS),
+        questions=QUESTIONS_FILE.as_posix(), max_obligations=max_obligations,
+        max_product_words=max_product_words)
 
 
 def sync_components(pack_dir: Path) -> dict[str, str]:
@@ -368,8 +497,16 @@ def sync_components(pack_dir: Path) -> dict[str, str]:
     return listed
 
 
-def check_draft(product_dir: Path, pack_dir: Path, *, oracle: bool = True) -> tuple[list[CheckResult], PackReport]:
-    """The publisher's checks on a draft: pack, each contract, and the original against each."""
+def check_draft(product_dir: Path, pack_dir: Path, *, oracle: bool = True, require_oracle: bool = True,
+                max_obligations: int | None = DEFAULT_MAX_OBLIGATIONS,
+                max_product_words: int | None = DEFAULT_MAX_PRODUCT_WORDS,
+                evidence: bool = True) -> tuple[list[CheckResult], PackReport]:
+    """The publisher's checks on a draft: pack, each contract, the original against each, evidence, size.
+
+    `require_oracle` is off when there is no source code: then a component without an
+    adapter is fine (its examples were recorded from the running product), and the
+    adapters that do exist must still pass.
+    """
     checks = []
     sync_components(pack_dir)
     pack_report = validate_pack(pack_dir)
@@ -386,14 +523,99 @@ def check_draft(product_dir: Path, pack_dir: Path, *, oracle: bool = True) -> tu
             continue
         adapter = Path(product_dir) / ORACLE_DIR / name
         if not adapter.exists():
-            checks.append(CheckResult(f"{name}: original passes its spec", False,
-                                      f"no oracle adapter at {ORACLE_DIR}/{name}/"))
+            if require_oracle:
+                checks.append(CheckResult(f"{name}: original passes its spec", False,
+                                          f"no oracle adapter at {ORACLE_DIR}/{name}/"))
             continue
         checks.append(_oracle_check(name, d, adapter))
     if not (Path(product_dir) / REVIEW_FILE).is_file():
         checks.append(CheckResult(f"{REVIEW_FILE} lists what the publisher must confirm", False,
                                   f"no {REVIEW_FILE} next to {VERSIONS_DIR}/"))
+    ids = _obligation_ids(pack_dir)
+    if evidence:
+        checks.append(check_evidence(Path(product_dir) / EVIDENCE_FILE, ids))
+    checks += check_budget(pack_dir, ids, max_obligations, max_product_words)
+    checks += _check_questions(pack_dir)
     return checks, pack_report
+
+
+def _obligation_ids(pack_dir: Path) -> list[str]:
+    try:
+        with (Path(pack_dir) / OBLIGATIONS_FILE).open("rb") as f:
+            data = tomllib.load(f)
+    except (OSError, tomllib.TOMLDecodeError):
+        return []  # validate_pack reports it
+    found = data.get("obligation", [])
+    if not isinstance(found, list):
+        return []  # validate_pack reports it
+    return [o["id"] for o in found if isinstance(o, dict) and isinstance(o.get("id"), str) and o["id"]]
+
+
+def check_evidence(path: Path, ids: list[str]) -> CheckResult:
+    """Every obligation names where it came from: code, docs, observed or interview."""
+    label = f"every obligation has evidence in {EVIDENCE_FILE}"
+    if not path.is_file():
+        return CheckResult(label, False, f"no {EVIDENCE_FILE} next to {VERSIONS_DIR}/")
+    try:
+        with path.open("rb") as f:
+            table = tomllib.load(f).get("evidence", {})
+    except tomllib.TOMLDecodeError as e:
+        return CheckResult(label, False, f"{EVIDENCE_FILE} is not valid TOML: {e}")
+    if not isinstance(table, dict):
+        return CheckResult(label, False, "[evidence] must be a table of obligation id = [\"<kind>: <where>\", ...]")
+    problems, kinds = [], Counter()
+    for oid in ids:
+        items = table.get(oid)
+        if isinstance(items, str):
+            items = [items]
+        if not items:
+            problems.append(f"{oid}: no evidence")
+            continue
+        if not isinstance(items, list):
+            problems.append(f"{oid}: must be a string or a list of strings")
+            continue
+        for item in items:
+            kind, _, where = str(item).partition(":") if isinstance(item, str) else ("", "", "")
+            if kind.strip() not in EVIDENCE_KINDS or not where.strip():
+                problems.append(f"{oid}: {item!r} must be '<kind>: <where>' with kind one of "
+                                f"{', '.join(EVIDENCE_KINDS)}")
+            else:
+                kinds[kind.strip()] += 1
+    stale = sorted(set(table) - set(ids))
+    problems += [f"{oid}: not an obligation of the pack" for oid in stale]
+    if problems:
+        return CheckResult(label, False, "\n".join(problems))
+    return CheckResult(label, True, ", ".join(f"{n} {k}" for k, n in sorted(kinds.items())))
+
+
+def check_budget(pack_dir: Path, ids: list[str], max_obligations: int | None,
+                 max_product_words: int | None) -> list[CheckResult]:
+    """A drafted pack stays small: more sources should make it more accurate, not bigger."""
+    checks = []
+    if max_obligations is not None:
+        checks.append(CheckResult(f"at most {max_obligations} obligations", len(ids) <= max_obligations,
+                                  f"{len(ids)}: keep only what good builders would get differently and "
+                                  "the publisher would reject; merge ones that are one decision"
+                                  if len(ids) > max_obligations else f"{len(ids)}"))
+    product = Path(pack_dir) / PRODUCT_FILE
+    if max_product_words is not None and product.is_file():
+        words = len(product.read_text().split())
+        checks.append(CheckResult(f"{PRODUCT_FILE} has at most {max_product_words} words",
+                                  words <= max_product_words,
+                                  f"{words}: cut what a builder would do anyway (labels, layout, wording)"
+                                  if words > max_product_words else f"{words}"))
+    return checks
+
+
+def _check_questions(pack_dir: Path) -> list[CheckResult]:
+    from .questions import QuestionError, load_questions, questions_path
+    if not questions_path(pack_dir).is_file():
+        return []
+    try:
+        found = load_questions(pack_dir)
+    except QuestionError as e:
+        return [CheckResult("questions for the publisher are well-formed", False, str(e))]
+    return [CheckResult("questions for the publisher are well-formed", True, f"{len(found)} to answer")]
 
 
 def _oracle_check(name: str, contract_dir: Path, adapter: Path) -> CheckResult:
@@ -412,39 +634,46 @@ def _oracle_check(name: str, contract_dir: Path, adapter: Path) -> CheckResult:
     return CheckResult(label, bool(result.get("passed")), detail or f"{len(cases)} checks")
 
 
-def extract(source: Path, pack_id: str, *, agent: AgentCommand, root: Path = Path("packs"),
+def extract(source: Path | None, pack_id: str, *, agent: AgentCommand, root: Path = Path("packs"),
             version: int = 1, hint: str = "", rounds: int = 2, timeout: int = 3600,
-            oracle: bool = True, on_round=None) -> ExtractResult:
-    """Have the agent draft a pack from source, then check it, for up to `rounds` agent runs."""
-    source = Path(source).resolve()
-    if not source.is_dir():
-        raise ExtractError(f"{source} is not a directory")
+            oracle: bool = True, on_round=None, docs: list[str] = (), live: list[str] = (),
+            max_obligations: int | None = DEFAULT_MAX_OBLIGATIONS,
+            max_product_words: int | None = DEFAULT_MAX_PRODUCT_WORDS) -> ExtractResult:
+    """Have the agent draft a pack from what there is about a product, then check it, for up to `rounds` runs."""
+    sources = Sources(code=source, docs=list(docs), live=list(live))
+    sources.check()
     if not ID_RE.match(pack_id):
         raise ExtractError("the pack id must look like 'namespace/product'")
     if rounds < 1:
         raise ExtractError("rounds must be at least 1")
     product_dir = (Path(root) / pack_id).resolve()
-    if product_dir == source or source in product_dir.parents:
+    code = sources.code
+    if code and (product_dir == code or code in product_dir.parents):
         raise ExtractError("write the pack outside the product's source (see --root)")
     pack_dir = scaffold_pack(pack_id, product_dir, version)
     result = ExtractResult(product_dir, pack_dir)
     state = product_dir / PROMPT_DIR
     prompt_file = state / "extract-prompt.md"
-    prompt = extract_prompt(source, product_dir, pack_dir, hint)
+    budget = {"max_obligations": max_obligations, "max_product_words": max_product_words}
+    prompt = extract_prompt(sources, product_dir, pack_dir, hint,
+                            max_obligations=max_obligations or DEFAULT_MAX_OBLIGATIONS,
+                            max_product_words=max_product_words or DEFAULT_MAX_PRODUCT_WORDS)
+    extra = sources.dirs()
     for n in range(1, rounds + 1):
         if n == 1:
             run = run_agent(agent, prompt, product_dir, timeout=timeout, prompt_file=prompt_file,
-                            extra_dirs=[source])
+                            extra_dirs=extra)
         else:
             failures = "\n".join(f"- {c.name}" + "".join(f"\n    {row}" for row in c.detail.splitlines())
                                  for c in result.rounds[-1].checks if not c.ok)
             fix = FIX_PROMPT.format(workdir=product_dir, prompt_file=prompt_file, failures=failures)
             run = run_agent(agent, fix, product_dir, timeout=timeout,
-                            prompt_file=state / f"extract-fix-{n}.md", extra_dirs=[source])
+                            prompt_file=state / f"extract-fix-{n}.md", extra_dirs=extra)
         log = state / f"extract-round-{n}.log"
         log.write_text(run.log())
         if run.ok:
-            checks, result.pack_report = check_draft(product_dir, pack_dir, oracle=oracle)
+            checks, result.pack_report = check_draft(product_dir, pack_dir, oracle=oracle,
+                                                     require_oracle=sources.code is not None, **budget)
         else:
             checks = [CheckResult(f"agent {agent.name} finished", False,
                                   f"exit {run.returncode}; see {log}")]

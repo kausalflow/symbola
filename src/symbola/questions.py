@@ -30,6 +30,7 @@ no component is about the product as a whole: a decided answer is recorded as an
 from __future__ import annotations
 
 import json
+import re
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -209,6 +210,61 @@ def answer(pack_dir: Path, question_id: str, pick: str) -> dict:
     if q.component:
         sync_components(pack_dir)
     return fields
+
+
+_BLOCK_RE = re.compile(r"^\[\[obligation\]\][^\n]*\n", re.M)
+
+
+def review(pack_dir: Path) -> dict:
+    """What people still have to settle: unanswered questions, `default` obligations, `open` ones,
+    and proposed cuts from `symbola pack trim` that nobody has approved or rejected yet."""
+    from .trim import TRIM_FILE, undecided  # trim imports pack, which this module also needs
+    pack_dir = Path(pack_dir)
+    path = pack_dir / OBLIGATIONS_FILE
+    obligations = []
+    if path.is_file():
+        with path.open("rb") as f:
+            obligations = [o for o in tomllib.load(f).get("obligation", []) if isinstance(o, dict)]
+    questions = unanswered(pack_dir) if (pack_dir / QUESTIONS_FILE).is_file() or not (pack_dir / TRIM_FILE).is_file() \
+        else []  # a pack that only has proposed cuts has no questions to list
+    return {
+        "questions": questions,
+        "defaults": [o for o in obligations if o.get("status") == "default"],
+        "open": [o for o in obligations if o.get("status") == "open"],
+        "cuts": undecided(pack_dir),
+    }
+
+
+def confirm(pack_dir: Path, obligation_id: str, *, to: str = "decided") -> dict:
+    """A person settles a `default` obligation: keep it (decided) or leave it to builders (open).
+
+    Open drops its checks, since a check would decide it; the example lines stay in
+    the contract as plain examples. Returns the rewritten obligation.
+    """
+    if to not in ("decided", "open"):
+        raise QuestionError("confirm to 'decided' or 'open'")
+    path = Path(pack_dir) / OBLIGATIONS_FILE
+    text = path.read_text() if path.is_file() else ""
+    starts = [m.start() for m in _BLOCK_RE.finditer(text)] + [len(text)]
+    for a, b in zip(starts, starts[1:]):
+        block = text[a:b]
+        try:
+            fields = tomllib.loads(block)["obligation"][0]
+        except (tomllib.TOMLDecodeError, KeyError, IndexError):
+            continue
+        if fields.get("id") != obligation_id:
+            continue
+        if fields.get("status") != "default":
+            raise QuestionError(f"{obligation_id} is {fields.get('status')}, not default; edit {OBLIGATIONS_FILE} "
+                                "to change it")
+        fields["status"] = to
+        if to == "open":
+            for key in ("checks", "unchecked", "exactness"):
+                fields.pop(key, None)
+        tail = block[len(block.rstrip("\n")):] or "\n"
+        path.write_text(text[:a] + _toml(fields).rstrip("\n") + tail + text[b:])
+        return fields
+    raise QuestionError(f"no obligation {obligation_id!r} in {path}")
 
 
 def _add_example(pack_dir: Path, q: Question, c: Choice) -> str:

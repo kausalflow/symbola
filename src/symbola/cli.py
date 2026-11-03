@@ -17,13 +17,14 @@ from .changes import OVERRIDES_FILE, compare as compare_packs, conflicts as over
     markdown as changes_markdown, summary_text as changes_summary
 from .attest import AttestError, compare_runs, run_attestation, statement_of, verify_attestation
 from .diff import TIERS, load_member, measure, member_name
-from .extract import ExtractError, extract as run_extract
+from .extract import DEFAULT_MAX_OBLIGATIONS, DEFAULT_MAX_PRODUCT_WORDS, ExtractError, extract as run_extract
 from .digest import contract_digest
 from .implementation import IMPL_MANIFEST_FILE
 from .manifest import ID_RE, load_manifest
 from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_site, publish as publish_pack, \
     request_state, start_login
-from .questions import QuestionError, answer as answer_question, unanswered
+from . import trim as trim_mod
+from .questions import QuestionError, answer as answer_question, confirm as confirm_obligation, review as review_pack, unanswered
 from .pack import PACK_MANIFEST_FILE, PRODUCT_FILE, component_name, report_json, summary_line, validate_pack
 from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, previous_version, pull as pull_pack, release as release_pack, scaffold_pack, upgrade as upgrade_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
@@ -618,6 +619,152 @@ def pack_answer(
     _line(True, f"{o['id']}: {o['status']}", f"{o['statement']} ({detail})")
 
 
+@pack_app.command(name="review")
+def pack_review(
+    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    as_json: bool = typer.Option(False, "--json", help="Print the list as JSON."),
+) -> None:
+    """List what people still have to settle: open questions, decisions to confirm, and what is left open."""
+    try:
+        todo = review_pack(path)
+    except (QuestionError, OSError, ValueError, trim_mod.TrimError) as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    review_file = Path(path).resolve().parent.parent / "REVIEW.md"
+    if as_json:
+        typer.echo(json.dumps({"questions": [q.model_dump(exclude_defaults=True) for q in todo["questions"]],
+                               "defaults": todo["defaults"], "open": todo["open"],
+                               "cuts": [asdict(c) for c in todo["cuts"]],
+                               "review_file": str(review_file) if review_file.is_file() else None},
+                              indent=2, ensure_ascii=False))
+        return
+    typer.echo(f"Questions to answer ({len(todo['questions'])}):")
+    for q in todo["questions"]:
+        typer.echo(f"  [{q.id}] {q.ask}")
+        for c in q.choice:
+            typer.echo(f"     ({c.key}) {c.label}" + ("  (recommended)" if c.key == q.recommended else ""))
+    typer.echo(f"  -> symbola pack answer {path} <id> <choice|default|open>\n")
+    typer.echo(f"Decisions to confirm ({len(todo['defaults'])}):")
+    for o in todo["defaults"]:
+        typer.echo(f"  [{o['id']}] {o.get('statement', '')}")
+    typer.echo(f"  -> symbola pack confirm {path} <id>   (keep it; --open leaves it to builders; "
+               "to change it, edit obligations.toml)\n")
+    typer.echo(f"Left open for builders ({len(todo['open'])}):")
+    for o in todo["open"]:
+        typer.echo(f"  [{o['id']}] {o.get('statement', '')}")
+    typer.echo("  -> fine as they are; to decide one, add a question for it\n")
+    if todo["cuts"]:
+        typer.echo(f"Proposed cuts to approve ({len(todo['cuts'])}):")
+        for c in todo["cuts"]:
+            typer.echo(f"  [{c.id}] {c.kind} in {c.where()}: {c.why}")
+            for row in c.text.strip().splitlines():
+                typer.echo(f"     - {row.strip()}")
+        typer.echo(f"  -> symbola pack trim {path} --cut <id> (remove it) or --keep <id>; "
+                   "then --apply removes the approved ones\n")
+    if review_file.is_file():
+        typer.echo(f"Also read {review_file}: suspected bugs, where sources disagreed, what was not seen.")
+    left = len(todo["questions"]) + len(todo["defaults"]) + len(todo["cuts"])
+    typer.echo(f"{left} to settle." if left else "Nothing left to settle.")
+
+
+@pack_app.command(name="confirm")
+def pack_confirm(
+    path: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    obligation: str = typer.Argument(..., help="Id of a `default` obligation."),
+    leave_open: bool = typer.Option(False, "--open", help="Leave it to builders instead (drops its checks)."),
+) -> None:
+    """Settle a `default` obligation after review: keep it as decided, or leave it open."""
+    try:
+        o = confirm_obligation(path, obligation, to="open" if leave_open else "decided")
+    except QuestionError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    _line(True, f"{o['id']}: {o['status']}", o.get("statement", ""))
+
+@pack_app.command(name="trim")
+def pack_trim(
+    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    deep: bool = typer.Option(False, "--deep", help="Also have your coding agent propose cuts (one agent run). "
+                                                   "It reads a copy and changes nothing."),
+    agent: str | None = typer.Option(None, help="Coding agent command for --deep; defaults to $SYMBOLON_AGENT, "
+                                                "then Claude Code."),
+    cut: list[str] = typer.Option([], "--cut", help="Approve a proposal by id: --apply will remove it. Repeat for more."),
+    keep: list[str] = typer.Option([], "--keep", help="Reject a proposal by id: it stays. Repeat for more."),
+    do_apply: bool = typer.Option(False, "--apply", help="Remove the proposals marked \"cut\", and only those."),
+    out: Path | None = typer.Option(None, "--out", help="With --apply: write the trimmed pack to this new folder "
+                                                         "instead (required for a released version)."),
+    timeout: int = typer.Option(1800, help="Seconds the --deep agent run may take."),
+) -> None:
+    """Propose cuts that make a pack simpler to build from; remove only what the publisher approves.
+
+    Without options it lists likely cuts in .symbolon/trim.toml and removes nothing; they
+    also show in `symbola pack review`. Approve each with --cut ID or reject it with --keep ID
+    (or set its decision in the file), then run with --apply.
+    """
+
+    if do_apply:
+        try:
+            done = trim_mod.apply(path, out)
+        except trim_mod.TrimError as e:
+            _line(False, "trim not applied", str(e))
+            raise typer.Exit(1)
+        words = sum(c.words for c in done.cuts if c.kind == "prose")
+        _line(True, f"cut {len(done.cuts)} proposals from {done.target}",
+              f"obligations {done.before['obligations']} -> {done.after['obligations']}, "
+              f"PRODUCT.md {done.before['product_words']} -> {done.after['product_words']} words, "
+              f"{words} words of prose")
+        for name, lines in done.removed_examples.items():
+            typer.echo(f"    {name}: removed example lines {', '.join(map(str, lines))} (references renumbered)")
+        for name, tests in done.removed_properties.items():
+            typer.echo(f"    {name}: removed properties {', '.join(tests)}")
+        typer.echo("\npack validate passes. Before release, one `symbola replicate` build is a cheap check "
+                   "that nothing load-bearing went.")
+        return
+
+    if cut or keep:
+        try:
+            for c in trim_mod.decide(path, cut, "cut") + trim_mod.decide(path, keep, "keep"):
+                _line(True, f"{c.id}: {c.decision}", f"{c.where()}: {' '.join(c.text.split())[:90]}")
+        except trim_mod.TrimError as e:
+            _line(False, "not recorded", str(e))
+            raise typer.Exit(1)
+        todo = [c for c in trim_mod.load(path) if not c.applied]
+    else:
+        try:
+            found = trim_mod.screen(path)
+            if deep:
+                command = resolve_agent(agent)
+                typer.echo(f"asking {command.name} for more proposals (one run)")
+                more, rejected, run = trim_mod.deep_screen(path, command, found, timeout=timeout,
+                                                           log_dir=Path(path) / ".symbolon")
+                _line(run.ok, f"agent {'finished' if run.ok else 'failed'} after {run.seconds:.0f}s",
+                      "" if run.ok else run.stderr[-2000:])
+                for r in rejected:
+                    _line(False, "proposal dropped", r)
+                found += more
+            cuts = trim_mod.propose(path, found)
+        except (trim_mod.TrimError, AgentError, OSError) as e:
+            _line(False, "trim failed", str(e))
+            raise typer.Exit(1)
+        todo = [c for c in cuts if not c.applied]
+        b = trim_mod.budget(path)
+        over = [f"{b['obligations']} obligations (budget {trim_mod.MAX_OBLIGATIONS})"
+                if b["obligations"] > trim_mod.MAX_OBLIGATIONS else "",
+                f"PRODUCT.md {b['product_words']} words (budget {trim_mod.MAX_PRODUCT_WORDS})"
+                if b["product_words"] > trim_mod.MAX_PRODUCT_WORDS else ""]
+        typer.echo(f"{b['obligations']} obligations, PRODUCT.md {b['product_words']} words"
+                   + (typer.style("; over budget: " + ", ".join(o for o in over if o), fg=typer.colors.YELLOW)
+                      if any(over) else ""))
+        for c in todo:
+            flat = " ".join(c.text.split())
+            typer.echo(f"[{c.id}] {c.decision}: {c.kind} in {c.where()}  ({c.why})")
+            typer.echo(typer.style(f"     {flat[:110]}{'...' if len(flat) > 110 else ''}", dim=True))
+    counts = {d: sum(c.decision == d for c in todo) for d in trim_mod.DECISIONS}
+    typer.echo(f"\n{len(todo)} proposals in {Path(path) / trim_mod.TRIM_FILE}: {counts['cut']} cut, "
+               f"{counts['keep']} keep, {counts['undecided']} undecided. Approve with --cut ID, reject with "
+               f"--keep ID; nothing is removed until `symbola pack trim {path} --apply`.")
+
+
 site_app = typer.Typer(no_args_is_help=True, help="Build the static Blueprint registry (symbola.sh's data).")
 app.add_typer(site_app, name="site")
 
@@ -877,23 +1024,41 @@ def upgrade(
 
 @app.command()
 def extract(
-    source: Path = typer.Argument(..., help="The product's source directory. It is read, never changed."),
+    source: Path | None = typer.Argument(None, help="The product's source directory, if there is one. "
+                                                    "It is read, never changed."),
     pack_id: str = typer.Option(..., "--pack", help="Pack id to draft, like 'kausalflow/lightkone'."),
+    docs: list[str] = typer.Option([], "--docs", help="A document about the product: a file, folder or URL "
+                                                      "(manual, help pages, changelog, API spec, sample files). "
+                                                      "Repeat for more."),
+    live: list[str] = typer.Option([], "--live", help="The running product: a URL, or a command that runs it. "
+                                                      "Repeat for more."),
     root: Path = typer.Option(Path("packs"), help="Directory that holds packs; the draft goes in <root>/<pack>/."),
     version: int = typer.Option(1, min=1, help="Pack version to draft."),
     agent: str | None = typer.Option(None, help="Coding agent command; defaults to $SYMBOLON_AGENT, then Claude Code."),
     hint: str = typer.Option("", help="Guidance for the agent, such as which parts of the product to cover."),
     rounds: int = typer.Option(2, min=1, help="Agent runs at most: the draft, then fixes for what fails."),
     timeout: int = typer.Option(3600, help="Seconds each agent run may take."),
-    oracle: bool = typer.Option(True, help="Require the original product to pass each component through an adapter."),
+    oracle: bool = typer.Option(True, help="Require the original product to pass each component through an adapter "
+                                           "(only where there is source code; otherwise adapters are optional)."),
+    max_obligations: int = typer.Option(DEFAULT_MAX_OBLIGATIONS, min=1,
+                                        help="Size budget: the most obligations the draft may hold."),
+    max_product_words: int = typer.Option(DEFAULT_MAX_PRODUCT_WORDS, min=1,
+                                          help="Size budget: the most words PRODUCT.md may hold."),
 ) -> None:
-    """Have a coding agent draft a spec pack from an existing product, then check the draft."""
+    """Have a coding agent draft a spec pack from an existing product, then check the draft.
+
+    Give any mix of sources: the source code, documents (--docs) and the running
+    product (--live). Without source code the draft is built from what the documents
+    say and what the product does.
+    """
     try:
         command = resolve_agent(agent)
     except AgentError as e:
         _line(False, "no agent", str(e))
         raise typer.Exit(1)
-    typer.echo(f"drafting {pack_id} from {source} with {command.name} (up to {rounds} rounds)")
+    given = ([str(source)] if source else []) + list(docs) + list(live)
+    typer.echo(f"drafting {pack_id} from {', '.join(given) or 'nothing'} with {command.name} "
+               f"(up to {rounds} rounds)")
 
     def show(n, rnd):
         typer.echo(f"\nround {n}: agent {'finished' if rnd.run.ok else 'failed'} after {rnd.run.seconds:.0f}s")
@@ -902,7 +1067,8 @@ def extract(
 
     try:
         result = run_extract(source, pack_id, agent=command, root=root, version=version, hint=hint,
-                             rounds=rounds, timeout=timeout, oracle=oracle, on_round=show)
+                             rounds=rounds, timeout=timeout, oracle=oracle, on_round=show, docs=docs, live=live,
+                             max_obligations=max_obligations, max_product_words=max_product_words)
     except (ExtractError, AgentError) as e:
         _line(False, "extract failed", str(e))
         raise typer.Exit(1)
@@ -911,8 +1077,8 @@ def extract(
         typer.echo(f"{OK} draft pack {result.pack_dir}")
         if result.pack_report:
             typer.echo(f"    {summary_line(result.pack_report.summary)}")
-        typer.echo(f"\nNext: answer {result.product_dir / 'REVIEW.md'}, settle the default and open "
-                   "obligations, then hand the pack to builders.")
+        typer.echo(f"\nNext: `symbola pack review {result.pack_dir}` lists the questions to answer and the "
+                   "decisions to confirm; settle them, then hand the pack to builders.")
     else:
         typer.echo(typer.style(f"draft is not valid yet: {result.pack_dir}", fg=typer.colors.RED))
         typer.echo(f"Agent logs are in {result.product_dir / '.symbolon'}. Fix the draft by hand, or remove "

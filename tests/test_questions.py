@@ -7,7 +7,7 @@ from typer.testing import CliRunner
 from symbola.cli import app
 from symbola.extract import sync_components
 from symbola.pack import validate_pack
-from symbola.questions import QuestionError, answer, unanswered
+from symbola.questions import QuestionError, answer, confirm, review, unanswered
 from symbola.registry import scaffold_pack
 from symbola.scaffold import scaffold
 from symbola.validate import regenerate_schema
@@ -120,3 +120,43 @@ def test_cli_questions_and_answer(pack):
     result = runner.invoke(app, ["pack", "answer", str(pack), "shout.keeps-digits", "b"])
     assert result.exit_code == 0, result.output
     assert "1 unanswered" in runner.invoke(app, ["pack", "questions", str(pack)]).output
+
+
+def test_review_lists_what_people_must_settle(pack):
+    answer(pack, "shout.keeps-digits", "default")
+    todo = review(pack)
+    assert [q.id for q in todo["questions"]] == ["shout.no-accounts"]
+    assert [o["id"] for o in todo["defaults"]] == ["shout.keeps-digits"]
+    assert todo["open"] == []
+
+
+def test_confirm_keeps_or_leaves_open_a_default(pack):
+    answer(pack, "shout.keeps-digits", "default")
+    answer(pack, "shout.no-accounts", "default")
+    header = (pack / "obligations.toml").read_text().split("[[obligation]]")[0]
+    o = confirm(pack, "shout.keeps-digits")
+    assert o["status"] == "decided" and o["checks"] == ["upper#example:4"]
+    o = confirm(pack, "shout.no-accounts", to="open")
+    assert o["status"] == "open" and "unchecked" not in o
+    found = obligations(pack)
+    assert found["shout.keeps-digits"]["status"] == "decided" and found["shout.no-accounts"]["status"] == "open"
+    assert (pack / "obligations.toml").read_text().startswith(header), "comments before the first obligation stay"
+    assert validate_pack(pack).ok
+    with pytest.raises(QuestionError, match="not default"):
+        confirm(pack, "shout.keeps-digits")
+    with pytest.raises(QuestionError, match="no obligation"):
+        confirm(pack, "shout.nope")
+
+
+def test_cli_review_and_confirm(pack):
+    answer(pack, "shout.keeps-digits", "default")
+    result = runner.invoke(app, ["pack", "review", str(pack)])
+    assert result.exit_code == 0, result.output
+    assert "Questions to answer (1)" in result.output and "[shout.no-accounts]" in result.output
+    assert "Decisions to confirm (1)" in result.output and "Digits pass through unchanged." in result.output
+    assert "2 to settle." in result.output
+    data = json.loads(runner.invoke(app, ["pack", "review", str(pack), "--json"]).output)
+    assert [o["id"] for o in data["defaults"]] == ["shout.keeps-digits"]
+    result = runner.invoke(app, ["pack", "confirm", str(pack), "shout.keeps-digits"])
+    assert result.exit_code == 0 and "shout.keeps-digits: decided" in result.output
+    assert runner.invoke(app, ["pack", "confirm", str(pack), "shout.keeps-digits"]).exit_code == 1
