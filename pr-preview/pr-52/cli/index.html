@@ -448,7 +448,7 @@
   <span class="md-ellipsis">
     
   
-  Extracting a pack
+  Extracting a Blueprint
 
     
   </span>
@@ -475,7 +475,7 @@
   <span class="md-ellipsis">
     
   
-  Replicating a pack
+  Replicating a Blueprint
 
     
   </span>
@@ -759,10 +759,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-validate" class="md-nav__link">
+  <a href="#blueprint-validate" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>pack validate</code>
+        <code>blueprint validate</code>
       </span>
     </span>
   </a>
@@ -814,10 +814,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-init" class="md-nav__link">
+  <a href="#blueprint-init" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>pack init</code>
+        <code>blueprint init</code>
       </span>
     </span>
   </a>
@@ -825,10 +825,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-questions" class="md-nav__link">
+  <a href="#blueprint-questions" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>pack questions</code>
+        <code>blueprint questions</code>
       </span>
     </span>
   </a>
@@ -836,10 +836,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-answer" class="md-nav__link">
+  <a href="#blueprint-answer" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>pack answer</code>
+        <code>blueprint answer</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blueprint-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>blueprint review</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blueprint-confirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>blueprint confirm</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blueprint-trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>blueprint trim</code>
       </span>
     </span>
   </a>
@@ -989,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-  Spec pack format
+  Blueprint format
 
     
   </span>
@@ -1016,7 +1049,7 @@
   <span class="md-ellipsis">
     
   
-  Pack registry
+  Blueprint registry
 
     
   </span>
@@ -1355,10 +1388,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-validate" class="md-nav__link">
+  <a href="#blueprint-validate" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>pack validate</code>
+        <code>blueprint validate</code>
       </span>
     </span>
   </a>
@@ -1410,10 +1443,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-init" class="md-nav__link">
+  <a href="#blueprint-init" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>pack init</code>
+        <code>blueprint init</code>
       </span>
     </span>
   </a>
@@ -1421,10 +1454,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-questions" class="md-nav__link">
+  <a href="#blueprint-questions" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>pack questions</code>
+        <code>blueprint questions</code>
       </span>
     </span>
   </a>
@@ -1432,10 +1465,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-answer" class="md-nav__link">
+  <a href="#blueprint-answer" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        <code>pack answer</code>
+        <code>blueprint answer</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blueprint-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>blueprint review</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blueprint-confirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>blueprint confirm</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blueprint-trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>blueprint trim</code>
       </span>
     </span>
   </a>
@@ -1600,6 +1666,7 @@
 
 <h1 id="cli-reference">CLI reference<a class="headerlink" href="#cli-reference" title="Permanent link">&para;</a></h1>
 <p>Every command prints a ✓ or ✗ line per check and exits 0 on success, 1 on failure. Commands that print a report accept <code>--json</code>.</p>
+<p>The <code>blueprint</code> commands were called <code>pack</code> before symbola 0.5. <code>symbola pack ...</code> and <code>extract --pack</code> still work and do the same thing; file names such as <code>symbolon-pack.toml</code> and links under <code>/packs/</code> keep the old word.</p>
 <table>
 <thead>
 <tr>
@@ -1650,35 +1717,39 @@
 </tr>
 <tr>
 <td><a href="#extract"><code>extract</code></a></td>
-<td>Have a coding agent draft a spec pack from an existing product, then check the draft</td>
+<td>Have a coding agent draft a Blueprint from an existing product, then check the draft</td>
 </tr>
 <tr>
 <td><a href="#replicate"><code>replicate</code></a></td>
-<td>Hand a pack to outside coding agents, then test, attest and diff their builds</td>
+<td>Hand a Blueprint to outside coding agents, then test, attest and diff their builds</td>
 </tr>
 <tr>
-<td><a href="#pack-validate"><code>pack validate</code></a></td>
-<td>Check a spec pack's brief, assumptions and obligations</td>
+<td><a href="#blueprint-validate"><code>blueprint validate</code></a></td>
+<td>Check a Blueprint's brief, assumptions and obligations</td>
 </tr>
 <tr>
-<td><a href="#pack-init"><code>pack init</code></a></td>
-<td>Scaffold a spec pack that passes <code>pack validate</code> out of the box</td>
+<td><a href="#blueprint-trim"><code>blueprint trim</code></a></td>
+<td>Propose cuts that make a Blueprint simpler to build from; remove only the ones the publisher approves</td>
+</tr>
+<tr>
+<td><a href="#blueprint-init"><code>blueprint init</code></a></td>
+<td>Scaffold a Blueprint that passes <code>blueprint validate</code> out of the box</td>
 </tr>
 <tr>
 <td><a href="#site-build"><code>site build</code></a></td>
-<td>Write the static registry for the latest version of every pack</td>
+<td>Write the static registry for the latest version of every Blueprint</td>
 </tr>
 <tr>
 <td><a href="#pull"><code>pull</code></a></td>
-<td>Download a pack from the registry, check it, and unpack it</td>
+<td>Download a Blueprint from the registry, check it, and unpack it</td>
 </tr>
 <tr>
 <td><a href="#site-check"><code>site check</code></a></td>
-<td>The checks a pack submission must pass</td>
+<td>The checks a Blueprint submission must pass</td>
 </tr>
 <tr>
 <td><a href="#release"><code>release</code></a></td>
-<td>Freeze your pack into the registry as its next version, signed</td>
+<td>Freeze your Blueprint into the registry as its next version, signed</td>
 </tr>
 <tr>
 <td><a href="#mutants"><code>mutants</code></a></td>
@@ -1721,7 +1792,7 @@
 <h2 id="impl-init"><code>impl-init</code><a class="headerlink" href="#impl-init" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>symbola impl-init IMPL_DIR --contract CONTRACT_DIR [--entrypoint impl.py] [--author ...] [--license Apache-2.0] [--repin]
 </span></code></pre></div>
-<p>Creates <code>IMPL_DIR</code> if needed and writes <code>symbolon-impl.toml</code> pinned to the contract's current digest. With <code>--repin</code>, only updates the pin of an existing <code>symbolon-impl.toml</code>, after the contract changed in a pack upgrade. For implementations in other languages, edit the manifest to <code>language = "command"</code> and set <code>command</code>; see <a href="../ATTESTATION/#implementations-in-other-languages">Implementations in other languages</a>.</p>
+<p>Creates <code>IMPL_DIR</code> if needed and writes <code>symbolon-impl.toml</code> pinned to the contract's current digest. With <code>--repin</code>, only updates the pin of an existing <code>symbolon-impl.toml</code>, after the contract changed in a Blueprint upgrade. For implementations in other languages, edit the manifest to <code>language = "command"</code> and set <code>command</code>; see <a href="../ATTESTATION/#implementations-in-other-languages">Implementations in other languages</a>.</p>
 <h2 id="keygen"><code>keygen</code><a class="headerlink" href="#keygen" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>symbola keygen [--out ~/.config/symbolon/runner.key]
 </span></code></pre></div>
@@ -1805,13 +1876,18 @@ directory (<code>rebuilds/go-1/search-query</code> is <code>go-1</code>).</p>
 <p>Like <code>test</code>, it runs implementations in this process's environment, not a sandbox.
 See <a href="../guides/measuring-ambiguity/">Measuring ambiguity</a>.</p>
 <h2 id="extract"><code>extract</code><a class="headerlink" href="#extract" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbola extract SOURCE --pack NAMESPACE/PRODUCT [--root packs] [--version 1]
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>                 [--agent COMMAND] [--hint TEXT] [--rounds 2] [--timeout 3600] [--no-oracle]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>symbola extract [SOURCE] --blueprint NAMESPACE/PRODUCT [--docs PATH_OR_URL ...] [--live URL_OR_COMMAND ...]
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>                 [--root packs] [--version 1] [--agent COMMAND] [--hint TEXT] [--rounds 2]
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>                 [--timeout 3600] [--no-oracle] [--max-obligations 80] [--max-product-words 2500]
 </span></code></pre></div>
-<p>Hands <code>SOURCE</code> to an external coding agent, which drafts <code>ROOT/NAMESPACE/PRODUCT/versions/VERSION/</code>
-plus an oracle adapter per component and a <code>REVIEW.md</code>. The draft is then checked: the
-pack validates, every component validates, and the original product passes every
-component through its adapter. Failures go back to the agent for another round, up
+<p>Hands what there is about the product to an external coding agent: the source code
+(<code>SOURCE</code>), documents about it (<code>--docs</code>: manuals, help pages, changelogs, API specs,
+sample files) and the running product (<code>--live</code>), in any mix, at least one. The agent
+drafts <code>ROOT/NAMESPACE/PRODUCT/versions/VERSION/</code> plus <code>REVIEW.md</code>, <code>EVIDENCE.toml</code>
+(where each obligation came from) and an oracle adapter per component. The draft is
+then checked: the Blueprint validates, every component validates, the original product
+passes every component through its adapter (required only when there is source code),
+every obligation has evidence, and the Blueprint is within its size budget. Failures go back to the agent for another round, up
 to <code>--rounds</code> runs in all. Component digests in <code>symbolon-pack.toml</code> are filled in
 for the agent. Symbola never changes <code>SOURCE</code>.</p>
 <table>
@@ -1831,12 +1907,24 @@ for the agent. Symbola never changes <code>SOURCE</code>.</p>
 <td>Extra guidance for the agent, such as which parts of the product to cover</td>
 </tr>
 <tr>
+<td><code>--docs</code></td>
+<td>A document about the product: a file, folder or URL. Repeat for more</td>
+</tr>
+<tr>
+<td><code>--live</code></td>
+<td>The running product: a URL or a command. Repeat for more</td>
+</tr>
+<tr>
 <td><code>--no-oracle</code></td>
 <td>Skip the oracle check, for products whose code cannot be called from an adapter</td>
 </tr>
+<tr>
+<td><code>--max-obligations</code>, <code>--max-product-words</code></td>
+<td>The size budget: more sources should make a Blueprint more accurate, not bigger</td>
+</tr>
 </tbody>
 </table>
-<p>See <a href="../guides/extracting-a-pack/">Extracting a pack</a>.</p>
+<p>See <a href="../guides/extracting-a-pack/">Extracting a Blueprint</a>.</p>
 <h2 id="replicate"><code>replicate</code><a class="headerlink" href="#replicate" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>symbola replicate PACK [--agent NAME=COMMAND ...] [--builds 2] [--prose-only 0] [--component NAME ...]
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>                   [--reference DIR] [--holdout DIR] [--holdout-seed N] [--holdout-scale 5]
@@ -1845,7 +1933,7 @@ for the agent. Symbola never changes <code>SOURCE</code>.</p>
 </span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>                   [--mutations 500] [--property-cases 50] [--search 300] [--seed 0]
 </span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>                   [--max-ambiguity X] [-o replication] [--json]
 </span></code></pre></div>
-<p>Gives a builder's copy of the pack at <code>PACK</code> to an outside coding agent once per
+<p>Gives a builder's copy of the Blueprint at <code>PACK</code> to an outside coding agent once per
 build, then attests every component of every build, runs the holdout, and runs
 <code>diff</code> per component across the builds that passed. Symbola does not build
 anything itself. Writes the builds, agent logs, attestations, diff reports and
@@ -1864,11 +1952,11 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 </tr>
 <tr>
 <td><code>--prose-only</code></td>
-<td>How many of the builds, the last ones, get the pack without any <code>examples.jsonl</code> or <code>properties.py</code>: they are judged by the full spec, so they show whether the descriptions alone carry it</td>
+<td>How many of the builds, the last ones, get the Blueprint without any <code>examples.jsonl</code> or <code>properties.py</code>: they are judged by the full spec, so they show whether the descriptions alone carry it</td>
 </tr>
 <tr>
 <td><code>--reference</code></td>
-<td>A directory with one implementation per component, such as a pack's <code>oracle/</code>: compared with every build, not part of the ensemble</td>
+<td>A directory with one implementation per component, such as a Blueprint's <code>oracle/</code>: compared with every build, not part of the ensemble</td>
 </tr>
 <tr>
 <td><code>--holdout</code></td>
@@ -1894,11 +1982,11 @@ anything itself. Writes the builds, agent logs, attestations, diff reports and
 </table>
 <p>Exits 1 when a build fails a component or its holdout, or a component's ambiguity is
 above <code>--max-ambiguity</code>. The agent runs with your permissions, outside the sandbox.
-See <a href="../guides/replicating-a-pack/">Replicating a pack</a>.</p>
-<h2 id="pack-validate"><code>pack validate</code><a class="headerlink" href="#pack-validate" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbola pack validate PATH [--json]
+See <a href="../guides/replicating-a-pack/">Replicating a Blueprint</a>.</p>
+<h2 id="blueprint-validate"><code>blueprint validate</code><a class="headerlink" href="#blueprint-validate" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>symbola blueprint validate PATH [--json]
 </span></code></pre></div>
-<p><code>PATH</code> is the pack directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections (and <code>PRODUCT.md</code>'s, if present), assumptions and obligations, and that no two example lines of a component have the same input but expect different results, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbolon-pack-validate-checks">What <code>symbola pack validate</code> checks</a>.</p>
+<p><code>PATH</code> is the Blueprint directory holding <code>symbolon-pack.toml</code>. Checks the manifest, component digests, <code>BRIEF.md</code> sections (and <code>PRODUCT.md</code>'s, if present), assumptions and obligations, and that no two example lines of a component have the same input but expect different results, then reports obligations by status and source. It does not run contract code; run <code>validate</code> on each component for that. See <a href="../PACK_FORMAT/#what-symbola-blueprint-validate-checks">What <code>symbola blueprint validate</code> checks</a>.</p>
 <h2 id="mutants"><code>mutants</code><a class="headerlink" href="#mutants" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>symbola mutants PATH [--mutants DIR] [--json]
 </span></code></pre></div>
@@ -1926,47 +2014,66 @@ for <code>gamed</code>. In a replication, drop gamed builds from the convergence
 <div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>symbola flag REF REASON [--dir BUILD_DIR]
 </span></code></pre></div>
 <p>Appends <code>{"ref", "reason", "flagged_at"}</code> to <code>BUILD_DIR/symbolon-flags.jsonl</code>.
-<code>REF</code> is an obligation id, a check in pack form (<code>search-query#example:40</code>,
+<code>REF</code> is an obligation id, a check in Blueprint form (<code>search-query#example:40</code>,
 <code>search-query#test_name</code>), or a bare <code>example:&lt;line&gt;</code>. Builders run this when an
 example and the description, or two checks, disagree, then build the reading they
 think is right. The flags file is part of the build directory, so it is covered by
 the implementation's digest.</p>
-<h2 id="pack-init"><code>pack init</code><a class="headerlink" href="#pack-init" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>symbola pack init PACK_ID [--dir spec] [--author you@example.com]
+<h2 id="blueprint-init"><code>blueprint init</code><a class="headerlink" href="#blueprint-init" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>symbola blueprint init PACK_ID [--dir spec] [--author you@example.com]
 </span></code></pre></div>
-<p>Creates a pack folder (by default <code>spec/</code>, next to your code) with a manifest, <code>BRIEF.md</code>, a placeholder open obligation, a placeholder assumption, <code>components/</code> and <code>AGENTS.md</code>. Fails if the folder exists and is not empty. See <a href="../REGISTRY/#making-a-pack">Pack registry</a>.</p>
-<h2 id="pack-questions"><code>pack questions</code><a class="headerlink" href="#pack-questions" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>symbola pack questions [PATH] [--json]
+<p>Creates a Blueprint folder (by default <code>spec/</code>, next to your code) with a manifest, <code>BRIEF.md</code>, a placeholder open obligation, a placeholder assumption, <code>components/</code> and <code>AGENTS.md</code>. Fails if the folder exists and is not empty. See <a href="../REGISTRY/#making-a-blueprint">Blueprint registry</a>.</p>
+<h2 id="blueprint-questions"><code>blueprint questions</code><a class="headerlink" href="#blueprint-questions" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>symbola blueprint questions [PATH] [--json]
 </span></code></pre></div>
-<p>Lists the questions in <code>PATH/.symbolon/questions.toml</code> that have no obligation yet, with their choices and the recommended one. For writing a pack before any code; see <a href="../REGISTRY/#deciding-before-building">Deciding before building</a>.</p>
-<h2 id="pack-answer"><code>pack answer</code><a class="headerlink" href="#pack-answer" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>symbola pack answer PATH QUESTION_ID CHOICE
+<p>Lists the questions in <code>PATH/.symbolon/questions.toml</code> that have no obligation yet, with their choices and the recommended one. For writing a Blueprint before any code; see <a href="../REGISTRY/#deciding-before-building">Deciding before building</a>.</p>
+<h2 id="blueprint-answer"><code>blueprint answer</code><a class="headerlink" href="#blueprint-answer" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>symbola blueprint answer PATH QUESTION_ID CHOICE
 </span></code></pre></div>
-<p>Records the publisher's answer to a question as an obligation. <code>CHOICE</code> is a choice key (<code>decided</code>), <code>default</code> (the recommended choice, as <code>default</code>) or <code>open</code> (no check). For a question about a component it appends the chosen outcome to that component's <code>examples.jsonl</code>, names that line as the obligation's check and updates the component's digest in the manifest; a question with no component becomes an <code>unchecked</code> obligation. The first answer replaces <code>pack init</code>'s placeholder. An answered question is refused; remove its obligation and example line to answer again.</p>
+<p>Records the publisher's answer to a question as an obligation. <code>CHOICE</code> is a choice key (<code>decided</code>), <code>default</code> (the recommended choice, as <code>default</code>) or <code>open</code> (no check). For a question about a component it appends the chosen outcome to that component's <code>examples.jsonl</code>, names that line as the obligation's check and updates the component's digest in the manifest; a question with no component becomes an <code>unchecked</code> obligation. The first answer replaces <code>blueprint init</code>'s placeholder. An answered question is refused; remove its obligation and example line to answer again.</p>
+<h2 id="blueprint-review"><code>blueprint review</code><a class="headerlink" href="#blueprint-review" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>symbola blueprint review [PATH] [--json]
+</span></code></pre></div>
+<p>Lists what people still have to settle in a Blueprint, typically after <code>extract</code>: the unanswered questions (answer with <code>blueprint answer</code>), the <code>default</code> obligations to confirm (with <code>blueprint confirm</code>), and the <code>open</code> ones left to builders. It points to <code>REVIEW.md</code> next to <code>versions/</code> when there is one, and lists the cuts <code>blueprint trim</code> proposed that nobody has approved or rejected yet.</p>
+<h2 id="blueprint-confirm"><code>blueprint confirm</code><a class="headerlink" href="#blueprint-confirm" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>symbola blueprint confirm PATH OBLIGATION_ID [--open]
+</span></code></pre></div>
+<p>Settles a <code>default</code> obligation after review: it becomes <code>decided</code>, or with <code>--open</code> it is left to builders and its checks are dropped. To change what it says instead, edit <code>obligations.toml</code> or turn it into a question.</p>
+<h2 id="blueprint-trim"><code>blueprint trim</code><a class="headerlink" href="#blueprint-trim" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>symbola blueprint trim [PATH] [--deep [--agent CMD]]
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>symbola blueprint trim PATH --cut ID ... --keep ID ...
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>symbola blueprint trim PATH --apply [--out FOLDER]
+</span></code></pre></div>
+<p>Slims a Blueprint so it is simpler to build from, and removes nothing the publisher has not approved.</p>
+<ol>
+<li><strong>Propose.</strong> With no options it lists likely cuts and writes them to <code>PATH/.symbolon/trim.toml</code>, which never ships. Its screens run no agent and no contract code: an example line with the same input and result as an earlier one; an obligation whose statement and checks another obligation already holds; a sentence of <code>PRODUCT.md</code> or of a component's description that restates an obligation. Obligations from <code>replication</code> or <code>counterexample</code> (builders disagreed on them) are never proposed. <code>--deep</code> adds one run of your coding agent, which reads a copy of the Blueprint and proposes more (presentation details, prose that examples already pin); each of its proposals is checked before it is listed. It also reports the Blueprint against the size budget <code>extract</code> drafts to (80 obligations, 2,500 words of <code>PRODUCT.md</code>). Running it again keeps every decision already made.</li>
+<li><strong>Review.</strong> The undecided cuts also show in <code>blueprint review</code>, with the exact text that would go and why. <code>--cut ID</code> approves one, <code>--keep ID</code> rejects it; you can also set <code>decision</code> in the file.</li>
+<li><strong>Apply.</strong> <code>--apply</code> removes the cuts marked <code>cut</code>, and only those. Cutting an obligation also removes the examples and properties no other obligation uses; example references are renumbered (a duplicate's references move to the line that stays) and component digests are synced. The result must pass <code>blueprint validate</code>, or nothing is written. A released version is frozen, so trim it into a copy with <code>--out</code> and release that. <code>trim.toml</code> keeps the record of what was cut. Before release, one <code>replicate</code> build is a cheap check that nothing load-bearing went.</li>
+</ol>
 <h2 id="site-build"><code>site build</code><a class="headerlink" href="#site-build" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>symbola site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>symbola site build [REGISTRY=packs] [--out site-registry] [--base-url URL] [--private-out DIR --store-url URL]
 </span></code></pre></div>
-<p>Validates the latest version of every pack under <code>REGISTRY</code> and writes <code>index.json</code>, <code>llms.txt</code>, and each pack's tarball, sha256, <code>pack.md</code> and <code>parts/</code>, <code>llms.txt</code>, raw files, and <code>evidence.json</code> with every attestation checked. A priced pack's tarball goes to <code>--private-out</code> for the store instead of the public site. Fails if any pack is invalid or contains holdout files, or is priced without a store. See <a href="../REGISTRY/#building-the-site">Pack registry</a>.</p>
+<p>Validates the latest version of every Blueprint under <code>REGISTRY</code> and writes <code>index.json</code>, <code>llms.txt</code>, and each Blueprint's tarball, sha256, <code>pack.md</code> and <code>parts/</code>, <code>llms.txt</code>, raw files, and <code>evidence.json</code> with every attestation checked. A priced Blueprint's tarball goes to <code>--private-out</code> for the store instead of the public site. Fails if any Blueprint is invalid or contains holdout files, or is priced without a store. See <a href="../REGISTRY/#building-the-site">Blueprint registry</a>.</p>
 <h2 id="pull"><code>pull</code><a class="headerlink" href="#pull" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>symbola pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>symbola pull PACK_ID [--registry URL-or-folder] [--dest DIR] [--token LICENSE] [--digest DIGEST]
 </span></code></pre></div>
-<p>Downloads the latest version of a pack, checks the tarball's sha256 and the unpacked pack's digest against the registry, then unpacks it into <code>DEST</code> (default <code>./&lt;name&gt;</code>) and prints the commands to start building. <code>PACK_ID</code> can also be the pack's page link, such as <code>https://symbola.sh/packs/acme/invoice-desk/</code>; the registry is then the site that serves it. A priced pack is downloaded from the store with <code>--token</code> (or <code>$SYMBOLON_LICENSE</code>). <code>--digest</code> pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See <a href="../REGISTRY/#pulling-a-pack">Pack registry</a>.</p>
+<p>Downloads the latest version of a Blueprint, checks the tarball's sha256 and the unpacked Blueprint's digest against the registry, then unpacks it into <code>DEST</code> (default <code>./&lt;name&gt;</code>) and prints the commands to start building. <code>PACK_ID</code> can also be the Blueprint's page link, such as <code>https://symbola.sh/packs/acme/invoice-desk/</code>; the registry is then the site that serves it. A priced Blueprint is downloaded from the store with <code>--token</code> (or <code>$SYMBOLON_LICENSE</code>). <code>--digest</code> pulls an older version instead, if an attestation names it, so the attestation can be re-checked. See <a href="../REGISTRY/#pulling-a-blueprint">Blueprint registry</a>.</p>
 <h2 id="site-check"><code>site check</code><a class="headerlink" href="#site-check" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>symbola site check [REGISTRY=packs]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>symbola site check [REGISTRY=packs]
 </span></code></pre></div>
-<p>Builds the registry in a temporary folder, so every latest version must validate, and checks that every version in a pack's <code>digests.txt</code> still has its recorded digest. Prints a warning for packs without a <code>digests.txt</code>. See <a href="../REGISTRY/#submission-checks">Pack registry</a>.</p>
+<p>Builds the registry in a temporary folder, so every latest version must validate, and checks that every version in a Blueprint's <code>digests.txt</code> still has its recorded digest. Prints a warning for Blueprints without a <code>digests.txt</code>. See <a href="../REGISTRY/#submission-checks">Blueprint registry</a>.</p>
 <h2 id="release"><code>release</code><a class="headerlink" href="#release" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>symbola release [SPEC=spec] --registry PACKS
+<div class="language-text highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>symbola release [SPEC=spec] --registry PACKS
 </span></code></pre></div>
-<p>Validates <code>SPEC</code>, writes it to <code>PACKS/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code> as the next version, and records its digest in <code>digests.txt</code>. Prints what changed since the previous version. Does nothing if the content is unchanged since the latest version. See <a href="../REGISTRY/#releasing">Pack registry</a>.</p>
+<p>Validates <code>SPEC</code>, writes it to <code>PACKS/&lt;owner&gt;/&lt;name&gt;/versions/&lt;n&gt;/</code> as the next version, and records its digest in <code>digests.txt</code>. Prints what changed since the previous version. Does nothing if the content is unchanged since the latest version. See <a href="../REGISTRY/#releasing">Blueprint registry</a>.</p>
 <h2 id="changes"><code>changes</code><a class="headerlink" href="#changes" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>symbola changes OLD NEW [-o changes.md] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>symbola changes OLD NEW [-o changes.md] [--json]
 </span></code></pre></div>
-<p>Lists what changed between two pack folders: decisions and assumptions added, removed or changed (by id, field by field), components whose contract changed and which files, and a diff of each top-level Markdown document. The site writes the same report for the latest version of every pack. See <a href="../REGISTRY/#upgrading-a-build">Pack registry</a>.</p>
+<p>Lists what changed between two Blueprint folders: decisions and assumptions added, removed or changed (by id, field by field), components whose contract changed and which files, and a diff of each top-level Markdown document. The site writes the same report for the latest version of every pack. See <a href="../REGISTRY/#upgrading-a-build">Blueprint registry</a>.</p>
 <h2 id="upgrade"><code>upgrade</code><a class="headerlink" href="#upgrade" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>symbola upgrade [SPEC=spec] [--dest SPEC.new] [--registry URL-or-folder] [--impl impl] [--overrides overrides.toml] [--report UPGRADE.md]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>symbola upgrade [SPEC=spec] [--dest SPEC.new] [--registry URL-or-folder] [--impl impl] [--overrides overrides.toml] [--report UPGRADE.md]
 </span></code></pre></div>
-<p>For a build made from an earlier version of a pack: pulls the latest version into <code>DEST</code>, compares it with <code>SPEC</code>, and writes <code>REPORT</code> with the changes, the commands to re-check and re-pin each changed component, and steps for the agent. Decisions listed in <code>--overrides</code> (the build's own departures, by decision id) are marked, with a warning when the new version changes one. Prints "up to date" and removes <code>DEST</code> when there is nothing new. See <a href="../REGISTRY/#upgrading-a-build">Pack registry</a>.</p>
+<p>For a build made from an earlier version of a Blueprint: pulls the latest version into <code>DEST</code>, compares it with <code>SPEC</code>, and writes <code>REPORT</code> with the changes, the commands to re-check and re-pin each changed component, and steps for the agent. Decisions listed in <code>--overrides</code> (the build's own departures, by decision id) are marked, with a warning when the new version changes one. Prints "up to date" and removes <code>DEST</code> when there is nothing new. See <a href="../REGISTRY/#upgrading-a-build">Blueprint registry</a>.</p>
 
 
 
@@ -2006,7 +2113,7 @@ the implementation's digest.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../guides/replicating-a-pack/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Replicating a pack">
+          <a href="../guides/replicating-a-pack/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Replicating a Blueprint">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
@@ -2016,7 +2123,7 @@ the implementation's digest.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Replicating a pack
+                Replicating a Blueprint
               </div>
             </div>
           </a>
