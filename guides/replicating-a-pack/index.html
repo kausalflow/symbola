@@ -28,7 +28,7 @@
     
     
       
-        <title>Replicating a pack - Symbola</title>
+        <title>Replicating a Blueprint - Symbola</title>
       
     
     
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Replicating a pack
+              Replicating a Blueprint
             
           </span>
         </div>
@@ -450,7 +450,7 @@
   <span class="md-ellipsis">
     
   
-  Extracting a pack
+  Extracting a Blueprint
 
     
   </span>
@@ -486,7 +486,7 @@
   <span class="md-ellipsis">
     
   
-  Replicating a pack
+  Replicating a Blueprint
 
     
   </span>
@@ -503,7 +503,7 @@
   <span class="md-ellipsis">
     
   
-  Replicating a pack
+  Replicating a Blueprint
 
     
   </span>
@@ -747,7 +747,7 @@
   <span class="md-ellipsis">
     
   
-  Spec pack format
+  Blueprint format
 
     
   </span>
@@ -774,7 +774,7 @@
   <span class="md-ellipsis">
     
   
-  Pack registry
+  Blueprint registry
 
     
   </span>
@@ -1112,10 +1112,10 @@
   
 
 
-<h1 id="replicating-a-pack">Replicating a pack<a class="headerlink" href="#replicating-a-pack" title="Permanent link">&para;</a></h1>
-<p>A pack is good enough when independent builders, given only the pack, make
+<h1 id="replicating-a-blueprint">Replicating a Blueprint<a class="headerlink" href="#replicating-a-blueprint" title="Permanent link">&para;</a></h1>
+<p>A Blueprint is good enough when independent builders, given only the Blueprint, make
 builds that pass it and behave the same. <code>symbola replicate</code> runs that test.
-It does not write code. It hands the pack to outside coding agents, such as
+It does not write code. It hands the Blueprint to outside coding agents, such as
 Claude Code, and then checks what they made, the way the lightkone pilots did by
 hand (design v0.5, section 5.3).</p>
 <h2 id="run-it">Run it<a class="headerlink" href="#run-it" title="Permanent link">&para;</a></h2>
@@ -1128,7 +1128,7 @@ hand (design v0.5, section 5.3).</p>
 </span></code></pre></div>
 <p>For each build, <code>replicate</code>:</p>
 <ol>
-<li>makes a work directory with the builder's copy of the pack in <code>pack/</code> (without
+<li>makes a work directory with the builder's copy of the Blueprint in <code>pack/</code> (without
    <code>reference/</code> or <code>mutants/</code>) and an empty <code>build/</code>;</li>
 <li>runs the agent there with a prompt that says which components to build into
    <code>build/&lt;component&gt;/</code>, how to check them with <code>symbola test</code>, and where to write
@@ -1148,7 +1148,7 @@ builds that passed, with <code>--reference</code> as the original product when t
 <code>claude-1</code>, <code>other-2</code> and <code>claude-3</code>. Different agent families make a better
 ensemble than one agent run three times, because they share fewer defaults.</p>
 <h2 id="prose-only-builds">Prose-only builds<a class="headerlink" href="#prose-only-builds" title="Permanent link">&para;</a></h2>
-<p><code>--prose-only N</code> gives the last N builds (named <code>&lt;agent&gt;-&lt;n&gt;-prose</code>) the pack without
+<p><code>--prose-only N</code> gives the last N builds (named <code>&lt;agent&gt;-&lt;n&gt;-prose</code>) the Blueprint without
 <code>examples.jsonl</code> or <code>properties.py</code>; they are still judged by the full spec. A component
 that fails only prose-only has a rule its description does not carry: fix the description.</p>
 <h2 id="which-agent-runs">Which agent runs<a class="headerlink" href="#which-agent-runs" title="Permanent link">&para;</a></h2>
@@ -1205,12 +1205,12 @@ run <code>replicate</code> on a machine or container that has no copy of the ori
 </tr>
 </tbody>
 </table>
-<p>A split on a point the pack marks <code>open</code> is allowed, but <code>diff</code> cannot trace an
+<p>A split on a point the Blueprint marks <code>open</code> is allowed, but <code>diff</code> cannot trace an
 input to an open obligation, since open obligations have no checks. The builders'
 <code>readings.toml</code> entries name the obligation they chose a reading for; the report's
 <code>readings</code> section shows where they chose differently.</p>
 <p>The run <strong>converges</strong> when every build passes every component and its holdout,
-and the builds agree on every input <code>diff</code> tried. Convergence shows the pack is
+and the builds agree on every input <code>diff</code> tried. Convergence shows the Blueprint is
 clear, not that it is right: builders can share a wrong default. The reference,
 the holdout and counterexamples cover that.</p>
 <p>The command exits 1 when a build fails a component or its holdout, or when
@@ -1254,7 +1254,7 @@ the holdout and counterexamples cover that.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../extracting-a-pack/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Extracting a pack">
+          <a href="../extracting-a-pack/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Extracting a Blueprint">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
@@ -1264,7 +1264,7 @@ the holdout and counterexamples cover that.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Extracting a pack
+                Extracting a Blueprint
               </div>
             </div>
           </a>

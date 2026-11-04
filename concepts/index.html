@@ -403,10 +403,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#spec-pack" class="md-nav__link">
+  <a href="#blueprint" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Spec pack
+        Blueprint
       </span>
     </span>
   </a>
@@ -561,7 +561,7 @@
   <span class="md-ellipsis">
     
   
-  Extracting a pack
+  Extracting a Blueprint
 
     
   </span>
@@ -588,7 +588,7 @@
   <span class="md-ellipsis">
     
   
-  Replicating a pack
+  Replicating a Blueprint
 
     
   </span>
@@ -767,7 +767,7 @@
   <span class="md-ellipsis">
     
   
-  Spec pack format
+  Blueprint format
 
     
   </span>
@@ -794,7 +794,7 @@
   <span class="md-ellipsis">
     
   
-  Pack registry
+  Blueprint registry
 
     
   </span>
@@ -1045,10 +1045,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#spec-pack" class="md-nav__link">
+  <a href="#blueprint" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Spec pack
+        Blueprint
       </span>
     </span>
   </a>
@@ -1151,16 +1151,16 @@
 <li><strong>Is it genuine?</strong> The signature verifies against the embedded public key.</li>
 <li><strong>Do I trust it?</strong> The key is one you accept, passed with <code>--trust</code>. Better still, <code>verify --rerun</code> reproduces the run locally.</li>
 </ul>
-<h2 id="spec-pack">Spec pack<a class="headerlink" href="#spec-pack" title="Permanent link">&para;</a></h2>
-<p>A <strong>spec pack</strong> is a product-level contract, packaged so a builder can rebuild the product in their own stack. It holds:</p>
+<h2 id="blueprint">Blueprint<a class="headerlink" href="#blueprint" title="Permanent link">&para;</a></h2>
+<p>A <strong>Blueprint</strong> is a product-level contract, packaged so a builder can rebuild the product in their own stack. It holds:</p>
 <ul>
 <li><code>BRIEF.md</code>: purpose, non-goals, priorities, and who resolves gaps.</li>
-<li><code>PRODUCT.md</code> (optional): the whole product a build delivers, its shape, surfaces and flows. A pack with it is a product pack, built as the product with the components as its core.</li>
+<li><code>PRODUCT.md</code> (optional): the whole product a build delivers, its shape, surfaces and flows. A Blueprint with it is a product Blueprint, built as the product with the components as its core.</li>
 <li><code>assumptions/</code>: facts about the world a builder may rely on.</li>
 <li><code>obligations.toml</code>: the decisions a build must keep, each <code>decided</code>, <code>default</code> or <code>open</code>, and each tied to the checks that pin it down.</li>
 <li><code>components/</code>: ordinary capability contracts.</li>
 </ul>
-<p>Packs are meant to be minimal. They don't spell out what any good builder would do anyway; they hold the points where good builders would choose differently and the publisher would reject one choice. Most obligations are found by <strong>replication</strong>: give the pack to independent builders, compare their builds, and turn each disagreement into an obligation with a check. The <a href="../lightkone-pilot/">lightkone pilot</a> is the first worked example.</p>
+<p>Blueprints are meant to be minimal. They don't spell out what any good builder would do anyway; they hold the points where good builders would choose differently and the publisher would reject one choice. Most obligations are found by <strong>replication</strong>: give the Blueprint to independent builders, compare their builds, and turn each disagreement into an obligation with a check. The <a href="../lightkone-pilot/">lightkone pilot</a> is the first worked example.</p>
 <h2 id="how-they-fit">How they fit<a class="headerlink" href="#how-they-fit" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>flowchart LR
   P[Spec pack] --&gt;|lists by digest| C[Contract]

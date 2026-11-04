@@ -448,7 +448,7 @@
   <span class="md-ellipsis">
     
   
-  Extracting a pack
+  Extracting a Blueprint
 
     
   </span>
@@ -475,7 +475,7 @@
   <span class="md-ellipsis">
     
   
-  Replicating a pack
+  Replicating a Blueprint
 
     
   </span>
@@ -853,7 +853,7 @@
   <span class="md-ellipsis">
     
   
-  Spec pack format
+  Blueprint format
 
     
   </span>
@@ -880,7 +880,7 @@
   <span class="md-ellipsis">
     
   
-  Pack registry
+  Blueprint registry
 
     
   </span>
@@ -1451,7 +1451,7 @@ and fails if any mutant passes. A survivor means one of two things:</p>
 <li><strong>The spec has a gap.</strong> Add an example or property that rejects the mutant.</li>
 <li><strong>The difference is acceptable.</strong> The mutant is equivalent under the contract,
   or the behaviour is deliberately left open. Say so in the mutant:
-  <code>SURVIVES = "Equivalent: float drift stays within float_rel_tol"</code>. When a pack
+  <code>SURVIVES = "Equivalent: float drift stays within float_rel_tol"</code>. When a Blueprint
   leaves the behaviour open, name the <code>open</code> obligation.</li>
 </ul>
 <p><code>validate</code> also fails if a mutant is marked <code>SURVIVES</code> but is killed, if it has no

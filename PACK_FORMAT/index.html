@@ -28,7 +28,7 @@
     
     
       
-        <title>Spec pack format - Symbola</title>
+        <title>Blueprint format - Symbola</title>
       
     
     
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Spec pack format
+              Blueprint format
             
           </span>
         </div>
@@ -448,7 +448,7 @@
   <span class="md-ellipsis">
     
   
-  Extracting a pack
+  Extracting a Blueprint
 
     
   </span>
@@ -475,7 +475,7 @@
   <span class="md-ellipsis">
     
   
-  Replicating a pack
+  Replicating a Blueprint
 
     
   </span>
@@ -665,7 +665,7 @@
   <span class="md-ellipsis">
     
   
-  Spec pack format
+  Blueprint format
 
     
   </span>
@@ -682,7 +682,7 @@
   <span class="md-ellipsis">
     
   
-  Spec pack format
+  Blueprint format
 
     
   </span>
@@ -708,10 +708,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-a-pack-specifies" class="md-nav__link">
+  <a href="#what-a-blueprint-specifies" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        What a pack specifies
+        What a Blueprint specifies
       </span>
     </span>
   </a>
@@ -813,10 +813,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-symbola-pack-validate-checks" class="md-nav__link">
+  <a href="#what-symbola-blueprint-validate-checks" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        What <code>symbola pack validate</code> checks
+        What <code>symbola blueprint validate</code> checks
       </span>
     </span>
   </a>
@@ -846,7 +846,7 @@
   <span class="md-ellipsis">
     
   
-  Pack registry
+  Blueprint registry
 
     
   </span>
@@ -1053,10 +1053,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-a-pack-specifies" class="md-nav__link">
+  <a href="#what-a-blueprint-specifies" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        What a pack specifies
+        What a Blueprint specifies
       </span>
     </span>
   </a>
@@ -1158,10 +1158,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-symbola-pack-validate-checks" class="md-nav__link">
+  <a href="#what-symbola-blueprint-validate-checks" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        What <code>symbola pack validate</code> checks
+        What <code>symbola blueprint validate</code> checks
       </span>
     </span>
   </a>
@@ -1258,17 +1258,17 @@
   
 
 
-<h1 id="symbola-pack-format-v1">Symbola pack format, v1<a class="headerlink" href="#symbola-pack-format-v1" title="Permanent link">&para;</a></h1>
-<p>A <strong>spec pack</strong> is a product contract packaged for building: what the product is
+<h1 id="symbola-blueprint-format-v1">Symbola Blueprint format, v1<a class="headerlink" href="#symbola-blueprint-format-v1" title="Permanent link">&para;</a></h1>
+<p>A <strong>Blueprint</strong> is a product contract packaged for building: what the product is
 for, what may be assumed about the world, and the decisions a builder must keep,
 each tied to the checks that pin it down. Its components are ordinary capability
 contracts (<a href="../CONTRACT_FORMAT/">CONTRACT_FORMAT.md</a>).</p>
-<p>A pack is meant to be <strong>minimal</strong>. AI builders fill gaps well, so a pack does not
+<p>A Blueprint is meant to be <strong>minimal</strong>. AI builders fill gaps well, so a Blueprint does not
 spell out what any good builder would do anyway. It holds the points where good
 builders would choose differently and the publisher would reject one choice, the
 facts about the world no builder can infer, and a check for each. See design v0.5,
 section 4.</p>
-<h2 id="what-a-pack-specifies">What a pack specifies<a class="headerlink" href="#what-a-pack-specifies" title="Permanent link">&para;</a></h2>
+<h2 id="what-a-blueprint-specifies">What a Blueprint specifies<a class="headerlink" href="#what-a-blueprint-specifies" title="Permanent link">&para;</a></h2>
 <p>What the product does at the surfaces people use (API, file formats, command line,
 results), not how it is built. Drive the product as a user does rather than through
 internal seams; check properties rather than exact output unless the exact output is
@@ -1284,18 +1284,18 @@ the product; leave codebase-only choices to the codebase's own guidance.</p>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  AGENTS.md             short guide for coding agents
 </span></code></pre></div>
 <h2 id="selling-listing">Selling: <code>[listing]</code><a class="headerlink" href="#selling-listing" title="Permanent link">&para;</a></h2>
-<p>An optional table in <code>symbolon-pack.toml</code> prices the pack:</p>
+<p>An optional table in <code>symbolon-pack.toml</code> prices the Blueprint:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[listing]</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">price</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1900</span><span class="w">        </span><span class="c1"># minor units: 19.00</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">currency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"eur"</span><span class="w">    </span><span class="c1"># lowercase ISO 4217</span>
 </span></code></pre></div>
-<p>See <a href="../REGISTRY/#selling-a-pack">Pack registry</a>.</p>
+<p>See <a href="../REGISTRY/#selling-a-blueprint">Blueprint registry</a>.</p>
 <h2 id="briefmd"><code>BRIEF.md</code><a class="headerlink" href="#briefmd" title="Permanent link">&para;</a></h2>
 <p>Prose for people and agents. It must have these headings (any level, any case):</p>
 <ul>
 <li><strong>Non-goals</strong>: what the product deliberately does not do.</li>
 <li><strong>Priorities</strong>: the order in which goals win when they conflict.</li>
-<li><strong>Who resolves gaps</strong>: who answers questions the pack does not settle.</li>
+<li><strong>Who resolves gaps</strong>: who answers questions the Blueprint does not settle.</li>
 </ul>
 <h2 id="productmd"><code>PRODUCT.md</code><a class="headerlink" href="#productmd" title="Permanent link">&para;</a></h2>
 <p>The components are the parts of a product whose behaviour must come out exactly;
@@ -1312,12 +1312,12 @@ people and agents. It must have these headings (any level, any case):</p>
 </ul>
 <p>Optional headings such as <strong>Interfaces</strong> (outside services, plugin or storage
 interfaces) and <strong>Order</strong> (what to build first when a build cannot do it all)
-help. Like the rest of the pack it is minimal: what a good builder could not
+help. Like the rest of the Blueprint it is minimal: what a good builder could not
 guess, not layout or styling. Requirements in it that a build must keep and no
 check covers yet can be <code>unchecked</code> obligations.</p>
-<p>A pack with <code>PRODUCT.md</code> is a <strong>product pack</strong>: its build is the product, with the
+<p>A Blueprint with <code>PRODUCT.md</code> is a <strong>product Blueprint</strong>: its build is the product, with the
 components as its core, and it is done when every flow works and every component
-passes. A pack without it is a <strong>component library</strong>: its build is the components.
+passes. A Blueprint without it is a <strong>component library</strong>: its build is the components.
 <code>symbola replicate</code> always builds the components only, so it costs the same either way.</p>
 <h2 id="assumptionsnametoml"><code>assumptions/&lt;name&gt;.toml</code><a class="headerlink" href="#assumptionsnametoml" title="Permanent link">&para;</a></h2>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"K-single-writer"</span><span class="w">                 </span><span class="c1"># K-&lt;lowercase-name&gt;</span>
@@ -1326,7 +1326,7 @@ passes. A pack without it is a <strong>component library</strong>: its build is 
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">monitor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"none"</span><span class="w">                       </span><span class="c1"># how a deployment can watch it, or "none"</span>
 </span></code></pre></div>
 <p>Assumptions tell builders what they need not handle, and they scope the evidence:
-a build that passes the pack is correct under these assumptions.</p>
+a build that passes the Blueprint is correct under these assumptions.</p>
 <h2 id="obligationstoml"><code>obligations.toml</code><a class="headerlink" href="#obligationstoml" title="Permanent link">&para;</a></h2>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[[obligation]]</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"search.year-last-wins"</span><span class="w">           </span><span class="c1"># dot-separated lowercase words</span>
@@ -1370,7 +1370,7 @@ a build that passes the pack is correct under these assumptions.</p>
 <p>A required behaviour no example or property can express yet is <code>decided</code> (or
 <code>default</code>) with no checks and an <code>unchecked</code> reason naming the check it would need,
 such as <code>unchecked = "a session check: run to t1 then t2, compared with one run to t2"</code>.
-Builders treat it as required; <code>pack validate</code> counts it as debt and fails above
+Builders treat it as required; <code>blueprint validate</code> counts it as debt and fails above
 <code>[pack] max_unchecked</code> (a share of decided and default obligations, default 0.1).</p>
 <p>A check is <code>&lt;component&gt;#example:&lt;line&gt;</code> (a 1-based line of that component's
 <code>examples.jsonl</code>) or <code>&lt;component&gt;#&lt;test function&gt;</code> (a property in its
@@ -1378,7 +1378,7 @@ Builders treat it as required; <code>pack validate</code> counts it as debt and 
 requirements; a standalone contract can adopt the same <code>[[obligation]]</code> table later.</p>
 <p><code>source</code> records where the obligation's current binding came from. The share that
 came from <code>replication</code> (builders disagreed) rather than <code>extract</code> is a measure of
-how much a pack needed to say beyond the obvious, so an obligation that extraction
+how much a Blueprint needed to say beyond the obvious, so an obligation that extraction
 left open and replication then decided counts as <code>replication</code>.</p>
 <h3 id="exact-and-statistical-obligations">Exact and statistical obligations<a class="headerlink" href="#exact-and-statistical-obligations" title="Permanent link">&para;</a></h3>
 <p><code>exactness</code> says how an obligation constrains outputs, independently of its status:</p>
@@ -1408,7 +1408,7 @@ exactness. The terms follow the kit paper (<em>The Probabilistic Minimal Reprodu
 Kit</em>, section 5.4). How many runs and which false-alarm rate belong to the check,
 under <code>[spec.statistical]</code> in its contract, so <code>symbola test</code> can run a contract
 on its own.</p>
-<h2 id="what-symbola-pack-validate-checks">What <code>symbola pack validate</code> checks<a class="headerlink" href="#what-symbola-pack-validate-checks" title="Permanent link">&para;</a></h2>
+<h2 id="what-symbola-blueprint-validate-checks">What <code>symbola blueprint validate</code> checks<a class="headerlink" href="#what-symbola-blueprint-validate-checks" title="Permanent link">&para;</a></h2>
 <ol>
 <li><code>symbolon-pack.toml</code>, <code>BRIEF.md</code> and <code>obligations.toml</code> exist.</li>
 <li>Every component listed in the manifest is present with the same digest, and none is unlisted.
@@ -1482,13 +1482,13 @@ not run contract code; use <code>symbola validate</code> on each component for t
         
         
           
-          <a href="../REGISTRY/" class="md-footer__link md-footer__link--next" aria-label="Next: Pack registry">
+          <a href="../REGISTRY/" class="md-footer__link md-footer__link--next" aria-label="Next: Blueprint registry">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Pack registry
+                Blueprint registry
               </div>
             </div>
             <div class="md-footer__button md-icon">

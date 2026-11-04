@@ -28,7 +28,7 @@
     
     
       
-        <title>Extracting a pack - Symbola</title>
+        <title>Extracting a Blueprint - Symbola</title>
       
     
     
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Extracting a pack
+              Extracting a Blueprint
             
           </span>
         </div>
@@ -459,7 +459,7 @@
   <span class="md-ellipsis">
     
   
-  Extracting a pack
+  Extracting a Blueprint
 
     
   </span>
@@ -476,7 +476,7 @@
   <span class="md-ellipsis">
     
   
-  Extracting a pack
+  Extracting a Blueprint
 
     
   </span>
@@ -568,7 +568,7 @@
   <span class="md-ellipsis">
     
   
-  Replicating a pack
+  Replicating a Blueprint
 
     
   </span>
@@ -747,7 +747,7 @@
   <span class="md-ellipsis">
     
   
-  Spec pack format
+  Blueprint format
 
     
   </span>
@@ -774,7 +774,7 @@
   <span class="md-ellipsis">
     
   
-  Pack registry
+  Blueprint registry
 
     
   </span>
@@ -1112,21 +1112,21 @@
   
 
 
-<h1 id="extracting-a-pack">Extracting a pack<a class="headerlink" href="#extracting-a-pack" title="Permanent link">&para;</a></h1>
+<h1 id="extracting-a-blueprint">Extracting a Blueprint<a class="headerlink" href="#extracting-a-blueprint" title="Permanent link">&para;</a></h1>
 <p><code>symbola extract</code> turns a product you already built into a draft spec pack. It
 follows design v0.5, sections 5.1 and 5.2: an AI reads the product and drafts a
-minimal pack, and the original product is the oracle the draft must pass.</p>
+minimal Blueprint, and the original product is the oracle the draft must pass.</p>
 <p>The source code is optional. The agent can work from any mix of the code, documents
 about the product, and the running product, so an app whose code you can't hand over
 (closed source, lost, or in another team's hands) can still be extracted.</p>
 <p>Symbola does not read code or write software itself. It hands that to a coding
 agent you already use, then checks what the agent leaves behind.</p>
 <h2 id="run-it">Run it<a class="headerlink" href="#run-it" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbola<span class="w"> </span>extract<span class="w"> </span>~/code/lightkone<span class="w"> </span>--pack<span class="w"> </span>kausalflow/lightkone<span class="w"> </span><span class="se">\</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>symbola<span class="w"> </span>extract<span class="w"> </span>~/code/lightkone<span class="w"> </span>--blueprint<span class="w"> </span>kausalflow/lightkone<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--hint<span class="w"> </span><span class="s2">"Cover search, BibTeX import and export, and the library file."</span>
 </span></code></pre></div>
 <p>Without the code, point it at the documents and the running product instead:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbola<span class="w"> </span>extract<span class="w"> </span>--pack<span class="w"> </span>spikinglabs/aura<span class="w"> </span><span class="se">\</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>symbola<span class="w"> </span>extract<span class="w"> </span>--blueprint<span class="w"> </span>spikinglabs/aura<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--docs<span class="w"> </span>./aura-manual<span class="w"> </span>--docs<span class="w"> </span>https://example.com/aura/changelog<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--live<span class="w"> </span>https://emptymalei.github.io/aura2/<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>--hint<span class="w"> </span><span class="s2">"A test Google account for Drive sync: see ./test-account.txt"</span>
@@ -1144,7 +1144,7 @@ Symbola never changes. When it finishes you have:</p>
 <tbody>
 <tr>
 <td><code>versions/1/</code></td>
-<td>The draft pack: BRIEF, AGENTS, assumptions, obligations, component contracts</td>
+<td>The draft Blueprint: BRIEF, AGENTS, assumptions, obligations, component contracts</td>
 <td>yes</td>
 </tr>
 <tr>
@@ -1164,7 +1164,7 @@ Symbola never changes. When it finishes you have:</p>
 </tr>
 <tr>
 <td><code>versions/1/.symbolon/questions.toml</code></td>
-<td>Gaps no source settled, for you to answer with <code>symbola pack answer</code></td>
+<td>Gaps no source settled, for you to answer with <code>symbola blueprint answer</code></td>
 <td>no</td>
 </tr>
 <tr>
@@ -1178,7 +1178,7 @@ Symbola never changes. When it finishes you have:</p>
 <p>After each agent run, <code>extract</code> fills in the component digests in
 <code>symbolon-pack.toml</code> and checks:</p>
 <ol>
-<li><code>symbola pack validate</code> passes on the draft.</li>
+<li><code>symbola blueprint validate</code> passes on the draft.</li>
 <li><code>symbola validate</code> passes on every component.</li>
 <li>The original passes every component, through <code>oracle/&lt;name&gt;/</code> (skip with <code>--no-oracle</code>).
    Without source code an adapter is optional: one that drives the running product
@@ -1186,8 +1186,8 @@ Symbola never changes. When it finishes you have:</p>
    the product do.</li>
 <li><code>REVIEW.md</code> exists.</li>
 <li>Every obligation has evidence in <code>EVIDENCE.toml</code>, so none is a guess.</li>
-<li>The pack is within its budget: at most 80 obligations and 2,500 words of
-   <code>PRODUCT.md</code> by default. More sources should make a pack more accurate, not
+<li>The Blueprint is within its budget: at most 80 obligations and 2,500 words of
+   <code>PRODUCT.md</code> by default. More sources should make a Blueprint more accurate, not
    bigger; what the agent learned beyond the decisions stays in <code>EVIDENCE.toml</code>.</li>
 <li><code>questions.toml</code>, if the agent wrote one, is well-formed.</li>
 </ol>
@@ -1209,12 +1209,12 @@ the agent was not sure of is marked for people to review:</p>
 <tr>
 <td>a question in <code>questions.toml</code></td>
 <td>No source settled it and a wrong guess would matter</td>
-<td><code>symbola pack answer &lt;pack&gt; &lt;id&gt; &lt;choice&gt;</code></td>
+<td><code>symbola blueprint answer &lt;pack&gt; &lt;id&gt; &lt;choice&gt;</code></td>
 </tr>
 <tr>
 <td>a <code>default</code> obligation</td>
 <td>The sources lean one way; you confirm or reject</td>
-<td><code>symbola pack confirm &lt;pack&gt; &lt;id&gt;</code> (<code>--open</code> to leave it to builders)</td>
+<td><code>symbola blueprint confirm &lt;pack&gt; &lt;id&gt;</code> (<code>--open</code> to leave it to builders)</td>
 </tr>
 <tr>
 <td>an <code>open</code> obligation</td>
@@ -1224,21 +1224,21 @@ the agent was not sure of is marked for people to review:</p>
 <tr>
 <td>a line in <code>REVIEW.md</code></td>
 <td>Suspected bugs, sources that disagreed, what was not seen</td>
-<td>edit the pack</td>
+<td>edit the Blueprint</td>
 </tr>
 <tr>
-<td>a proposed cut from <code>symbola pack trim</code></td>
+<td>a proposed cut from <code>symbola blueprint trim</code></td>
 <td>Something a build likely does not need: a repeated example or obligation, prose an obligation already says</td>
-<td><code>symbola pack trim &lt;pack&gt; --cut &lt;id&gt;</code> or <code>--keep &lt;id&gt;</code>, then <code>--apply</code></td>
+<td><code>symbola blueprint trim &lt;pack&gt; --cut &lt;id&gt;</code> or <code>--keep &lt;id&gt;</code>, then <code>--apply</code></td>
 </tr>
 </tbody>
 </table>
-<p><code>symbola pack review &lt;pack&gt;</code> lists all of these in one place. Then let replication
-show what the pack still leaves undecided (<a href="../measuring-ambiguity/">Measuring ambiguity</a>).</p>
+<p><code>symbola blueprint review &lt;pack&gt;</code> lists all of these in one place. Then let replication
+show what the Blueprint still leaves undecided (<a href="../measuring-ambiguity/">Measuring ambiguity</a>).</p>
 <h2 id="without-the-code">Without the code<a class="headerlink" href="#without-the-code" title="Permanent link">&para;</a></h2>
 <p>From the outside, an agent gets the product layer well (screens, flows, formats,
 wording) and hidden rules poorly. In a blind test on Aura from its live site alone,
-the draft fully matched 12 of the 74 decisions of the pack made from source and
+the draft fully matched 12 of the 74 decisions of the Blueprint made from source and
 partly matched 23 more. Most misses were reachable: about 20 by probing edge cases,
 about 12 with a test account and an API key. So:</p>
 <ul>
@@ -1246,7 +1246,7 @@ about 12 with a test account and an API key. So:</p>
   exports. Changelogs and known-issue lists are rich in edge cases.</li>
 <li>Give it access in <code>--hint</code>: a test account, a sandbox key, seed data.</li>
 <li>Expect questions. What no source settles is asked, not guessed: answer each with
-  <code>symbola pack answer</code>.</li>
+  <code>symbola blueprint answer</code>.</li>
 </ul>
 <h2 id="choosing-the-agent">Choosing the agent<a class="headerlink" href="#choosing-the-agent" title="Permanent link">&para;</a></h2>
 <p>The agent is any command that reads a prompt on stdin, works in its current
@@ -1273,7 +1273,7 @@ shell, so a script is also the place for <code>$(...)</code> and pipes:</p>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="s">exec codex exec --full-auto "$(cat "$SYMBOLON_PROMPT_FILE")"</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="s">SH</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>chmod<span class="w"> </span>+x<span class="w"> </span>codex-agent.sh
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>symbola<span class="w"> </span>extract<span class="w"> </span>./product<span class="w"> </span>--pack<span class="w"> </span>acme/product<span class="w"> </span>--agent<span class="w"> </span>./codex-agent.sh
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>symbola<span class="w"> </span>extract<span class="w"> </span>./product<span class="w"> </span>--blueprint<span class="w"> </span>acme/product<span class="w"> </span>--agent<span class="w"> </span>./codex-agent.sh
 </span></code></pre></div>
 
 
@@ -1331,13 +1331,13 @@ shell, so a script is also the place for <code>$(...)</code> and pipes:</p>
         
         
           
-          <a href="../replicating-a-pack/" class="md-footer__link md-footer__link--next" aria-label="Next: Replicating a pack">
+          <a href="../replicating-a-pack/" class="md-footer__link md-footer__link--next" aria-label="Next: Replicating a Blueprint">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Replicating a pack
+                Replicating a Blueprint
               </div>
             </div>
             <div class="md-footer__button md-icon">

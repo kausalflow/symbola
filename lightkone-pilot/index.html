@@ -448,7 +448,7 @@
   <span class="md-ellipsis">
     
   
-  Extracting a pack
+  Extracting a Blueprint
 
     
   </span>
@@ -475,7 +475,7 @@
   <span class="md-ellipsis">
     
   
-  Replicating a pack
+  Replicating a Blueprint
 
     
   </span>
@@ -654,7 +654,7 @@
   <span class="md-ellipsis">
     
   
-  Spec pack format
+  Blueprint format
 
     
   </span>
@@ -681,7 +681,7 @@
   <span class="md-ellipsis">
     
   
-  Pack registry
+  Blueprint registry
 
     
   </span>
@@ -854,10 +854,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-the-pack-covers" class="md-nav__link">
+  <a href="#what-the-blueprint-covers" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        What the pack covers
+        What the Blueprint covers
       </span>
     </span>
   </a>
@@ -876,10 +876,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#results-milestone-4-replicate-over-the-whole-pack" class="md-nav__link">
+  <a href="#results-milestone-4-replicate-over-the-whole-blueprint" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Results (milestone 4: replicate over the whole pack)
+        Results (milestone 4: replicate over the whole Blueprint)
       </span>
     </span>
   </a>
@@ -1025,10 +1025,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-the-pack-covers" class="md-nav__link">
+  <a href="#what-the-blueprint-covers" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        What the pack covers
+        What the Blueprint covers
       </span>
     </span>
   </a>
@@ -1047,10 +1047,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#results-milestone-4-replicate-over-the-whole-pack" class="md-nav__link">
+  <a href="#results-milestone-4-replicate-over-the-whole-blueprint" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Results (milestone 4: replicate over the whole pack)
+        Results (milestone 4: replicate over the whole Blueprint)
       </span>
     </span>
   </a>
@@ -1197,7 +1197,7 @@
 
 
 <h1 id="lightkone-pilot">Lightkone pilot<a class="headerlink" href="#lightkone-pilot" title="Permanent link">&para;</a></h1>
-<p>The first spec pack built from a real product: lightkone, a static web app for keeping a personal library of research papers. The pack lives in <a href="https://github.com/kausalflow/symbola-registry">kausalflow/symbola-registry</a>, under <code>packs/kausalflow/lightkone/</code>.</p>
+<p>The first Blueprint built from a real product: lightkone, a static web app for keeping a personal library of research papers. The Blueprint lives in <a href="https://github.com/kausalflow/symbola-registry">kausalflow/symbola-registry</a>, under <code>packs/kausalflow/lightkone/</code>.</p>
 <table>
 <thead>
 <tr>
@@ -1209,7 +1209,7 @@
 <tbody>
 <tr>
 <td><code>versions/1/</code></td>
-<td>The pack, version 1: BRIEF, PRODUCT (the app), AGENTS, assumptions, obligations, and eight component contracts</td>
+<td>The Blueprint, version 1: BRIEF, PRODUCT (the app), AGENTS, assumptions, obligations, and eight component contracts</td>
 <td>yes</td>
 </tr>
 <tr>
@@ -1234,7 +1234,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="what-the-pack-covers">What the pack covers<a class="headerlink" href="#what-the-pack-covers" title="Permanent link">&para;</a></h2>
+<h2 id="what-the-blueprint-covers">What the Blueprint covers<a class="headerlink" href="#what-the-blueprint-covers" title="Permanent link">&para;</a></h2>
 <p><code>PRODUCT.md</code> describes the app a build delivers: its shape, files, screens, flows and interfaces, and the components each flow uses. The components are the app's core:</p>
 <table>
 <thead>
@@ -1278,10 +1278,10 @@
 </tr>
 </tbody>
 </table>
-<p><code>symbola pack validate packs/kausalflow/lightkone/versions/1</code> reports a product pack with 73 obligations (72 decided, 1 open, 5 of them unchecked app decisions) and 4 assumptions, and every one of the components' 360 checks traces to an obligation.</p>
+<p><code>symbola blueprint validate packs/kausalflow/lightkone/versions/1</code> reports a product Blueprint with 73 obligations (72 decided, 1 open, 5 of them unchecked app decisions) and 4 assumptions, and every one of the components' 360 checks traces to an obligation.</p>
 <h2 id="the-field-test-components-are-not-the-product">The field test: components are not the product<a class="headerlink" href="#the-field-test-components-are-not-the-product" title="Permanent link">&para;</a></h2>
-<p>On 2026-10-25 kausalflow asked a coding agent to build lightkone from the pack, as a user would. It ported all eight components faithfully and then wrapped them in a demo page that looked nothing like lightkone, because the pack described the app in one paragraph and said later versions would add the rest. Every earlier build had passed because it was asked for the components only. The fix is <code>PRODUCT.md</code> (<a href="../PACK_FORMAT/#productmd">pack format</a>): a pack with it is built as the product, and the build steps on its page say so.</p>
-<h2 id="results-milestone-4-replicate-over-the-whole-pack">Results (milestone 4: replicate over the whole pack)<a class="headerlink" href="#results-milestone-4-replicate-over-the-whole-pack" title="Permanent link">&para;</a></h2>
+<p>On 2026-10-25 kausalflow asked a coding agent to build lightkone from the Blueprint, as a user would. It ported all eight components faithfully and then wrapped them in a demo page that looked nothing like lightkone, because the Blueprint described the app in one paragraph and said later versions would add the rest. Every earlier build had passed because it was asked for the components only. The fix is <code>PRODUCT.md</code> (<a href="../PACK_FORMAT/#productmd">Blueprint format</a>): a Blueprint with it is built as the product, and the build steps on its page say so.</p>
+<h2 id="results-milestone-4-replicate-over-the-whole-blueprint">Results (milestone 4: replicate over the whole Blueprint)<a class="headerlink" href="#results-milestone-4-replicate-over-the-whole-blueprint" title="Permanent link">&para;</a></h2>
 <p><code>symbola replicate</code> gave all eight components to three Claude Code builds: Sonnet, Opus and Haiku. Lightkone was the reference and the holdout was on. All three builders wrote Python, and their logs show no reads outside the builder's copy. The builds took 11, 16 and 21 minutes and cost $1.76, $5.13 and $1.15 in agent time.</p>
 <p>Every build passed every component and every holdout: 24 of 24 on both. They still differ. <code>diff</code> found 27 splits, 15 of them in <code>bibtex-import</code>. Builders' probes found 12 of the 27. <code>bibtex-export</code> and <code>citation-key</code> converged.</p>
 <table>
@@ -1309,7 +1309,7 @@
 <td><strong>Lightkone's <code>tidy</code> crashes (TypeError) on a paper with no <code>authors</code></strong>, although the contract's <code>Input</code> accepts one. On two broken BibTeX inputs, lightkone keeps a stray <code>"</code> in a venue, or returns an entry from an unclosed <code>{{</code></td>
 </tr>
 <tr>
-<td>Allowed by the pack</td>
+<td>Allowed by the Blueprint</td>
 <td>1</td>
 <td><code>year:2.017e3</code>: the contract leaves number spellings other than digits and a fraction unspecified</td>
 </tr>
@@ -1321,8 +1321,8 @@
 </tbody>
 </table>
 <p>The row where all builds agree against lightkone is what replication alone cannot show: there is no disagreement among the builds to find. Only the reference shows it. The milestone 1 to 3 builds never reached the <code>tidy</code> crash, because no example has a paper without authors.</p>
-<p>The weaker builder needed more from the pack. Haiku's splits were on Unicode whitespace and DOI and page normalisation, points Sonnet and Opus got right from the description. Opus, the strongest model, had most of the <code>bibtex-import</code> and <code>library-merge</code> splits: it read more into the text than the examples pinned. A pack that converges for one builder may not converge for another (design v0.5, "minimal for whom").</p>
-<p>Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. The pack now lives in kausalflow/symbola-registry. The change is <a href="https://github.com/kausalflow/symbola-registry/pull/5">symbola-registry#5</a>. It records examples from lightkone and adds them to the obligations that missed these points:</p>
+<p>The weaker builder needed more from the pack. Haiku's splits were on Unicode whitespace and DOI and page normalisation, points Sonnet and Opus got right from the description. Opus, the strongest model, had most of the <code>bibtex-import</code> and <code>library-merge</code> splits: it read more into the text than the examples pinned. A Blueprint that converges for one builder may not converge for another (design v0.5, "minimal for whom").</p>
+<p>Kausalflow chose (2026-10-24) to pin lightkone's behaviour on the well-formed points and leave broken BibTeX for later. The Blueprint now lives in kausalflow/symbola-registry. The change is <a href="https://github.com/kausalflow/symbola-registry/pull/5">symbola-registry#5</a>. It records examples from lightkone and adds them to the obligations that missed these points:</p>
 <ul>
 <li><code>merge.sets</code>: a tag listed twice is kept once.</li>
 <li><code>filing.paperpile-layout</code>: U+FEFF is whitespace.</li>
@@ -1331,7 +1331,7 @@
 <li><code>import.draft-fields</code>: <code>annote</code> wins whenever the entry has one, even when it is empty, and pages keep their letters.</li>
 <li><code>file.exact-text</code>: numbers print as JavaScript prints them.</li>
 </ul>
-<p>Lightkone passes the five changed contracts and is re-attested on them by <code>runner-c</code>. The <code>tidy</code> crash is filed as <a href="https://github.com/kausalflow/lightkone/issues/54">kausalflow/lightkone#54</a>. The pack will record an example once lightkone is fixed.</p>
+<p>Lightkone passes the five changed contracts and is re-attested on them by <code>runner-c</code>. The <code>tidy</code> crash is filed as <a href="https://github.com/kausalflow/lightkone/issues/54">kausalflow/lightkone#54</a>. The Blueprint will record an example once lightkone is fixed.</p>
 <h2 id="results-milestone-3-the-first-replicate-runs">Results (milestone 3: the first <code>replicate</code> runs)<a class="headerlink" href="#results-milestone-3-the-first-replicate-runs" title="Permanent link">&para;</a></h2>
 <p><code>symbola replicate</code> handed <code>search-query</code> and <code>citation-key</code> to two Claude Code builds, one on Sonnet and one on Opus, with lightkone as the reference and the publisher's holdout. Each agent got only the builder's copy of <code>versions/1/</code>. Their logs show no reads outside it. Both chose Python. The runs cost $1.41 and $1.56 in agent time, and each took under eight minutes.</p>
 <table>
@@ -1454,7 +1454,7 @@
 <li><strong>Tightened and rebuilt.</strong> The contracts now state each rule, with 18 new examples recorded from lightkone. The Go builder revised from the new text alone (adding <code>golang.org/x/text</code> for collation) and passes. The differential test then found no disagreement on search-query within scope, and 11 in 2,000 heavily mutated BibTeX files, all deliberately broken input (unbalanced braces, a value starting with <code>#</code>); those are left for a later version.</li>
 <li><strong>Evidence.</strong> Runner A attested lightkone and the Go build on all eight contracts; runner B re-ran all sixteen in fresh containers with identical outcomes. The Python build's milestone 1 attestations are kept: they are for the earlier digests of search-query and bibtex-import.</li>
 </ol>
-<p>The pack now has 63 obligations, all decided. Four defaults that were lightkone bugs are fixed and decided: papers in the trash are left out of <code>library.bib</code>, and top-level keys of <code>library.json</code> that lightkone does not use are kept on save (lightkone#51); a user folder named in capitals (<code>ML</code>, <code>2019</code>) is no longer taken for a Paperpile author folder unless it is an author's surname, and blank DOIs no longer match each other in tidy (lightkone#52). On 2026-10-24 kausalflow settled the last five: an empty <code>journal</code> no longer hides the <code>booktitle</code> as the venue, and a <code>library.json</code> saved by a newer lightkone is refused rather than read as version 1 (lightkone#53); a mistyped <code>year:</code> filter still filters nothing, title sort keeps Unicode collation, and import keeps JavaScript's whitespace set.</p>
+<p>The Blueprint now has 63 obligations, all decided. Four defaults that were lightkone bugs are fixed and decided: papers in the trash are left out of <code>library.bib</code>, and top-level keys of <code>library.json</code> that lightkone does not use are kept on save (lightkone#51); a user folder named in capitals (<code>ML</code>, <code>2019</code>) is no longer taken for a Paperpile author folder unless it is an author's surname, and blank DOIs no longer match each other in tidy (lightkone#52). On 2026-10-24 kausalflow settled the last five: an empty <code>journal</code> no longer hides the <code>booktitle</code> as the venue, and a <code>library.json</code> saved by a newer lightkone is refused rather than read as version 1 (lightkone#53); a mistyped <code>year:</code> filter still filters nothing, title sort keeps Unicode collation, and import keeps JavaScript's whitespace set.</p>
 <p>Two Symbola bugs turned up and are fixed: examples containing U+2028 were split into two lines, and the container sandbox removed the execute bit, so no compiled implementation could run.</p>
 <h2 id="results-milestone-1">Results (milestone 1)<a class="headerlink" href="#results-milestone-1" title="Permanent link">&para;</a></h2>
 <table>
@@ -1500,17 +1500,17 @@
 <li><strong>Replication.</strong> An AI builder got only <code>versions/1/</code>, with lightkone's source and the oracle moved off the machine. It passed all three contracts, then passed the holdout: a different property seed, 5× the generated cases, and 18 examples it never saw.</li>
 <li><strong>Divergence found.</strong> Comparing the two builds on the builder's listed ambiguities found one real gap in how repeated <code>year:</code> filters combine. The contract now states the rule, with a property and two examples for it, and both builds pass it.</li>
 <li><strong>Reproduction.</strong> A second runner key re-ran all six attestations in a fresh container, and every check had the same outcome.</li>
-<li><strong>Kill rate.</strong> Plausible wrong versions of the rebuild live in <code>examples/mutants/lightkone/</code>, outside the pack so the component digests stay put. search-query rejects 8 of 9; the one survivor ignores a malformed <code>year:</code> term, which is exactly what the <code>open</code> obligation <code>search.year-malformed</code> leaves to the builder. bibtex-export rejects 7 of 7. bibtex-import rejects 7 of 8; the survivor reads a two-digit year like <code>99</code> as a number, which the description rules out but no check covers, so it is a gap for the next pack version.</li>
+<li><strong>Kill rate.</strong> Plausible wrong versions of the rebuild live in <code>examples/mutants/lightkone/</code>, outside the Blueprint so the component digests stay put. search-query rejects 8 of 9; the one survivor ignores a malformed <code>year:</code> term, which is exactly what the <code>open</code> obligation <code>search.year-malformed</code> leaves to the builder. bibtex-export rejects 7 of 7. bibtex-import rejects 7 of 8; the survivor reads a two-digit year like <code>99</code> as a number, which the description rules out but no check covers, so it is a gap for the next Blueprint version.</li>
 </ol>
 <h2 id="measuring-the-remaining-ambiguity">Measuring the remaining ambiguity<a class="headerlink" href="#measuring-the-remaining-ambiguity" title="Permanent link">&para;</a></h2>
 <p><code>symbola diff</code> turns the milestone 2 differential test into a command that works on any number of builds (see <a href="../guides/measuring-ambiguity/">Measuring ambiguity</a>). Run on <code>search-query</code> with lightkone as the reference and both rebuilds, it puts the Go build at distance 0 from lightkone. It finds the two rules milestone 2 tightened, <code>search.year-malformed</code> and <code>search.title-sort-other</code>, as the splits between the milestone 1 Python build and the other two. On <code>bibtex-import</code>, after the importer fix in kausalflow/lightkone#50, it finds no disagreement between lightkone and the Go build.</p>
 <h2 id="re-running-the-evidence">Re-running the evidence<a class="headerlink" href="#re-running-the-evidence" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/kausalflow/symbola-registry<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>symbola-registry/packs/kausalflow/lightkone
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>symbola<span class="w"> </span>pack<span class="w"> </span>validate<span class="w"> </span><span class="m">1</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>symbola<span class="w"> </span>blueprint<span class="w"> </span>validate<span class="w"> </span><span class="m">1</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>symbola<span class="w"> </span>verify<span class="w"> </span>attestations/search-query.go-1.json<span class="w"> </span>--trust<span class="w"> </span>attestations/runner-a.pub<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--contract<span class="w"> </span>versions/1/components/search-query/versions/1<span class="w"> </span>--impl<span class="w"> </span>rebuilds/go-1/search-query<span class="w"> </span>--rerun
 </span></code></pre></div>
-<p>The pack's own <code>README.md</code> has the full notes, including the three importer bugs the contracts found, now fixed in lightkone#50.</p>
+<p>The Blueprint's own <code>README.md</code> has the full notes, including the three importer bugs the contracts found, now fixed in lightkone#50.</p>
 
 
 
