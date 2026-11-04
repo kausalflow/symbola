@@ -361,7 +361,7 @@ def replicate(pack_dir: Path, run_dir: Path, agents: list[AgentCommand], opts: O
     pack_dir = Path(pack_dir).resolve()
     run_dir = Path(run_dir).resolve()
     if not (pack_dir / PACK_MANIFEST_FILE).is_file():
-        raise ReplicateError(f"{pack_dir} has no {PACK_MANIFEST_FILE}; give the pack's version directory")
+        raise ReplicateError(f"{pack_dir} has no {PACK_MANIFEST_FILE}; give the Blueprint's version directory")
     if run_dir.exists():
         raise ReplicateError(f"{run_dir} already exists")
     if opts.builds < 1:
@@ -376,12 +376,12 @@ def replicate(pack_dir: Path, run_dir: Path, agents: list[AgentCommand], opts: O
     checked = validate_pack(pack_dir)
     if not checked.ok:
         problems = "; ".join(f"{c.name}: {c.detail}" for c in checked.checks if not c.ok)
-        raise ReplicateError(f"the pack is not valid ({problems}); run `symbola pack validate`")
+        raise ReplicateError(f"the Blueprint is not valid ({problems}); run `symbola blueprint validate`")
     available = _component_dirs(pack_dir)
     wanted = opts.components or list(available)
     unknown = [c for c in wanted if c not in available]
     if unknown:
-        raise ReplicateError(f"no component named {', '.join(unknown)}; the pack has {', '.join(available)}")
+        raise ReplicateError(f"no component named {', '.join(unknown)}; the Blueprint has {', '.join(available)}")
     components = {c: available[c] for c in wanted}
     if opts.reference is not None:
         missing = [c for c in components if not (Path(opts.reference) / c).exists()]

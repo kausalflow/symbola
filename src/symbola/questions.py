@@ -4,7 +4,7 @@ A publisher with no product yet makes a pack by answering questions (design:
 decide-first publishing). Their coding agent writes the questions to
 `<pack>/.symbolon/questions.toml`, one per point where good builders would choose
 differently, each with a concrete input and two or three outcomes. The publisher
-picks; `symbola pack answer` turns the pick into an obligation and the example
+picks; `symbola blueprint answer` turns the pick into an obligation and the example
 line that checks it, so every decision lands in pack format whatever the agent
 does. The dot folder keeps the questions out of the published pack.
 
@@ -204,7 +204,7 @@ def answer(pack_dir: Path, question_id: str, pick: str) -> dict:
     path = pack_dir / OBLIGATIONS_FILE
     text = path.read_text() if path.is_file() else ""
     if existing == [PLACEHOLDER_ID]:
-        # The placeholder `pack init` writes: the first real decision replaces it.
+        # The placeholder `blueprint init` writes: the first real decision replaces it.
         text = text[:text.find("[[obligation]]")]
     path.write_text(text.rstrip("\n") + ("\n\n" if text.strip() else "") + _toml(fields))
     if q.component:
@@ -217,7 +217,7 @@ _BLOCK_RE = re.compile(r"^\[\[obligation\]\][^\n]*\n", re.M)
 
 def review(pack_dir: Path) -> dict:
     """What people still have to settle: unanswered questions, `default` obligations, `open` ones,
-    and proposed cuts from `symbola pack trim` that nobody has approved or rejected yet."""
+    and proposed cuts from `symbola blueprint trim` that nobody has approved or rejected yet."""
     from .trim import TRIM_FILE, undecided  # trim imports pack, which this module also needs
     pack_dir = Path(pack_dir)
     path = pack_dir / OBLIGATIONS_FILE

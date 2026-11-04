@@ -32,7 +32,7 @@ from .sandbox import SandboxError, select
 from .scaffold import scaffold
 from .validate import WorkerError, check_impl, mutants_report, regenerate_schema, run_worker, validate
 
-app = typer.Typer(no_args_is_help=True, add_completion=False, help="Trustable contracts between agents.")
+app = typer.Typer(no_args_is_help=True, add_completion=False, help="Software, shipped as blueprints: make, publish and build Symbola Blueprints.")
 
 OK = typer.style("✓", fg=typer.colors.GREEN, bold=True)
 FAIL = typer.style("✗", fg=typer.colors.RED, bold=True)
@@ -327,7 +327,7 @@ def _print_diff(r: dict, realistic: dict | None, top: int) -> None:
         groups = " | ".join(", ".join(g) for g in s["groups"])
         tiers = ", ".join(s["tiers"])
         typer.echo(f"{i}. {groups}   {share}{s['inputs']} inputs, {tiers}")
-        traced = ", ".join(s["obligations"]) or "no obligation: a gap in the pack"
+        traced = ", ".join(s["obligations"]) or "no obligation: a gap in the Blueprint"
         typer.echo(f"   traces to  {traced}")
         typer.echo(f"   witness    {_short(s['witness']['input'])}")
         for who, out in s["witness"]["outcomes"].items():
@@ -450,7 +450,7 @@ def _print_replication(r: dict, top: int) -> None:
             for i, s in enumerate(d["splits"][:top], 1):
                 groups = " | ".join(", ".join(g) for g in s["groups"])
                 traced = ", ".join(s["obligations"])
-                what = {"gap": "no obligation covers it, a gap in the pack",
+                what = {"gap": "no obligation covers it, a gap in the Blueprint",
                         "weak-check": f"traces to {traced}, whose checks are too weak to tell them apart",
                         }.get(s["verdict"], f"traces to {traced}")
                 typer.echo(f"    {i}. {groups}  {s['inputs']} inputs; {what}")
@@ -475,11 +475,11 @@ def _print_replication(r: dict, top: int) -> None:
 
 @app.command()
 def replicate(
-    pack: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    pack: Path = typer.Argument(..., help="Blueprint folder, the one with symbolon-pack.toml."),
     agent: list[str] = typer.Option([], help="Coding agent command, as NAME=COMMAND or COMMAND. Repeat for several; "
                                      "builds take turns. Default $SYMBOLON_AGENT, else Claude Code."),
     builds: int = typer.Option(2, help="How many builds to make."),
-    prose_only: int = typer.Option(0, help="How many of the builds (the last ones) get the pack without examples "
+    prose_only: int = typer.Option(0, help="How many of the builds (the last ones) get the Blueprint without examples "
                                    "and properties, to test whether the descriptions alone carry the spec."),
     component: list[str] = typer.Option([], help="Build only this component. Repeat for several. Default every one."),
     reference: Path | None = typer.Option(None, help="The original product: a directory with one implementation per component, compared with every build."),
@@ -503,7 +503,7 @@ def replicate(
     top: int = typer.Option(3, help="Splits to print per component."),
     as_json: bool = typer.Option(False, "--json", help="Print the report as JSON."),
 ) -> None:
-    """Hand a pack to outside coding agents, then test, attest and diff the builds they make."""
+    """Hand a Blueprint to outside coding agents, then test, attest and diff the builds they make."""
     try:
         agents = parse_agents(agent)
     except AgentError as e:
@@ -538,16 +538,19 @@ def replicate(
     raise typer.Exit(0 if s["all_passed"] and s["holdouts_passed"] and not too_ambiguous else 1)
 
 
-pack_app = typer.Typer(no_args_is_help=True, help="Work with spec packs.")
-app.add_typer(pack_app, name="pack")
+pack_app = typer.Typer(no_args_is_help=True,
+                       help="Work with Symbola Blueprints (the spec/ folder that `blueprint init` makes).")
+app.add_typer(pack_app, name="blueprint")
+# The name before the rename to Symbola Blueprint: released packs, scripts and skills still say `symbola pack`.
+app.add_typer(pack_app, name="pack", hidden=True)
 
 
 @pack_app.command(name="validate")
 def pack_validate(
-    path: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    path: Path = typer.Argument(..., help="Blueprint folder, the one with symbolon-pack.toml."),
     as_json: bool = typer.Option(False, "--json", help="Print the report as JSON."),
 ) -> None:
-    """Check a pack's brief, assumptions and obligations, and that every obligation is checked or open."""
+    """Check a Blueprint's brief, assumptions and obligations, and that every obligation is checked or open."""
     report = validate_pack(path)
     if as_json:
         typer.echo(report_json(report))
@@ -557,17 +560,17 @@ def pack_validate(
         if report.ok:
             typer.echo(f"\n{summary_line(report.summary)}")
         else:
-            typer.echo(typer.style("\npack is not valid", fg=typer.colors.RED))
+            typer.echo(typer.style("\nBlueprint is not valid", fg=typer.colors.RED))
     raise typer.Exit(0 if report.ok else 1)
 
 
 @pack_app.command(name="init")
 def pack_init(
-    pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk'."),
+    pack_id: str = typer.Argument(..., help="Blueprint id, like 'acme/invoice-desk'."),
     path: Path = typer.Option(Path("spec"), "--dir", help="Folder to create; by default spec/ next to your code."),
     author: str = typer.Option("you@example.com", help="Author recorded in the manifest and the brief."),
 ) -> None:
-    """Scaffold a spec pack that passes `pack validate` out of the box."""
+    """Scaffold a Blueprint that passes `blueprint validate` out of the box."""
     try:
         target = scaffold_pack(pack_id, path, author)
     except (ValueError, FileExistsError) as e:
@@ -577,12 +580,12 @@ def pack_init(
     for rel in ["symbolon-pack.toml", "BRIEF.md", "obligations.toml", "assumptions/replace-me.toml",
                 "components/", "AGENTS.md"]:
         typer.echo(f"    {rel}")
-    typer.echo(f"\nNext: replace the placeholders, then run `symbola pack validate {target}`")
+    typer.echo(f"\nNext: replace the placeholders, then run `symbola blueprint validate {target}`")
 
 
 @pack_app.command(name="questions")
 def pack_questions(
-    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    path: Path = typer.Argument(Path("spec"), help="Blueprint folder, the one with symbolon-pack.toml."),
     as_json: bool = typer.Option(False, "--json", help="Print the questions as JSON."),
 ) -> None:
     """List the questions in .symbolon/questions.toml that the publisher has not answered yet."""
@@ -599,15 +602,15 @@ def pack_questions(
         for c in q.choice:
             typer.echo(f"   ({c.key}) {c.label}" + ("  (recommended)" if c.key == q.recommended else ""))
         typer.echo("")
-    typer.echo(f"{len(todo)} unanswered. Record each with `symbola pack answer {path} <id> <choice|default|open>`.")
+    typer.echo(f"{len(todo)} unanswered. Record each with `symbola blueprint answer {path} <id> <choice|default|open>`.")
 
 
 @pack_app.command(name="answer")
 def pack_answer(
-    path: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    path: Path = typer.Argument(..., help="Blueprint folder, the one with symbolon-pack.toml."),
     question: str = typer.Argument(..., help="Question id from .symbolon/questions.toml."),
     pick: str = typer.Argument(..., help="A choice key (decided), 'default' (the recommended choice, "
-                                         "left to the builder's pack) or 'open' (builds may differ)."),
+                                         "left to the builder's Blueprint) or 'open' (builds may differ)."),
 ) -> None:
     """Record the publisher's answer as an obligation and the example line that checks it."""
     try:
@@ -621,7 +624,7 @@ def pack_answer(
 
 @pack_app.command(name="review")
 def pack_review(
-    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    path: Path = typer.Argument(Path("spec"), help="Blueprint folder, the one with symbolon-pack.toml."),
     as_json: bool = typer.Option(False, "--json", help="Print the list as JSON."),
 ) -> None:
     """List what people still have to settle: open questions, decisions to confirm, and what is left open."""
@@ -643,11 +646,11 @@ def pack_review(
         typer.echo(f"  [{q.id}] {q.ask}")
         for c in q.choice:
             typer.echo(f"     ({c.key}) {c.label}" + ("  (recommended)" if c.key == q.recommended else ""))
-    typer.echo(f"  -> symbola pack answer {path} <id> <choice|default|open>\n")
+    typer.echo(f"  -> symbola blueprint answer {path} <id> <choice|default|open>\n")
     typer.echo(f"Decisions to confirm ({len(todo['defaults'])}):")
     for o in todo["defaults"]:
         typer.echo(f"  [{o['id']}] {o.get('statement', '')}")
-    typer.echo(f"  -> symbola pack confirm {path} <id>   (keep it; --open leaves it to builders; "
+    typer.echo(f"  -> symbola blueprint confirm {path} <id>   (keep it; --open leaves it to builders; "
                "to change it, edit obligations.toml)\n")
     typer.echo(f"Left open for builders ({len(todo['open'])}):")
     for o in todo["open"]:
@@ -659,7 +662,7 @@ def pack_review(
             typer.echo(f"  [{c.id}] {c.kind} in {c.where()}: {c.why}")
             for row in c.text.strip().splitlines():
                 typer.echo(f"     - {row.strip()}")
-        typer.echo(f"  -> symbola pack trim {path} --cut <id> (remove it) or --keep <id>; "
+        typer.echo(f"  -> symbola blueprint trim {path} --cut <id> (remove it) or --keep <id>; "
                    "then --apply removes the approved ones\n")
     if review_file.is_file():
         typer.echo(f"Also read {review_file}: suspected bugs, where sources disagreed, what was not seen.")
@@ -669,7 +672,7 @@ def pack_review(
 
 @pack_app.command(name="confirm")
 def pack_confirm(
-    path: Path = typer.Argument(..., help="Pack directory, the one with symbolon-pack.toml."),
+    path: Path = typer.Argument(..., help="Blueprint folder, the one with symbolon-pack.toml."),
     obligation: str = typer.Argument(..., help="Id of a `default` obligation."),
     leave_open: bool = typer.Option(False, "--open", help="Leave it to builders instead (drops its checks)."),
 ) -> None:
@@ -683,7 +686,7 @@ def pack_confirm(
 
 @pack_app.command(name="trim")
 def pack_trim(
-    path: Path = typer.Argument(Path("spec"), help="Pack directory, the one with symbolon-pack.toml."),
+    path: Path = typer.Argument(Path("spec"), help="Blueprint folder, the one with symbolon-pack.toml."),
     deep: bool = typer.Option(False, "--deep", help="Also have your coding agent propose cuts (one agent run). "
                                                    "It reads a copy and changes nothing."),
     agent: str | None = typer.Option(None, help="Coding agent command for --deep; defaults to $SYMBOLON_AGENT, "
@@ -691,14 +694,14 @@ def pack_trim(
     cut: list[str] = typer.Option([], "--cut", help="Approve a proposal by id: --apply will remove it. Repeat for more."),
     keep: list[str] = typer.Option([], "--keep", help="Reject a proposal by id: it stays. Repeat for more."),
     do_apply: bool = typer.Option(False, "--apply", help="Remove the proposals marked \"cut\", and only those."),
-    out: Path | None = typer.Option(None, "--out", help="With --apply: write the trimmed pack to this new folder "
+    out: Path | None = typer.Option(None, "--out", help="With --apply: write the trimmed Blueprint to this new folder "
                                                          "instead (required for a released version)."),
     timeout: int = typer.Option(1800, help="Seconds the --deep agent run may take."),
 ) -> None:
-    """Propose cuts that make a pack simpler to build from; remove only what the publisher approves.
+    """Propose cuts that make a Blueprint simpler to build from; remove only what the publisher approves.
 
     Without options it lists likely cuts in .symbolon/trim.toml and removes nothing; they
-    also show in `symbola pack review`. Approve each with --cut ID or reject it with --keep ID
+    also show in `symbola blueprint review`. Approve each with --cut ID or reject it with --keep ID
     (or set its decision in the file), then run with --apply.
     """
 
@@ -717,7 +720,7 @@ def pack_trim(
             typer.echo(f"    {name}: removed example lines {', '.join(map(str, lines))} (references renumbered)")
         for name, tests in done.removed_properties.items():
             typer.echo(f"    {name}: removed properties {', '.join(tests)}")
-        typer.echo("\npack validate passes. Before release, one `symbola replicate` build is a cheap check "
+        typer.echo("\n`blueprint validate` passes. Before release, one `symbola replicate` build is a cheap check "
                    "that nothing load-bearing went.")
         return
 
@@ -762,10 +765,10 @@ def pack_trim(
     counts = {d: sum(c.decision == d for c in todo) for d in trim_mod.DECISIONS}
     typer.echo(f"\n{len(todo)} proposals in {Path(path) / trim_mod.TRIM_FILE}: {counts['cut']} cut, "
                f"{counts['keep']} keep, {counts['undecided']} undecided. Approve with --cut ID, reject with "
-               f"--keep ID; nothing is removed until `symbola pack trim {path} --apply`.")
+               f"--keep ID; nothing is removed until `symbola blueprint trim {path} --apply`.")
 
 
-site_app = typer.Typer(no_args_is_help=True, help="Build the static pack registry.")
+site_app = typer.Typer(no_args_is_help=True, help="Build the static Blueprint registry (symbola.sh's data).")
 app.add_typer(site_app, name="site")
 
 
@@ -774,12 +777,12 @@ def site_build(
     registry: Path = typer.Argument(Path("packs"), help="Folder of packs: <owner>/<name>/versions/<n>/."),
     out: Path = typer.Option(Path("site-registry"), help="Output folder; replaced on every build."),
     base_url: str = typer.Option("", help="Absolute URL the site is served from, used in llms.txt links."),
-    private_out: Path | None = typer.Option(None, help="Where priced packs' tarballs go, for the store's private bucket."),
-    store_url: str = typer.Option("", help="URL of the store Worker that sells priced packs."),
+    private_out: Path | None = typer.Option(None, help="Where priced Blueprints' tarballs go, for the store's private bucket."),
+    store_url: str = typer.Option("", help="URL of the store Worker that sells priced Blueprints."),
     files_out: Path | None = typer.Option(None, help="Put tarballs, parts, raw files and evidence here instead, for a bucket."),
     files_url: str = typer.Option("", help="Absolute URL the --files-out folder is served from."),
 ) -> None:
-    """Write index.json, llms.txt and each pack's tarball, pack.md and files for the latest versions."""
+    """Write index.json, llms.txt and each Blueprint's tarball, pack.md and files for the latest versions."""
     try:
         built = build_site(registry, out, base_url, private_out, store_url, files_out, files_url)
     except RegistryError as e:
@@ -787,7 +790,7 @@ def site_build(
         raise typer.Exit(1)
     for b in built:
         _line(True, f"{b.id}  version {b.version}", b.digest)
-    typer.echo(f"\n{len(built)} pack(s) written to {out}")
+    typer.echo(f"\n{len(built)} Blueprint(s) written to {out}")
 
 
 @site_app.command(name="check")
@@ -807,10 +810,10 @@ def site_check(
 
 @app.command()
 def release(
-    spec: Path = typer.Argument(Path("spec"), help="Your pack folder, the one `pack init` made."),
+    spec: Path = typer.Argument(Path("spec"), help="Your Blueprint folder, the one `blueprint init` made."),
     registry: Path = typer.Option(..., help="The packs/ folder of your clone of the registry repository."),
 ) -> None:
-    """Freeze your pack into the registry as its next version; then open a PR."""
+    """Freeze your Blueprint into the registry as its next version; then open a PR."""
     try:
         r = release_pack(spec, registry)
     except (RegistryError, FileNotFoundError) as e:
@@ -858,16 +861,16 @@ def logout(site: str = SITE_OPTION) -> None:
 
 @app.command()
 def publish(
-    spec: Path = typer.Argument(Path("spec"), help="Your pack folder, the one `pack init` made."),
+    spec: Path = typer.Argument(Path("spec"), help="Your Blueprint folder, the one `blueprint init` made."),
     site: str = SITE_OPTION,
     wait: bool = typer.Option(True, help="Follow the request until its pull request is open (or it fails)."),
-    evidence: Path | None = typer.Option(None, help="Attestations from a test build of this pack (a folder of *.json), "
-                                                    "listed on the pack's page. Strongly recommended."),
+    evidence: Path | None = typer.Option(None, help="Attestations from a test build of this Blueprint (a folder of *.json), "
+                                                    "listed on the Blueprint's page. Strongly recommended."),
 ) -> None:
-    """Validate a pack and publish it to the registry website as its next version."""
+    """Validate a Blueprint and publish it to the registry website as its next version."""
     site = site.rstrip("/")
     if evidence is None:
-        typer.echo("  No --evidence: the pack's page will say no build has passed yet. "
+        typer.echo("  No --evidence: the Blueprint's page will say no build has passed yet. "
                    "A test build first is strongly recommended (`symbola replicate`).")
     try:
         got = publish_pack(spec, site, evidence)
@@ -888,7 +891,7 @@ def publish(
         if req["state"] != seen:
             seen = req["state"]
             if req["state"] == "failed":
-                _line(False, "the registry refused the pack", req["message"])
+                _line(False, "the registry refused the Blueprint", req["message"])
                 raise typer.Exit(1)
             if req["state"] in ("review", "merging", "merged", "live"):
                 _line(True, req["message"], req.get("pr", ""))
@@ -900,14 +903,14 @@ def publish(
 
 @app.command()
 def pull(
-    pack_id: str = typer.Argument(..., help="Pack id, like 'acme/invoice-desk', or its page link. Only the latest version is served."),
+    pack_id: str = typer.Argument(..., help="Blueprint id, like 'acme/invoice-desk', or its page link. Only the latest version is served."),
     registry: str = typer.Option(DEFAULT_REGISTRY,
                                  envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
     dest: Path | None = typer.Option(None, help="Where to unpack; defaults to ./<name>."),
-    token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid pack."),
-    digest: str | None = typer.Option(None, help="Pull the older version with this pack digest, to re-check evidence that names it."),
+    token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid Blueprint."),
+    digest: str | None = typer.Option(None, help="Pull the older version with this Blueprint digest, to re-check evidence that names it."),
 ) -> None:
-    """Download a pack, check its sha256 and digest against the registry, and unpack it."""
+    """Download a Blueprint, check its sha256 and digest against the registry, and unpack it."""
     pack_id, page_registry = pack_ref(pack_id)
     registry = page_registry or registry
     target = dest or Path(pack_id.split("/")[-1])
@@ -917,12 +920,12 @@ def pull(
         _line(False, str(e))
         raise typer.Exit(1)
     _line(True, "tarball sha256 matches the registry", got.sha256)
-    _line(True, "pack digest matches the registry", got.digest)
-    typer.echo("  (the publisher is not verified yet: packs get GitHub provenance when they move to GitHub Releases)")
+    _line(True, "Blueprint digest matches the registry", got.digest)
+    typer.echo("  (the publisher is not verified yet: Blueprints get GitHub provenance when they move to GitHub Releases)")
     _line(True, f"{got.id} version {got.version} unpacked into {target}")
     comps = components_of(target)
     if (target / PRODUCT_FILE).is_file():
-        typer.echo(f"\nThis is a product pack: build the product {target / PRODUCT_FILE} describes, "
+        typer.echo(f"\nThis is a product Blueprint: build the product {target / PRODUCT_FILE} describes, "
                    "with the components as its core.")
     typer.echo(f"\nNext: build from {target / 'AGENTS.md'}, one folder per component, running its checks as you go:")
     if comps:
@@ -933,12 +936,12 @@ def pull(
 
 @app.command()
 def changes(
-    old: Path = typer.Argument(..., help="The earlier pack folder, such as versions/1."),
-    new: Path = typer.Argument(..., help="The later pack folder, such as versions/2."),
+    old: Path = typer.Argument(..., help="The earlier Blueprint folder, such as versions/1."),
+    new: Path = typer.Argument(..., help="The later Blueprint folder, such as versions/2."),
     out: Path | None = typer.Option(None, "-o", "--out", help="Write the report as Markdown."),
     as_json: bool = typer.Option(False, "--json", help="Print the changes as JSON."),
 ) -> None:
-    """List what changed between two versions of a pack: decisions, assumptions, components, documents."""
+    """List what changed between two versions of a Blueprint: decisions, assumptions, components, documents."""
     for p in (old, new):
         if not (p / PACK_MANIFEST_FILE).is_file():
             raise typer.BadParameter(f"{p} has no {PACK_MANIFEST_FILE}")
@@ -956,7 +959,7 @@ def changes(
 
 UPGRADE_STEPS = """## How to take this version in
 
-You are upgrading a build of this pack. The build may differ from the pack on
+You are upgrading a build of this Blueprint. The build may differ from the Blueprint on
 purpose: those departures are listed in `{overrides}`, one per decision id. Keep
 them unless a step below says to ask.
 
@@ -972,21 +975,21 @@ them unless a step below says to ask.
    for the changed components, and record what you did in NOTES.md.
 
 If you edited `{spec}` yourself, those edits show up above as changes too; record
-them as overrides instead of editing the pack.
+them as overrides instead of editing the Blueprint.
 """
 
 
 @app.command()
 def upgrade(
-    spec: Path = typer.Argument(Path("spec"), help="The pack folder your build came from (the one `symbola pull` made)."),
+    spec: Path = typer.Argument(Path("spec"), help="The Blueprint folder your build came from (the one `symbola pull` made)."),
     dest: Path | None = typer.Option(None, help="Where to unpack the latest version; defaults to <spec>.new."),
     registry: str = typer.Option(DEFAULT_REGISTRY, envvar="SYMBOLON_REGISTRY", help="Registry URL or local folder."),
     impl: Path = typer.Option(Path("impl"), help="Folder holding one implementation folder per component."),
-    overrides: Path = typer.Option(Path(OVERRIDES_FILE), help="Your build's departures from the pack, by decision id."),
+    overrides: Path = typer.Option(Path(OVERRIDES_FILE), help="Your build's departures from the Blueprint, by decision id."),
     report: Path = typer.Option(Path("UPGRADE.md"), help="Where to write the upgrade notes for your agent."),
-    token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid pack."),
+    token: str | None = typer.Option(None, envvar="SYMBOLON_LICENSE", help="License token for a paid Blueprint."),
 ) -> None:
-    """Fetch the latest version of a pack you built, and write what changed for your agent."""
+    """Fetch the latest version of a Blueprint you built, and write what changed for your agent."""
     target = dest or spec.with_name(spec.name + ".new")
     try:
         mine = load_overrides(overrides)
@@ -1026,14 +1029,14 @@ def upgrade(
 def extract(
     source: Path | None = typer.Argument(None, help="The product's source directory, if there is one. "
                                                     "It is read, never changed."),
-    pack_id: str = typer.Option(..., "--pack", help="Pack id to draft, like 'kausalflow/lightkone'."),
+    pack_id: str = typer.Option(..., "--blueprint", "--pack", help="Blueprint id to draft, like 'kausalflow/lightkone'."),
     docs: list[str] = typer.Option([], "--docs", help="A document about the product: a file, folder or URL "
                                                       "(manual, help pages, changelog, API spec, sample files). "
                                                       "Repeat for more."),
     live: list[str] = typer.Option([], "--live", help="The running product: a URL, or a command that runs it. "
                                                       "Repeat for more."),
-    root: Path = typer.Option(Path("packs"), help="Directory that holds packs; the draft goes in <root>/<pack>/."),
-    version: int = typer.Option(1, min=1, help="Pack version to draft."),
+    root: Path = typer.Option(Path("packs"), help="Directory that holds Blueprints; the draft goes in <root>/<blueprint>/."),
+    version: int = typer.Option(1, min=1, help="Blueprint version to draft."),
     agent: str | None = typer.Option(None, help="Coding agent command; defaults to $SYMBOLON_AGENT, then Claude Code."),
     hint: str = typer.Option("", help="Guidance for the agent, such as which parts of the product to cover."),
     rounds: int = typer.Option(2, min=1, help="Agent runs at most: the draft, then fixes for what fails."),
@@ -1045,7 +1048,7 @@ def extract(
     max_product_words: int = typer.Option(DEFAULT_MAX_PRODUCT_WORDS, min=1,
                                           help="Size budget: the most words PRODUCT.md may hold."),
 ) -> None:
-    """Have a coding agent draft a spec pack from an existing product, then check the draft.
+    """Have a coding agent draft a Blueprint from an existing product, then check the draft.
 
     Give any mix of sources: the source code, documents (--docs) and the running
     product (--live). Without source code the draft is built from what the documents
@@ -1074,11 +1077,11 @@ def extract(
         raise typer.Exit(1)
     typer.echo("")
     if result.ok:
-        typer.echo(f"{OK} draft pack {result.pack_dir}")
+        typer.echo(f"{OK} draft Blueprint {result.pack_dir}")
         if result.pack_report:
             typer.echo(f"    {summary_line(result.pack_report.summary)}")
-        typer.echo(f"\nNext: `symbola pack review {result.pack_dir}` lists the questions to answer and the "
-                   "decisions to confirm; settle them, then hand the pack to builders.")
+        typer.echo(f"\nNext: `symbola blueprint review {result.pack_dir}` lists the questions to answer and the "
+                   "decisions to confirm; settle them, then hand the Blueprint to builders.")
     else:
         typer.echo(typer.style(f"draft is not valid yet: {result.pack_dir}", fg=typer.colors.RED))
         typer.echo(f"Agent logs are in {result.product_dir / '.symbolon'}. Fix the draft by hand, or remove "

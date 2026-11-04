@@ -82,7 +82,7 @@ origin when nothing traces. Splits are ranked by their share of the ambiguity, s
 the first one is the question worth settling first. Each split has a witness, its
 smallest input, shrunk while the builds still split the same way.
 
-"no obligation: a gap in the pack" means the inputs came from a `--pool` file or
+"no obligation: a gap in the Blueprint" means the inputs came from a `--pool` file or
 from checks no obligation lists. Settle it by adding an obligation with a check,
 or by marking the point `open`.
 

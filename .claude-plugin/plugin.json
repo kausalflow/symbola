@@ -1,6 +1,6 @@
 {
   "name": "symbola",
-  "description": "Find software packs on symbola.sh, read their decisions and build them; write, keep and release your own pack.",
+  "description": "Find Symbola Blueprints on symbola.sh, read their decisions and build them; write, keep and release your own Blueprint.",
   "version": "0.1.0",
   "author": {
     "name": "Spiking Labs"

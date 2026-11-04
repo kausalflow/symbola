@@ -77,3 +77,19 @@ def test_impl_init_pins_digest(contract, tmp_path):
     digest = runner.invoke(app, ["digest", str(contract)]).output.strip()
     assert digest in (impl / "symbolon-impl.toml").read_text()
     assert (impl / "impl.py").exists()
+
+
+def test_blueprint_commands_keep_pack_as_a_hidden_alias():
+    """`symbola blueprint ...` is listed; `symbola pack ...` still works for older scripts and skills."""
+    from typer.testing import CliRunner
+    from symbola.cli import app
+    runner = CliRunner()
+    top = runner.invoke(app, ["--help"]).output
+    assert "blueprint" in top and " pack " not in top
+    for group in ("blueprint", "pack"):
+        result = runner.invoke(app, [group, "--help"])
+        assert result.exit_code == 0 and "validate" in result.output and "trim" in result.output
+    import typer
+    extract = typer.main.get_command(app).commands["extract"]
+    opts = next(p.opts for p in extract.params if p.name == "pack_id")
+    assert opts == ["--blueprint", "--pack"]

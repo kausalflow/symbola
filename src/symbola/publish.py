@@ -170,11 +170,11 @@ def package(spec: Path, evidence: Path | None = None) -> tuple[str, bytes]:
     """Validate a pack folder and return its id and a .tar.gz of its files (and evidence)."""
     spec = Path(spec)
     if not (spec / PACK_MANIFEST_FILE).is_file():
-        raise PublishError(f"{spec}: no {PACK_MANIFEST_FILE}; is this the folder `symbola pack init` made?")
+        raise PublishError(f"{spec}: no {PACK_MANIFEST_FILE}; is this the folder `symbola blueprint init` made?")
     report = validate_pack(spec)
     if not report.ok:
         bad = "; ".join(f"{c.name}: {c.detail}" for c in report.checks if not c.ok)
-        raise PublishError(f"pack validate fails: {bad}")
+        raise PublishError(f"blueprint validate fails: {bad}")
     pack_id = _manifest(spec).get("id", "")
     if not PACK_REF_RE.match(pack_id):
         raise PublishError(f"{PACK_MANIFEST_FILE}: id must look like 'owner/name', got {pack_id!r}")
@@ -184,7 +184,7 @@ def package(spec: Path, evidence: Path | None = None) -> tuple[str, bytes]:
     except RegistryError as e:
         raise PublishError(str(e)) from None
     if len(tarball) > MAX_UPLOAD:
-        raise PublishError(f"the pack is {len(tarball) // 1024} KB packed; the limit is {MAX_UPLOAD // 1024 // 1024} MB")
+        raise PublishError(f"the Blueprint is {len(tarball) // 1024} KB packed; the limit is {MAX_UPLOAD // 1024 // 1024} MB")
     return pack_id, tarball
 
 

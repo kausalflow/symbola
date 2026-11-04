@@ -316,10 +316,10 @@ def test_sync_components_keeps_the_rest_of_the_manifest(tmp_path, draft):
 
 
 def test_extract_cli(tmp_path, source, stub):
-    result = runner.invoke(app, ["extract", str(source), "--pack", "acme/shout",
+    result = runner.invoke(app, ["extract", str(source), "--blueprint", "acme/shout",
                                  "--root", str(tmp_path / "packs"), "--agent", STUB])
     assert result.exit_code == 0, result.output
-    assert "draft pack" in result.output and "1 decided" in result.output
+    assert "draft Blueprint" in result.output and "1 decided" in result.output
 
 
 def test_extract_cli_without_source(tmp_path, stub, draft):

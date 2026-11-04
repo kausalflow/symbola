@@ -161,7 +161,7 @@ and fails if any mutant passes. A survivor means one of two things:
 - **The spec has a gap.** Add an example or property that rejects the mutant.
 - **The difference is acceptable.** The mutant is equivalent under the contract,
   or the behaviour is deliberately left open. Say so in the mutant:
-  `SURVIVES = "Equivalent: float drift stays within float_rel_tol"`. When a pack
+  `SURVIVES = "Equivalent: float drift stays within float_rel_tol"`. When a Blueprint
   leaves the behaviour open, name the `open` obligation.
 
 `validate` also fails if a mutant is marked `SURVIVES` but is killed, if it has no

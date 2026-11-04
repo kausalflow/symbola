@@ -147,7 +147,7 @@ def test_site_refuses_a_pack_with_holdout_files(registry, tmp_path):
 
 def test_site_refuses_an_invalid_pack(registry, tmp_path):
     (registry / "kausalflow" / "lightkone" / "versions" / "2" / "BRIEF.md").write_text("# Nothing\n")
-    with pytest.raises(RegistryError, match="pack validate fails"):
+    with pytest.raises(RegistryError, match="blueprint validate fails"):
         build_site(registry, tmp_path / "site")
 
 
@@ -231,7 +231,7 @@ def test_pull_does_not_take_a_version(site, tmp_path):
 
 
 def test_cli_init_build_and_pull(registry, tmp_path):
-    r = runner.invoke(app, ["pack", "init", "acme/demo", "--dir", str(tmp_path / "spec")])
+    r = runner.invoke(app, ["blueprint", "init", "acme/demo", "--dir", str(tmp_path / "spec")])
     assert r.exit_code == 0, r.output
     r = runner.invoke(app, ["site", "build", str(registry), "--out", str(tmp_path / "site")])
     assert r.exit_code == 0, r.output
@@ -249,7 +249,7 @@ def test_pack_llms_txt_tells_an_agent_how_to_build_it(registry, tmp_path):
                  "symbola impl-init impl/", "symbola test spec/components/", "symbola keygen",
                  "`tidy`: `spec/components/tidy/versions/1`"):
         assert step in llms, step
-    assert "Build this pack" in (tmp_path / "site" / "llms.txt").read_text()
+    assert "Build this Blueprint" in (tmp_path / "site" / "llms.txt").read_text()
     build_site(registry, tmp_path / "other", "http://localhost:8000")
     assert "symbola pull kausalflow/lightkone --dest spec --registry http://localhost:8000" in (
         tmp_path / "other" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
@@ -264,14 +264,14 @@ def test_product_pack_is_built_as_the_product(registry, tmp_path):
     build_site(registry, tmp_path / "site", "https://symbola.sh")
     site = tmp_path / "site" / "packs" / "kausalflow" / "lightkone"
     llms = (site / "llms.txt").read_text()
-    assert "This is a product pack: `spec/PRODUCT.md` describes the whole product" in llms
+    assert "This is a product Blueprint: `spec/PRODUCT.md` describes the whole product" in llms
     assert "every flow in `spec/PRODUCT.md` works" in llms
     pack_md = (site / "pack.md").read_text()
     assert pack_md.index("## BRIEF.md") < pack_md.index("## PRODUCT.md") < pack_md.index("## obligations.toml")
     r = runner.invoke(app, ["pull", "kausalflow/lightkone", "--registry", str(tmp_path / "site"),
                             "--dest", str(tmp_path / "lk")])
     assert r.exit_code == 0, r.output
-    assert "This is a product pack" in r.output
+    assert "This is a product Blueprint" in r.output
 
 
 def test_pack_ref_takes_an_id_or_a_page_link():

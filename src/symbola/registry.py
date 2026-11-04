@@ -142,7 +142,7 @@ If you are the publisher's coding agent, keep this pack current while you build:
 when the user makes a choice you could not have guessed, add it to
 `obligations.toml` with a check; when they state a fact about the world, add an
 assumption; record only what the user decided, not what the code happens to do.
-Keep holdout tests outside this folder. Run `symbola pack validate <this folder>`
+Keep holdout tests outside this folder. Run `symbola blueprint validate <this folder>`
 after each change.
 
 If two checks cannot both pass, don't code around them: run
@@ -152,9 +152,9 @@ build the reading closest to `BRIEF.md`, and carry on.
 
 
 def scaffold_pack(pack_id: str, target: Path, author: str = "you@example.com") -> Path:
-    """Create a pack folder that passes `pack validate` as it stands."""
+    """Create a pack folder that passes `blueprint validate` as it stands."""
     if not PACK_REF_RE.match(pack_id):
-        raise ValueError("pack id must look like 'owner/name'")
+        raise ValueError("Blueprint id must look like 'owner/name'")
     target = Path(target)
     if target.exists() and any(target.iterdir()):
         raise FileExistsError(f"{target} exists and is not empty")
@@ -200,7 +200,7 @@ def _files(root: Path) -> list[Path]:
     files = contract_files(root)
     held = [f for f in files if "holdout" in f.relative_to(root).parts]
     if held:
-        raise RegistryError(f"{root}: holdout files must not be inside a pack: {held[0].relative_to(root).as_posix()}")
+        raise RegistryError(f"{root}: holdout files must not be inside a Blueprint: {held[0].relative_to(root).as_posix()}")
     return files
 
 
@@ -289,17 +289,17 @@ def build_steps(pack_id: str, page: str, components: list[str], price: dict | No
     name = first.split("/")[1]
     listed = "".join(f"- `{c.split('/')[1]}`: `spec/{c}`\n" for c in components)
     return (
-        "## Build this pack\n\n"
+        "## Build this Blueprint\n\n"
         f"For coding agents whose user shared {page} and wants it built. Run these steps yourself; "
         "ask the user only for the language if they have not named one.\n\n"
         f"1. Install the Symbola CLI (Python 3.11+): `{INSTALL}` (or `pipx install "
         "symbola`). Not `pip install symbolon`: that PyPI name is another project.\n"
-        + (f"2. Download the pack: `symbola pull {pack_id} --dest spec{token}`"
-           + (" (the user buys a license on the pack page first).\n" if price else ".\n"))
+        + (f"2. Download the Blueprint: `symbola pull {pack_id} --dest spec{token}`"
+           + (" (the user buys a license on the Blueprint's page first).\n" if price else ".\n"))
         + "3. Read `spec/AGENTS.md` and follow it. Build only from `spec/`: don't look for the original "
-        "product's source, the registry repository (it holds holdout tests) or other builds. Packs released "
+        "product's source, the registry repository (it holds holdout tests) or other builds. Blueprints released "
         "before the rename say `symbolon <command>`: run `symbola <command>` instead.\n"
-        + ("   This is a product pack: `spec/PRODUCT.md` describes the whole product (its shape, surfaces and "
+        + ("   This is a product Blueprint: `spec/PRODUCT.md` describes the whole product (its shape, surfaces and "
            "flows). Build that product, in the user's stack, with the components below as its core. "
            "Don't build a demo page around the components instead.\n" if product else "")
         + "4. Build each component in its own folder and run its checks as you go, fixing what fails:\n\n"
@@ -351,7 +351,7 @@ def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bo
     if brief:
         listed = "".join(f"- {key}\n" for key in sorted(components))
         head = [f"# {pack_id} (version {version})\n",
-                f"Pack digest: `{digest}`. This is the preview of a priced pack: the brief, assumptions, "
+                f"Blueprint digest: `{digest}`. This is the preview of a priced Blueprint: the brief, assumptions, "
                 "obligations and manifest. The component contracts, schemas and tests come with the "
                 "purchase, in the tarball.\n"]
         if listed:
@@ -361,14 +361,14 @@ def pack_markdown(root: Path, pack_id: str, version: int, digest: str, brief: bo
     for key, paths in sorted(components.items()):
         parts[f"parts/{key}.md"] = "\n".join(
             [f"# {pack_id} (version {version}): component {key}\n",
-             f"Part of the pack at [{top}]({top}). Pack digest: `{digest}`.\n",
+             f"Part of the Blueprint at [{top}]({top}). Blueprint digest: `{digest}`.\n",
              f"The contract folder, to check a build against: [{key}.tar.gz]({key}.tar.gz). Unpack it, "
              f"then run `symbola impl-init <build folder> --contract <contract folder>`, `symbola keygen` "
              f"once, and `symbola attest <contract folder> <build folder>`.\n"]
             + [_section(root, p, part_files) for p in sorted(paths)])
     contents = "".join(f"- [{rel}]({here}{rel}) ({len(text.encode()) // 1024 + 1} KB)\n" for rel, text in parts.items())
     head = [f"# {pack_id} (version {version})\n",
-            f"Pack digest: `{digest}`. This file holds the brief, assumptions, obligations and manifest. "
+            f"Blueprint digest: `{digest}`. This file holds the brief, assumptions, obligations and manifest. "
             "Each component's contract, schemas and tests are in their own file; read the ones you build. "
             f"Raw files are under [files/]({files}), and the tarball holds everything.\n"]
     if contents:
@@ -561,7 +561,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         report = validate_pack(version_dir)
         if not report.ok:
             bad = "; ".join(f"{c.name}: {c.detail}" for c in report.checks if not c.ok)
-            raise RegistryError(f"{pack_id}: pack validate fails: {bad}")
+            raise RegistryError(f"{pack_id}: blueprint validate fails: {bad}")
         meta = _manifest(version_dir)
         if meta.get("id") != pack_id:
             raise RegistryError(f"{pack_id}: {PACK_MANIFEST_FILE} says id = {meta.get('id')!r}")
@@ -633,7 +633,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         listed = [p.relative_to(version_dir).as_posix() for p in public]
         download = (f"buy it for {price['amount'] / 100:.2f} {price['currency'].upper()} and pull it with "
                     f"`symbola pull {pack_id} --token <license>`" if price else f"download {site_prefix}/{TARBALL_FILE}")
-        page = f"{site_prefix}/" if base_url else f"the pack {pack_id}"
+        page = f"{site_prefix}/" if base_url else f"the Blueprint {pack_id}"
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
             f"Version {version}, digest {digest}. {summary_line(report.summary)}.\n\n"
@@ -668,9 +668,9 @@ def build_site(registry: Path, out: Path, base_url: str = "",
     (out / "index.json").write_text(json.dumps(index, indent=2) + "\n")
     root_prefix = base_url.rstrip("/") + "/" if base_url else ""
     (out / "llms.txt").write_text(
-        "# Symbola pack registry\n\n> Packs that AI coding agents can build from. "
-        "Each pack holds a brief, assumptions, obligations and component contracts with tests.\n\n"
-        "To build a pack, open its llms.txt below and follow its \"Build this pack\" steps. "
+        "# Symbola Blueprints\n\n> Symbola Blueprints: software that AI coding agents can build from. "
+        "Each Blueprint holds a brief, assumptions, obligations and component contracts with tests.\n\n"
+        "To build a Blueprint, open its llms.txt below and follow its \"Build this Blueprint\" steps. "
         f"Install the CLI with `{INSTALL}`.\n\n"
         f"Catalog as JSON: {root_prefix}index.json\n\n## Packs\n\n"
         + "".join(f"- [{e['id']}]({root_prefix}packs/{e['id']}/llms.txt): {e['title']} · {e['summary_line']}\n"
@@ -719,7 +719,7 @@ def release(spec: Path, registry: Path) -> Release:
     report = validate_pack(spec)
     if not report.ok:
         bad = "; ".join(f"{c.name}: {c.detail}" for c in report.checks if not c.ok)
-        raise RegistryError(f"pack validate fails: {bad}")
+        raise RegistryError(f"blueprint validate fails: {bad}")
     pack_id = _manifest(spec).get("id", "")
     if not PACK_REF_RE.match(pack_id):
         raise RegistryError(f"{PACK_MANIFEST_FILE}: id must look like 'owner/name', got {pack_id!r}")
@@ -804,7 +804,7 @@ def pull(pack_id: str, registry: str, dest: Path, token: str | None = None,
     registry keeps every attested version so attestations can be re-checked.
     """
     if not PACK_REF_RE.match(pack_id):
-        raise RegistryError("pack must look like 'owner/name' (only the latest version can be pulled)")
+        raise RegistryError("Blueprint must look like 'owner/name' (only the latest version can be pulled)")
     base = _base(registry)
     index = json.loads(_fetch(base + "index.json"))
     entry = next((e for e in index.get("packs", []) if e["id"] == pack_id), None)
@@ -859,7 +859,7 @@ def _unpack(tarball: bytes, pack_id: str, dest: Path, expected: str) -> str:
         unpacked = Path(tmp) / name
         digest = pack_digest(unpacked)
         if digest != expected:
-            raise RegistryError(f"unpacked pack digest is {digest}, the registry lists {expected}")
+            raise RegistryError(f"unpacked Blueprint digest is {digest}, the registry lists {expected}")
         dest.parent.mkdir(parents=True, exist_ok=True)
         if dest.exists():
             dest.rmdir()
