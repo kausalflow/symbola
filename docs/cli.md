@@ -20,6 +20,10 @@ The `blueprint` commands were called `pack` before symbola 0.5. `symbola pack ..
 | [`replicate`](#replicate) | Hand a Blueprint to outside coding agents, then test, attest and diff their builds |
 | [`blueprint validate`](#blueprint-validate) | Check a Blueprint's brief, assumptions and obligations |
 | [`blueprint trim`](#blueprint-trim) | Propose cuts that make a Blueprint simpler to build from; remove only the ones the publisher approves |
+| [`blueprint map`](#blueprint-map) | Show how a Blueprint hangs together: build order, flows, what no check settles |
+| [`blueprint flows`](#blueprint-flows) | Bring `flows.toml` in step with the flows of `PRODUCT.md` |
+| [`blueprint search`](#blueprint-search) | Find decisions and assumptions other Blueprints already state |
+| [`status`](#status) | Say what a build has left, counted in decisions |
 | [`blueprint init`](#blueprint-init) | Scaffold a Blueprint that passes `blueprint validate` out of the box |
 | [`site build`](#site-build) | Write the static registry for the latest version of every Blueprint |
 | [`pull`](#pull) | Download a Blueprint from the registry, check it, and unpack it |
@@ -204,6 +208,38 @@ symbola blueprint validate PATH [--json]
 ```
 
 `PATH` is the Blueprint directory holding `symbolon-pack.toml`. Checks the manifest, component digests, `BRIEF.md` sections (and `PRODUCT.md`'s, if present), assumptions and obligations, and that no two example lines of a component have the same input but expect different results, then reports obligations by status and source. It does not run contract code; run `validate` on each component for that. See [What `symbola blueprint validate` checks](PACK_FORMAT.md#what-symbola-blueprint-validate-checks).
+
+## `blueprint map`
+
+```
+symbola blueprint map [PATH] [--json]
+```
+
+`PATH` is the Blueprint folder (default `spec`). Prints the components in the order the flows first need them, each with its standing (how many of its decisions are checked, unchecked or open) and the flows that use it; the flows with the decisions they keep; the decisions that bind the whole product; every decision no check settles, with the check it would need; and the assumptions it all rests on. `--json` prints the same links as data, the `map.json` that `site build` publishes. See [Where a decision belongs](PACK_FORMAT.md#where-a-decision-belongs-and-how-settled-it-is).
+
+## `blueprint flows`
+
+```
+symbola blueprint flows [PATH] [--write]
+```
+
+Prints `flows.toml` in step with the flow titles of `PATH/PRODUCT.md`; with `--write`, writes it. Flows already listed keep their id, `uses` and `keeps`. A new flow gets an id from its title and a first draft of `uses`: the components its text names in backticks. Check the draft, then run `blueprint validate`. See [`flows.toml`](PACK_FORMAT.md#flowstoml).
+
+## `blueprint search`
+
+```
+symbola blueprint search "WORDS" [--registry URL|DIR] [--kind decision|assumption] [--limit N] [--json]
+```
+
+Searches the decisions and assumptions of every Blueprint in the registry (its `decisions.json`; with a local folder of Blueprints, their latest versions) and prints the best matches with their Blueprint, id and statement. Use it before writing a decision others have likely met, such as dates, time zones, file formats, retries or merging, and copy wording that fits into your own Blueprint with its own check. Nothing is imported: a Blueprint stays complete in itself.
+
+## `status`
+
+```
+symbola status [SPEC] [--impl DIR] [--overrides FILE] [--write STATUS.md] [--json]
+```
+
+For a build that follows the Blueprint in `SPEC` (default `spec`), with one folder per component under `--impl` (default `impl`), each named after its component. Runs every built component's checks, as `test` does, and reports each decision as **kept** (all its checks pass), **failing**, **not built** (its component has no folder yet), **unchecked** (required, only the builder confirms it), **open** (the builder's choice) or **overridden** (listed in `overrides.toml`, by default the one beside `SPEC`). Exits 0 and prints `DONE` when nothing is failing or unbuilt. `--write` also saves the report as Markdown, for the build's notes.
 
 ## `mutants`
 

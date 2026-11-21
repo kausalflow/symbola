@@ -29,13 +29,15 @@ one. In outline:
    another project.
 2. Download the Blueprint: `symbola pull <owner>/<name> --dest spec`. A Blueprint page
    link works in place of the id.
-3. Read `spec/AGENTS.md` and follow it. Build only from `spec/`: don't look for
+3. Run `symbola blueprint map spec`: the order to build the components in, the
+   flows that use each, and the decisions no check settles. Then read
+   `spec/AGENTS.md` and follow it. Build only from `spec/`: don't look for
    the original product's source, the registry repository (it holds holdout
    tests) or other builds. If the Blueprint has `spec/PRODUCT.md`, build that whole
    product in the user's stack, with the components as its core, not a demo
    page around the components.
-4. Build each component in its own folder and run its checks as you go,
-   fixing what fails:
+4. Build each component in its own folder, in the map's order, and run its
+   checks as you go, fixing what fails:
 
        symbola impl-init impl/<component> --contract spec/components/<component>/versions/<n>
        symbola test spec/components/<component>/versions/<n> impl/<component>
@@ -45,8 +47,13 @@ one. In outline:
    for each component. On macOS, attest needs Docker running; `symbola test`
    runs the same checks without it.
 
-You are done when every flow in `spec/PRODUCT.md` works and attest reports
-PASSED for every component. Write open questions and the readings you chose in
+At any time, `symbola status spec --impl impl` says what the build has left,
+decision by decision: kept, failing, not built, unchecked (required, and only
+you confirm it), open (yours to choose).
+
+You are done when every flow in `spec/PRODUCT.md` works, `symbola status` says
+DONE and attest reports PASSED for every component. Write open questions, the
+readings you chose, and how the build keeps each unchecked decision in
 `NOTES.md`. When you depart from the Blueprint on purpose, because the user asked for it, add
 an entry to `overrides.toml` beside `spec/` (`[[override]]` with `id`, the
 decision id, `reason`, and optionally `instead`), so a later upgrade keeps it.

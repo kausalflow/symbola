@@ -191,9 +191,11 @@ def map_markdown(bp: Blueprint) -> str:
         out.append("")
     if m["assumptions"]:
         out.append("## Assumptions it rests on\n")
+        out.append("True of the world for every build; the decisions that name one depend on it directly.\n")
         for a in m["assumptions"]:
             n = len(a["decisions"])
-            out.append(f"- `{a['id']}`: {a['statement']} ({n} decision{'' if n == 1 else 's'} rest on it)")
+            rests = f" ({n} decision{'' if n == 1 else 's'} name it)" if n else ""
+            out.append(f"- `{a['id']}`: {a['statement']}{rests}")
         out.append("")
     return "\n".join(out).rstrip() + "\n"
 

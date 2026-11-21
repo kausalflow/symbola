@@ -25,6 +25,7 @@ packs/<namespace>/<product>/versions/<version>/
   symbolon-pack.toml    manifest: pack id, version, license, component digests (required)
   BRIEF.md              purpose, non-goals, priorities, who resolves gaps (required)
   PRODUCT.md            the whole product a build delivers (optional; makes it a product pack)
+  flows.toml            each flow of PRODUCT.md with the components it uses (required beside PRODUCT.md)
   obligations.toml      the decisions a build must keep (required)
   assumptions/*.toml    what must hold about the world, one file each
   components/<name>/versions/<version>/   capability contracts
@@ -62,8 +63,9 @@ people and agents. It must have these headings (any level, any case):
 - **Shape**: what kind of program it is, where it runs, what it needs, and the
   choices users would notice (a static web app with no server, a CLI, a service).
 - **Surfaces**: every screen, command, endpoint and file users touch, one line each.
-- **Flows**: the main things users do, each as steps and the outcome they see,
-  naming the components each step uses.
+- **Flows**: the main things users do, as a numbered list. Each item opens with
+  its title in bold (`1. **Find a paper.** Type in the search box ...`), then gives
+  the steps and the outcome users see.
 
 Optional headings such as **Interfaces** (outside services, plugin or storage
 interfaces) and **Order** (what to build first when a build cannot do it all)
@@ -75,6 +77,31 @@ A Blueprint with `PRODUCT.md` is a **product Blueprint**: its build is the produ
 components as its core, and it is done when every flow works and every component
 passes. A Blueprint without it is a **component library**: its build is the components.
 `symbola replicate` always builds the components only, so it costs the same either way.
+
+## `flows.toml`
+
+A product Blueprint lists the flows of `PRODUCT.md` as data, in the same order:
+
+```toml
+[[flow]]
+id = "join-and-sync"                 # lowercase words and hyphens
+title = "Join and sync"              # the flow's bold title in PRODUCT.md, without the closing dot or colon
+uses = ["link-crypto", "room"]       # the components the flow relies on
+keeps = ["app.sync-client"]          # optional: decisions the flow itself keeps
+```
+
+`uses` is what joins the product to its parts. It gives builders an order (the
+components the first flows need come first), tells a reader what each component
+is for, and makes a component nobody needs visible: every component must be used
+by at least one flow. `keeps` places product-level decisions, the ones no single
+component's checks cover, on the flow that must keep them. A flow may use no
+component, when it is all product.
+
+`symbola blueprint flows spec --write` writes or updates the file from the titles
+in `PRODUCT.md`: flows already listed keep their `uses` and `keeps`, and a new
+flow gets a first draft of `uses` from the component names its text has in
+backticks, for the publisher to correct. A component library (no `PRODUCT.md`)
+has no `flows.toml`.
 
 ## `assumptions/<name>.toml`
 
@@ -102,6 +129,7 @@ exactness = "exact"                    # exact | statistical (default exact)
 assumes = ["K-..."]                    # optional
 checks = ["search-query#test_only_the_last_year_filter_counts", "search-query#example:40"]
 unchecked = ""                         # see "Unchecked obligations" below
+about = ["search-query"]               # optional: components it binds that its checks do not name
 ```
 
 | Status | Meaning | Checks |
@@ -117,6 +145,27 @@ A required behaviour no example or property can express yet is `decided` (or
 such as `unchecked = "a session check: run to t1 then t2, compared with one run to t2"`.
 Builders treat it as required; `blueprint validate` counts it as debt and fails above
 `[pack] max_unchecked` (a share of decided and default obligations, default 0.1).
+
+### Where a decision belongs, and how settled it is
+
+A decision binds the components its checks run against, plus any it names in
+`about`, which is how an unchecked or open decision says what part it is about.
+A decision a flow lists under `keeps` belongs to that flow. One tied to neither
+binds the product as a whole.
+
+Every decision has a **standing**, read off its status and checks:
+
+| Standing | Meaning |
+| --- | --- |
+| `checked` | Decided or default, with a check a build must pass |
+| `unchecked` | Decided or default, required, but only the builder confirms it |
+| `open` | The builder's to choose |
+
+A component, a flow or the whole Blueprint has the standing of the decisions
+under it and rests on the assumptions those decisions name. `symbola blueprint map`
+prints all of it with the build order; `symbola status` asks the same of a build:
+which decisions it keeps, fails, has not built yet, or holds on the builder's
+word.
 
 A check is `<component>#example:<line>` (a 1-based line of that component's
 `examples.jsonl`) or `<component>#<test function>` (a property in its
@@ -153,11 +202,15 @@ on its own.
 5. Every obligation is well-formed, with a unique id.
 6. Every `decided` or `default` obligation has checks or an `unchecked` reason (not
    both), every `open` one has neither, every constraint has a reason, every check
-   exists, and every assumption it names exists.
+   exists, every assumption it names exists, and every component in `about` exists
+   and is not already named by its checks.
 7. A `statistical` obligation is not `open`, and when it has checks, at least one
    is a statistical property.
-8. Unchecked obligations are at most `max_unchecked` of the decided and default ones.
+8. A Blueprint with `PRODUCT.md` has a `flows.toml` listing the same flows in the same
+   order, by title; every `uses` names a component, every `keeps` a decision, and
+   every component is used by a flow. One without `PRODUCT.md` has no `flows.toml`.
+9. Unchecked obligations are at most `max_unchecked` of the decided and default ones.
 
-It then reports obligations by status, source and exactness, assumptions and how many are
+It then reports obligations by status, standing, source and exactness, assumptions and how many are
 monitored, and how many of the components' checks trace to an obligation. It does
 not run contract code; use `symbola validate` on each component for that.
