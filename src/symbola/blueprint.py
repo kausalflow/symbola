@@ -264,8 +264,7 @@ def build_status(spec: Path, impl_root: Path, overrides: Path | None = None, run
     `impl_root` holds one folder per component, named after it. `run(contract, impl)`
     runs a component's checks and defaults to the same run as `symbola test`.
     """
-    from .validate import check_impl
-    from .worker import WorkerError
+    from .validate import WorkerError, check_impl
     run = run or check_impl
     bp = load_blueprint(spec)
     spec, impl_root = Path(spec).resolve(), Path(impl_root).resolve()
