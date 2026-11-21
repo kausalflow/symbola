@@ -29,7 +29,8 @@ symbola blueprint init <owner>/<name> --dir spec
 
 ## 2. Shape first
 
-Write `spec/PRODUCT.md` (headings Shape, Surfaces, Flows) and fill `spec/BRIEF.md`
+Write `spec/PRODUCT.md` (headings Shape, Surfaces, Flows; number the flows and open
+each with its title in bold, `1. **Find a paper.** ...`) and fill `spec/BRIEF.md`
 (purpose, Non-goals, Priorities, Who resolves gaps). Show the user a summary of
 about ten lines and let them correct it. Settle here what kind of program it is,
 where it runs, and what it deliberately does not do. Write facts about the world
@@ -48,6 +49,10 @@ symbola init <owner>/<component> --root spec/components
 Edit `schema.py` (then `symbola schema <dir>`), and write `description` in its
 `symbolon.toml`. Clear the scaffold's sample lines from `examples.jsonl` and
 replace its sample properties; delete its `reference/` folder (see step 6).
+
+When the components exist, run `symbola blueprint flows spec --write`, then set each
+flow's `uses` in `spec/flows.toml` to the components it relies on. Every component
+must be used by a flow; one that is not is not part of this product.
 
 ## 4. Find the splits
 
@@ -100,6 +105,15 @@ symbola blueprint answer spec <id> open        # "doesn't matter": builds may di
 This writes the obligation and the example line that checks it. Don't edit those
 by hand. If the user changes their mind, remove the obligation from
 `obligations.toml` and its line from `examples.jsonl`, then answer again.
+
+Before asking about something other products have met (dates and time zones, file
+formats, retries, merging, limits), run `symbola blueprint search "<words>"`. If a
+published decision fits, offer its wording as an option: the user decides faster,
+and the same thing reads the same across Blueprints.
+
+A product-level decision no component checks (it works offline, nothing leaves the
+device) goes under `keeps` of the flow that must keep it. An unchecked or open
+decision about one component names it in `about`.
 
 A small product takes 20 to 40 questions. Stop when what is left are choices every
 good builder makes the same way. Respect the user's time: no questions about

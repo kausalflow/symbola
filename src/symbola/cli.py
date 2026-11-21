@@ -25,7 +25,10 @@ from .publish import DEFAULT_SITE, PublishError, finish_login, logout as logout_
     request_state, start_login
 from . import trim as trim_mod
 from .questions import QuestionError, answer as answer_question, confirm as confirm_obligation, review as review_pack, unanswered
-from .pack import PACK_MANIFEST_FILE, PRODUCT_FILE, component_name, report_json, summary_line, validate_pack
+from .blueprint import (BlueprintError, blueprint_map, build_status, load_blueprint, map_markdown, search as search_rows,
+                        search_entries, standing_line, status_line, status_markdown)
+from .pack import FLOWS_FILE, PACK_MANIFEST_FILE, PRODUCT_FILE, draft_flows, component_name, report_json, summary_line, validate_pack
+from .registry import SEARCH_FILE, fetch_search_index
 from .registry import DEFAULT_REGISTRY, RegistryError, build_site, check_registry, components_of, pack_ref, previous_version, pull as pull_pack, release as release_pack, scaffold_pack, upgrade as upgrade_pack
 from .replicate import Options, ReplicateError, replicate as replicate_pack
 from .sandbox import SandboxError, select
@@ -128,6 +131,59 @@ def test(
     else:
         typer.echo(typer.style(f"\nFAIL  {failed} of {total} checks failed", fg=typer.colors.RED, bold=True))
     raise typer.Exit(0 if result["passed"] else 1)
+
+
+@app.command()
+def status(
+    spec: Path = typer.Argument(Path("spec"), help="The Blueprint a build follows, as `symbola pull` unpacked it."),
+    impl: Path = typer.Option(Path("impl"), help="Folder with one build per component, each named after its component."),
+    overrides: Path | None = typer.Option(None, help="The build's overrides.toml; by default the one beside the Blueprint folder."),
+    as_json: bool = typer.Option(False, "--json", help="Print the status as JSON."),
+    write: Path | None = typer.Option(None, "--write", help="Also write the status as Markdown here, e.g. STATUS.md."),
+) -> None:
+    """Say what a build has left, in decisions: kept, failing, not built, unchecked, open, overridden."""
+    try:
+        result = build_status(spec, impl, overrides)
+    except (BlueprintError, ValueError) as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    if write is not None:
+        write.write_text(status_markdown(result))
+    if as_json:
+        typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+        raise typer.Exit(0 if result["done"] else 1)
+    for c in result["components"]:
+        if not c["built"]:
+            _line(False, f"{c['name']}: not built", f"no folder {impl / c['name']}")
+        elif c["error"]:
+            _line(False, f"{c['name']}: could not run", c["error"])
+        else:
+            _line(not c["failed"], f"{c['name']}: {c['checks'] - len(c['failed'])} of {c['checks']} checks pass",
+                  "" if not c["failed"] else "failing: " + ", ".join(c["failed"]))
+    notes = {"failing": "a check does not pass", "not built": "its component has no build yet",
+             "unchecked": "required; only you confirm it", "open": "yours to choose; note the choice in NOTES.md",
+             "overridden": "departed from on purpose in overrides.toml"}
+    for state, note in notes.items():
+        rows = [d for d in result["decisions"] if d["state"] == state]
+        if not rows:
+            continue
+        typer.echo(f"\n{state.capitalize()} ({note}):")
+        for d in rows:
+            extra = (": " + ", ".join(d["failing"]) if d["failing"] else
+                     ": waits for " + ", ".join(d["waits_for"]) if d["waits_for"] else "")
+            typer.echo(f"  {d['id']}{extra}")
+    if result["failing_outside_decisions"]:
+        typer.echo("\nFailing checks no decision cites:")
+        for ref in result["failing_outside_decisions"]:
+            typer.echo(f"  {ref}")
+    for o in result["unknown_overrides"]:
+        typer.echo(typer.style(f"! overrides.toml names {o}, which is not a decision of this Blueprint", fg=typer.colors.YELLOW))
+    colour = typer.colors.GREEN if result["done"] else typer.colors.RED
+    typer.echo(typer.style(f"\n{'DONE' if result['done'] else 'NOT DONE'}  {status_line(result)}", fg=colour, bold=True))
+    if result["done"] and (result["by_state"]["unchecked"] or result["by_state"]["open"]):
+        typer.echo("Every checked decision is kept. The unchecked and open ones above are on your word: "
+                   "say in NOTES.md how the build keeps each.")
+    raise typer.Exit(0 if result["done"] else 1)
 
 
 @app.command()
@@ -562,6 +618,71 @@ def pack_validate(
         else:
             typer.echo(typer.style("\nBlueprint is not valid", fg=typer.colors.RED))
     raise typer.Exit(0 if report.ok else 1)
+
+
+@pack_app.command(name="map")
+def pack_map(
+    path: Path = typer.Argument(Path("spec"), help="Blueprint folder, the one with symbolon-pack.toml."),
+    as_json: bool = typer.Option(False, "--json", help="Print the map as JSON."),
+) -> None:
+    """Show how a Blueprint hangs together: build order, flows, and what no check settles."""
+    try:
+        bp = load_blueprint(path)
+    except BlueprintError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    typer.echo(json.dumps(blueprint_map(bp), indent=2) if as_json else map_markdown(bp).rstrip())
+
+
+@pack_app.command(name="flows")
+def pack_flows(
+    path: Path = typer.Argument(Path("spec"), help="Blueprint folder, the one with PRODUCT.md."),
+    write: bool = typer.Option(False, "--write", help="Write flows.toml instead of printing it."),
+) -> None:
+    """Bring flows.toml in step with the flows PRODUCT.md tells; new flows get a first draft of what they use."""
+    if not (path / PRODUCT_FILE).is_file():
+        _line(False, f"{path / PRODUCT_FILE} not found", "only a product Blueprint has flows")
+        raise typer.Exit(1)
+    text = draft_flows(path)
+    if not write:
+        typer.echo(text.rstrip())
+        return
+    (path / FLOWS_FILE).write_text(text)
+    _line(True, f"wrote {path / FLOWS_FILE}", f"{text.count('[[flow]]')} flows")
+    typer.echo("Check each flow's `uses` (and add `keeps` for product-level decisions), then run "
+               f"`symbola blueprint validate {path}`.")
+
+
+@pack_app.command(name="search")
+def pack_search(
+    query: str = typer.Argument(..., help="Words to look for, like 'time zone of a due date'."),
+    registry: str = typer.Option(DEFAULT_REGISTRY, envvar="SYMBOLON_REGISTRY",
+                                 help="Registry URL or local site folder, or a folder of Blueprints (packs/)."),
+    kind: str = typer.Option("", help="Only 'decision' or only 'assumption'."),
+    limit: int = typer.Option(10, min=1, max=100),
+    as_json: bool = typer.Option(False, "--json", help="Print the matches as JSON."),
+) -> None:
+    """Find decisions and assumptions other Blueprints already state, to reuse their wording."""
+    if kind not in ("", "decision", "assumption"):
+        _line(False, "--kind is 'decision' or 'assumption'")
+        raise typer.Exit(2)
+    try:
+        rows = search_rows(fetch_search_index(registry), query, limit, kind)
+    except RegistryError as e:
+        _line(False, str(e))
+        raise typer.Exit(1)
+    if as_json:
+        typer.echo(json.dumps(rows, indent=2, ensure_ascii=False))
+        return
+    if not rows:
+        typer.echo("No Blueprint states anything like that yet.")
+        return
+    for r in rows:
+        tag = f"{r['status']}, {r['checks']} check{'' if r['checks'] == 1 else 's'}" if r["kind"] == "decision" else "assumption"
+        typer.echo(f"{typer.style(r['blueprint'], bold=True)}  {r['id']}  " + typer.style(f"({tag})", dim=True))
+        typer.echo(f"    {r['statement']}")
+    typer.echo(typer.style("\nCopy a statement that fits into your own Blueprint, with its own check. "
+                           "Nothing is imported: your Blueprint stays complete in itself.", dim=True))
 
 
 @pack_app.command(name="init")

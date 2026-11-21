@@ -57,7 +57,13 @@ It reads standard input.
 
 ## Flows
 
-1. Run it; read the answer.
+1. **Shout.** Run it; read the answer.
+'''
+
+FLOWS = '''[[flow]]
+id = "shout"
+title = "Shout"
+uses = ["upper"]
 '''
 
 
@@ -70,6 +76,7 @@ def pack(tmp_path):
                         '{"input": {"text": ""}, "output": {"text": ""}}\n')
     (root / "obligations.toml").write_text(OBLIGATIONS)
     (root / "PRODUCT.md").write_text(PRODUCT)
+    (root / "flows.toml").write_text(FLOWS)
     sync_components(root)
     assert validate_pack(root).ok
     return root

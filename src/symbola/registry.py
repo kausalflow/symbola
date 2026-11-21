@@ -41,6 +41,7 @@ from pathlib import Path
 from . import USER_AGENT, keys
 from .changes import compare, markdown as changes_markdown, summary_text as changes_summary
 from .digest import contract_files, hex_of, tree_digest
+from .blueprint import Blueprint, BlueprintError, attested_checks, blueprint_map, kept_by, load_blueprint, map_markdown, search_entries, standing_line
 from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, PRODUCT_FILE, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
                    VERSIONS_DIR, summary_line, validate_pack)
 
@@ -50,6 +51,11 @@ TARBALL_FILE = "latest.tar.gz"
 SHA_FILE = "latest.sha256"
 DIGESTS_FILE = "digests.txt"
 CHANGES_FILE = "changes.json"
+# Per Blueprint: its parts and how they link (blueprint.blueprint_map), and the same for readers.
+MAP_FILE = "map.json"
+MAP_MD_FILE = "map.md"
+# For the whole registry: every public decision and assumption, for `blueprint search`.
+SEARCH_FILE = "decisions.json"
 
 
 class RegistryError(Exception):
@@ -131,10 +137,14 @@ This is a Symbola pack. If you are building from it:
 3. Read `obligations.toml`: the decisions you must keep. `open` ones are yours to choose;
    `unchecked` ones are required although no check covers them yet.
 4. Each component's specification is under `components/<name>/versions/<n>/`.
+5. Run `symbola blueprint map <this folder>`: the order to build the components in, the
+   flows that use each, and the decisions no check settles.
 
-If `PRODUCT.md` exists, build the whole product it describes, with the components as its core.
+If `PRODUCT.md` exists, build the whole product it describes, with the components as its core;
+`flows.toml` says which components each flow uses.
 
-**Done** means `symbola attest components/<name>/versions/<n> <impl-dir>` passes
+**Done** means `symbola status <this folder> --impl <folder of builds>` says DONE (every
+checked decision is kept), `symbola attest components/<name>/versions/<n> <impl-dir>` passes
 for every component and, for a product pack, every flow in `PRODUCT.md` works.
 The publisher keeps a holdout, so don't special-case examples.
 
@@ -143,7 +153,9 @@ when the user makes a choice you could not have guessed, add it to
 `obligations.toml` with a check; when they state a fact about the world, add an
 assumption; record only what the user decided, not what the code happens to do.
 Keep holdout tests outside this folder. Run `symbola blueprint validate <this folder>`
-after each change.
+after each change. When you write a decision or an assumption others have likely
+met (dates, time zones, file formats, retries, merging), look first with
+`symbola blueprint search "<words>"` and reuse wording that fits.
 
 If two checks cannot both pass, don't code around them: run
 `symbola flag <component>#example:<line> "<what disagrees, and the reading you chose>" --dir <impl-dir>`,
@@ -277,7 +289,7 @@ def components_of(version_dir: Path) -> list[str]:
 
 
 def build_steps(pack_id: str, page: str, components: list[str], price: dict | None = None,
-                registry: str = "", product: bool = False) -> str:
+                registry: str = "", product: bool = False, ordered: bool = False) -> str:
     """Build instructions for a coding agent that was handed only the pack's page link.
 
     A product pack (one with PRODUCT.md) is built as the whole product, with the
@@ -315,11 +327,16 @@ def build_steps(pack_id: str, page: str, components: list[str], price: dict | No
         f"`symbola attest spec/{first} impl/{name} -o attestations/{name}.json`. On macOS, attest needs Docker "
         "running and accepts Python, Node or a static Linux binary (for Go, `GOOS=linux`); "
         "`symbola test` runs the same checks without it.\n\n"
-        + ("You are done when every flow in `spec/PRODUCT.md` works in the product you built and attest reports "
-           "PASSED for every component. " if product else "You are done when attest reports PASSED for every component. ")
-        + "Write open questions and the readings you "
-        f"chose in `NOTES.md`. Every command is described at {CLI_DOCS}.\n\n"
-        + (f"Components:\n\n{listed}\n" if listed else "")
+        "6. Run `symbola status spec --impl impl --write STATUS.md` at any time: it says, decision by decision, "
+        "what the build keeps, what fails and what is not built yet, and lists the decisions no check settles "
+        "(unchecked ones are required on your word; open ones are yours to choose).\n\n"
+        + ("You are done when every flow in `spec/PRODUCT.md` works in the product you built, `symbola status` "
+           "says DONE and attest reports PASSED for every component. " if product else
+           "You are done when `symbola status` says DONE and attest reports PASSED for every component. ")
+        + "Write open questions, the readings you chose and how the build keeps each unchecked decision "
+        f"in `NOTES.md`. Every command is described at {CLI_DOCS}.\n\n"
+        + (("Components, in the order the flows first need them (`symbola blueprint map spec` shows the flows):\n\n"
+            if ordered else "Components:\n\n") + f"{listed}\n" if listed else "")
     )
 
 
@@ -458,7 +475,7 @@ def _component_digests(version_dir: Path) -> dict[str, str]:
     return found
 
 
-def pack_evidence(pack_root: Path, latest: Path) -> dict:
+def pack_evidence(pack_root: Path, latest: Path, bp: Blueprint | None = None) -> dict:
     """Check every attestation beside a pack and say which pack version each one covers.
 
     Attestations sit in `<pack>/attestations/*.json`, with the runners' public keys
@@ -510,6 +527,7 @@ def pack_evidence(pack_root: Path, latest: Path) -> dict:
             "runner": runners.get(check.keyid, check.keyid),
             "evidence": pred["symbolon"].get("evidence"),
             "finished": pred["symbolon"].get("finishedOn"),
+            "_passed": attested_checks(pred["passedTests"]),
         })
     good = [r for r in records if r["valid"] and r["covers"] == "latest"]
     passing = [r for r in good if r["result"] == "PASSED"]
@@ -526,6 +544,28 @@ def pack_evidence(pack_root: Path, latest: Path) -> dict:
         "runners": sorted({r["runner"] for r in good}),
         "newest": max((r["finished"] for r in good if r["finished"]), default=None),
     }
+    if bp is not None:
+        # What the evidence covers, in decisions: for the build that keeps the most, how many
+        # checked decisions its attested runs passed. Unchecked and open ones no run can show.
+        checked = sum(d.standing == "checked" for d in bp.decisions)
+        best, best_kept = None, []
+        for build in sorted({r["build"] for r in good}):
+            passed: dict[str, set[str]] = {}
+            for r in good:
+                if r["build"] == build:
+                    name = r["component"].rsplit("-v", 1)[0]
+                    passed.setdefault(name, set()).update(r["_passed"])
+            kept = kept_by(bp, passed)
+            if best is None or len(kept) > len(best_kept):
+                best, best_kept = build, kept
+        summary["decisions"] = {
+            "checked": checked, "kept": len(best_kept), "build": best,
+            "not_shown": sorted({d.id for d in bp.decisions if d.standing == "checked"} - set(best_kept)) if best else [],
+            "unchecked": sum(d.standing == "unchecked" for d in bp.decisions),
+            "open": sum(d.standing == "open" for d in bp.decisions),
+        }
+    for r in records:
+        r.pop("_passed", None)
     return {"summary": summary, "attestations": records}
 
 
@@ -551,7 +591,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
                 shutil.rmtree(folder)
             folder.mkdir(parents=True)
     files_url = files_url.rstrip("/")
-    entries, built = [], []
+    entries, built, search_rows = [], [], []
     for pack_root in sorted(p for p in registry.glob("*/*") if (p / VERSIONS_DIR).is_dir()):
         owner, name = pack_root.parent.name, pack_root.name
         pack_id = f"{owner}/{name}"
@@ -562,6 +602,8 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         if not report.ok:
             bad = "; ".join(f"{c.name}: {c.detail}" for c in report.checks if not c.ok)
             raise RegistryError(f"{pack_id}: blueprint validate fails: {bad}")
+        bp = load_blueprint(version_dir, report)
+        bp_map = blueprint_map(bp)
         meta = _manifest(version_dir)
         if meta.get("id") != pack_id:
             raise RegistryError(f"{pack_id}: {PACK_MANIFEST_FILE} says id = {meta.get('id')!r}")
@@ -600,7 +642,11 @@ def build_site(registry: Path, out: Path, base_url: str = "",
             for manifest in sorted((version_dir / COMPONENTS_DIR).glob(f"*/{VERSIONS_DIR}/*/symbolon.toml")):
                 key = _component_key(manifest.parent.relative_to(version_dir).as_posix() + "/symbolon.toml")
                 (bulk / "parts" / f"{key}.tar.gz").write_bytes(make_tarball(manifest.parent, key))
-        evidence = pack_evidence(pack_root, version_dir)
+        evidence = pack_evidence(pack_root, version_dir, bp)
+        # The decisions and the map are public for every Blueprint, as pack.md is.
+        (bulk / MAP_FILE).write_text(json.dumps(bp_map, indent=2, ensure_ascii=False) + "\n")
+        (bulk / MAP_MD_FILE).write_text(map_markdown(bp))
+        search_rows += search_entries(bp)
         older = []
         for n in sorted({r["pack_version"] for r in evidence["attestations"] if r.get("covers") == "older"}):
             old_dir = pack_root / VERSIONS_DIR / str(n)
@@ -637,8 +683,11 @@ def build_site(registry: Path, out: Path, base_url: str = "",
         (dest / "llms.txt").write_text(
             f"# {pack_id}\n\n> {meta.get('title', name)}\n\n"
             f"Version {version}, digest {digest}. {summary_line(report.summary)}.\n\n"
-            + build_steps(pack_id, page, components_of(version_dir), price, base_url,
-                          product=(version_dir / PRODUCT_FILE).is_file())
+            + build_steps(pack_id, page, [bp_map["components"][i]["path"] for i in range(len(bp_map["components"]))],
+                          price, base_url, product=bp.product, ordered=bool(bp.flows))
+            + "## Map\n\n"
+            f"{standing_line(bp_map['standing']).capitalize()}. How the flows, components, decisions and "
+            f"assumptions link, and the build order: {files_prefix}/{MAP_MD_FILE} (as data: {files_prefix}/{MAP_FILE}).\n\n"
             + (f"## What changed in version {version}\n\n{changes_summary(changes)}. "
                f"Details: {files_prefix}/changes.md. To take this version into a build you already have, "
                "run `symbola upgrade` beside its spec/ folder.\n\n" if changes else "")
@@ -653,6 +702,7 @@ def build_site(registry: Path, out: Path, base_url: str = "",
             "license": meta.get("license", ""), "authors": meta.get("authors", []),
             "digest": digest, "tarball_sha256": sha,
             "summary": report.summary, "summary_line": summary_line(report.summary),
+            "standing": bp_map["standing"], "standing_line": standing_line(bp_map["standing"]),
             "files": listed, "price": price, "preview": preview,
             "publisher": listing_publisher(version_dir, owner),
             "evidence": evidence["summary"], "older": older,
@@ -666,13 +716,16 @@ def build_site(registry: Path, out: Path, base_url: str = "",
     if store_url:
         index["store"] = store_url.rstrip("/")
     (out / "index.json").write_text(json.dumps(index, indent=2) + "\n")
+    (out / SEARCH_FILE).write_text(json.dumps({"format": 1, "entries": search_rows}, ensure_ascii=False) + "\n")
     root_prefix = base_url.rstrip("/") + "/" if base_url else ""
     (out / "llms.txt").write_text(
         "# Symbola Blueprints\n\n> Symbola Blueprints: software that AI coding agents can build from. "
         "Each Blueprint holds a brief, assumptions, obligations and component contracts with tests.\n\n"
         "To build a Blueprint, open its llms.txt below and follow its \"Build this Blueprint\" steps. "
         f"Install the CLI with `{INSTALL}`.\n\n"
-        f"Catalog as JSON: {root_prefix}index.json\n\n## Packs\n\n"
+        f"Catalog as JSON: {root_prefix}index.json\n\n"
+        f"Every decision and assumption of every Blueprint, to search or reuse: {root_prefix}{SEARCH_FILE} "
+        "(or `symbola blueprint search \"<words>\"`).\n\n## Packs\n\n"
         + "".join(f"- [{e['id']}]({root_prefix}packs/{e['id']}/llms.txt): {e['title']} · {e['summary_line']}\n"
                   for e in entries))
     return built
@@ -784,6 +837,30 @@ def _fetch(url: str, token: str | None = None) -> bytes:
             return r.read()
     except (urllib.error.URLError, OSError) as e:
         raise RegistryError(f"could not fetch {url}: {e}") from None
+
+
+def fetch_search_index(registry: str) -> list[dict]:
+    """Every decision and assumption a registry publishes, as rows for `blueprint.search`.
+
+    `registry` is a site URL, a built site folder, or a folder of Blueprints
+    (`packs/`), whose latest valid versions are then read directly.
+    """
+    local = Path(registry)
+    if "://" not in registry and local.is_dir() and not (local / SEARCH_FILE).is_file():
+        rows = []
+        for pack_root in sorted(p for p in local.glob("*/*") if (p / VERSIONS_DIR).is_dir()):
+            version_dir = latest_version(pack_root)
+            if version_dir is None:
+                continue
+            try:
+                rows += search_entries(load_blueprint(version_dir))
+            except BlueprintError:
+                continue  # a draft that does not validate has nothing to offer yet
+        return rows
+    try:
+        return json.loads(_fetch(_base(registry) + SEARCH_FILE))["entries"]
+    except (json.JSONDecodeError, KeyError, TypeError) as e:
+        raise RegistryError(f"{registry} has no readable {SEARCH_FILE}: {e}") from None
 
 
 PAGE_RE = re.compile(r"^([a-z]+://[^?#]*?)/packs/([^/?#]+/[^/?#]+)(?:[/?#].*)?$")

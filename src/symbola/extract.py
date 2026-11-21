@@ -35,7 +35,7 @@ from pathlib import Path
 from .agent import PROMPT_DIR, AgentCommand, AgentRun, run_agent
 from .digest import contract_digest
 from .manifest import ID_RE, load_manifest
-from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, PRODUCT_FILE, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
+from .pack import (ASSUMPTIONS_DIR, BRIEF_FILE, COMPONENTS_DIR, FLOWS_FILE, PRODUCT_FILE, OBLIGATIONS_FILE, PACK_MANIFEST_FILE,
                    VERSIONS_DIR, PackReport, _component_dirs, validate_pack)
 from .spec import CheckResult
 from .validate import WorkerError, check_impl, validate
@@ -101,7 +101,17 @@ TODO: what a build of the whole product is. The components are its core.
 
 ## Flows
 
-1. TODO: a thing users do, its steps, the outcome they see, and the components it uses
+1. **TODO flow.** A thing users do, its steps, the outcome they see, and the components it uses.
+'''
+
+FLOWS = '''\
+# The flows of PRODUCT.md, in its order: the components each one uses, and the decisions
+# it keeps itself (product-level ones no component's checks cover).
+
+[[flow]]
+id = "todo-flow"
+title = "TODO flow"
+uses = []
 '''
 
 OBLIGATIONS = '''\
@@ -139,7 +149,12 @@ real program and set `command` to it; symbola runs it once per check.
 `PRODUCT.md` describes (its shape, surfaces and flows), with your component builds as
 its core. Don't build a demo page around the components instead.
 
-**Done** means `symbola attest components/<name>/versions/<n> <impl-dir>` reports PASSED
+**The map.** `symbola blueprint map <this folder>` shows the order to build the components
+in, which flows use each (`flows.toml`), and the decisions no check settles.
+`symbola status <this folder> --impl <folder of builds>` says, decision by decision, what
+your build keeps so far.
+
+**Done** means `symbola status` says DONE, `symbola attest components/<name>/versions/<n> <impl-dir>` reports PASSED
 for every component and, for a product pack, every flow in `PRODUCT.md` works. Don't
 special-case the examples: the properties generate other inputs, and the publisher
 keeps a holdout. Write questions about unclear parts, and the reading you chose, in
@@ -186,6 +201,7 @@ Write these files, relative to your working directory:
     {manifest}             [pack] title, license, authors. Leave [components] alone.
     {brief}                       purpose; "Non-goals"; "Priorities" (ordered); "Who resolves gaps"
     {product}                     the whole product: "Shape", "Surfaces", "Flows" (see below)
+    {flows}                    each flow of {product} with the components it uses (see below)
     {agents}                      guide for builders (already written; adjust only if needed)
     {assumptions}/<name>.toml       what the product relies on about the world but never checks
     {obligations}              the decisions a rebuild must keep
@@ -228,11 +244,21 @@ code for it). Keep it to what a builder could not guess:
   ## Shape      what kind of program it is, where it runs, what it needs (no server,
                 a CLI, a service), and the stack choices users would notice
   ## Surfaces   every screen, command, endpoint and file users touch, one line each
-  ## Flows      the main things users do, each as steps and the outcome they see,
-                naming the component each step uses
+  ## Flows      the main things users do, numbered, each opening with its title in bold
+                ("1. **Find a paper.** ..."), then its steps and the outcome they see
   ## Interfaces outside services, plugin or storage interfaces, credentials
   ## Order      optional: what to build first when a build cannot do it all
 State rules exactly only where they matter; leave layout and styling to the builder.
+
+{flows} lists the same flows as data, in the same order, one table each:
+  [[flow]]
+  id = "find-a-paper"            lowercase words and hyphens
+  title = "Find a paper"         the flow's bold title in {product}, without the closing dot
+  uses = ["search-query"]        the components the flow relies on
+  keeps = ["app.offline"]        optional: decisions the flow itself keeps, for product-level
+                                 obligations that no component's checks cover
+Every component must be used by at least one flow: a component no flow needs is not part
+of this product. These links give builders their build order and readers the pack's map.
 
 ## Components (capability contracts)
 
@@ -299,6 +325,8 @@ single-writer assumption.
   checks = ["<name>#example:<line>", "<name>#test_<property>"]
   unchecked = "..."           only when no example or property can check it: the
                               kind of check it would need (then checks = [])
+  about = ["<name>"]          optional: components it binds that its checks do not name; how
+                              an unchecked or open obligation says which part it is about
 A decided or default obligation needs at least one check, and the checks must
 exist; `unchecked` is for a requirement the publisher would hold a build to but
 no example or property can express (at most a tenth of them). Every example and
@@ -404,6 +432,7 @@ def scaffold_pack(pack_id: str, product_dir: Path, version: int = 1) -> Path:
     (pack_dir / PACK_MANIFEST_FILE).write_text(PACK_MANIFEST.format(**fill))
     (pack_dir / BRIEF_FILE).write_text(BRIEF.format(**fill))
     (pack_dir / PRODUCT_FILE).write_text(PRODUCT.format(**fill))
+    (pack_dir / FLOWS_FILE).write_text(FLOWS)
     (pack_dir / OBLIGATIONS_FILE).write_text(OBLIGATIONS.format(**fill))
     (pack_dir / AGENTS_FILE).write_text(AGENTS.format(**fill))
     return pack_dir
@@ -468,7 +497,7 @@ def extract_prompt(sources: Sources | Path, product_dir: Path, pack_dir: Path, h
         sources=sources.describe(), oracle_note=oracle_note, workdir=Path(product_dir).resolve(),
         hint=f"\nThe publisher adds: {hint.strip()}\n" if hint.strip() else "",
         pack=pack_dir.relative_to(product_dir).as_posix(), namespace=namespace,
-        manifest=PACK_MANIFEST_FILE, brief=BRIEF_FILE, product=PRODUCT_FILE, agents=AGENTS_FILE,
+        manifest=PACK_MANIFEST_FILE, brief=BRIEF_FILE, product=PRODUCT_FILE, flows=FLOWS_FILE, agents=AGENTS_FILE,
         assumptions=ASSUMPTIONS_DIR, obligations=OBLIGATIONS_FILE, components=COMPONENTS_DIR, versions=VERSIONS_DIR,
         oracle=ORACLE_DIR, review=REVIEW_FILE, evidence=EVIDENCE_FILE, kinds=", ".join(EVIDENCE_KINDS),
         questions=QUESTIONS_FILE.as_posix(), max_obligations=max_obligations,

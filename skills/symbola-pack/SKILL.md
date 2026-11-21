@@ -39,6 +39,14 @@ Update the Blueprint in the same change as the code, and only for these:
   digest (`symbola digest <dir>`) under `[components]` in
   `spec/symbolon-pack.toml`.
 
+- **The product gains or loses a flow, or a flow starts using a component.**
+  Keep `spec/PRODUCT.md`'s Flows and `spec/flows.toml` in step:
+  `symbola blueprint flows spec --write` adds new flows, then set their `uses`.
+
+Before writing a decision other products have met (dates, time zones, file
+formats, retries, merging), run `symbola blueprint search "<words>"` and reuse
+wording that fits.
+
 Do not record what the code merely happens to do, choices every competent
 builder would make the same way, or architecture. Recording too much is
 cheaper than missing a decision, because release trims it, but don't pad.

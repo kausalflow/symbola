@@ -70,6 +70,7 @@ def draft(tmp_path):
     pack = d / "versions" / "1"
     (pack / "obligations.toml").write_text(OBLIGATIONS)
     (pack / "BRIEF.md").write_text(BRIEF)
+    (pack / "flows.toml").write_text('[[flow]]\nid = "todo-flow"\ntitle = "TODO flow"\nuses = ["upper"]\n')
     (pack / "assumptions").mkdir()
     (pack / "assumptions" / "ascii.toml").write_text(
         'id = "K-ascii"\nstatement = "Input is mostly ASCII."\nbasis = "It is."\nmonitor = "none"\n')
@@ -258,7 +259,7 @@ def test_obligation_ids_survive_a_malformed_file(tmp_path):
 def test_extract_keeps_the_pack_within_its_budget(tmp_path, source, stub, draft):
     (draft / "versions" / "1" / "PRODUCT.md").write_text(
         "# Shout: the product\n\n## Shape\n\n- A function.\n\n## Surfaces\n\n- shout()\n\n"
-        "## Flows\n\n1. Type, see it shouted, using upper.\n" + "word " * 50)
+        "## Flows\n\n1. **TODO flow.** Type, see it shouted, using upper.\n" + "word " * 50)
     result = extract(source, "acme/shout", agent=stub, root=tmp_path / "packs", rounds=1,
                      max_obligations=1, max_product_words=40)
     failed = {c.name: c.detail for c in result.rounds[0].checks if not c.ok}

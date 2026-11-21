@@ -46,6 +46,7 @@ A **Blueprint** is a product-level contract, packaged so a builder can rebuild t
 
 - `BRIEF.md`: purpose, non-goals, priorities, and who resolves gaps.
 - `PRODUCT.md` (optional): the whole product a build delivers, its shape, surfaces and flows. A Blueprint with it is a product Blueprint, built as the product with the components as its core.
+- `flows.toml` (with `PRODUCT.md`): each flow with the components it uses and the decisions it keeps. With the checks and assumptions each decision names, this links a Blueprint into one map: flows, components, decisions, assumptions. `symbola blueprint map` shows it, with the order to build in and the decisions no check settles; `symbola status` says how much of it a build keeps.
 - `assumptions/`: facts about the world a builder may rely on.
 - `obligations.toml`: the decisions a build must keep, each `decided`, `default` or `open`, and each tied to the checks that pin it down.
 - `components/`: ordinary capability contracts.
