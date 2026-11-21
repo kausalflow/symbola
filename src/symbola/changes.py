@@ -18,10 +18,11 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from .digest import contract_digest, contract_files
-from .pack import ASSUMPTIONS_DIR, COMPONENTS_DIR, OBLIGATIONS_FILE, PACK_MANIFEST_FILE, VERSIONS_DIR
+from .pack import ASSUMPTIONS_DIR, COMPONENTS_DIR, FLOWS_FILE, OBLIGATIONS_FILE, PACK_MANIFEST_FILE, VERSIONS_DIR
 
 OVERRIDES_FILE = "overrides.toml"
-DECISION_FIELDS = ("statement", "status", "kind", "exactness", "reason", "assumes", "checks", "unchecked")
+DECISION_FIELDS = ("statement", "status", "kind", "exactness", "reason", "assumes", "checks", "unchecked", "about")
+FLOW_FIELDS = ("title", "uses", "keeps")
 ASSUMPTION_FIELDS = ("statement", "basis", "monitor")
 # Lines of each document's diff kept in the Markdown report.
 DIFF_LINES = 120
@@ -65,6 +66,10 @@ def _version(root: Path) -> int | None:
 
 def _decisions(root: Path) -> dict[str, dict]:
     return {o["id"]: o for o in _toml(root / OBLIGATIONS_FILE).get("obligation", [])}
+
+
+def _flows(root: Path) -> dict[str, dict]:
+    return {f["id"]: f for f in _toml(root / FLOWS_FILE).get("flow", []) if "id" in f}
 
 
 def _assumptions(root: Path) -> dict[str, dict]:
@@ -135,13 +140,15 @@ def compare(old: Path, new: Path) -> dict:
             documents.append({"file": name, "added": not x, "removed": not y, "diff": diff})
     decisions = _matched(_decisions(old), _decisions(new), DECISION_FIELDS)
     assumptions = _matched(_assumptions(old), _assumptions(new), ASSUMPTION_FIELDS)
+    flows = _matched(_flows(old), _flows(new), FLOW_FIELDS)
     return {
         "from": _version(old), "to": _version(new),
-        "decisions": decisions, "assumptions": assumptions,
+        "decisions": decisions, "assumptions": assumptions, "flows": flows,
         "components": components, "documents": documents,
         "summary": {
             **{f"decisions_{k}": len(v) for k, v in decisions.items()},
             **{f"assumptions_{k}": len(v) for k, v in assumptions.items()},
+            **{f"flows_{k}": len(v) for k, v in flows.items()},
             **{f"components_{k}": len(v) for k, v in components.items()},
             "documents_changed": len(documents),
         },
@@ -155,8 +162,8 @@ def is_empty(changes: dict) -> bool:
 def summary_text(changes: dict) -> str:
     """One line, such as 'decisions: 2 changed, 1 added; component tidy changed; PRODUCT.md changed'."""
     s, parts = changes["summary"], []
-    for what in ("decisions", "assumptions"):
-        counts = [f"{s[f'{what}_{k}']} {k}" for k in ("changed", "added", "removed") if s[f"{what}_{k}"]]
+    for what in ("decisions", "assumptions", "flows"):
+        counts = [f"{s[f'{what}_{k}']} {k}" for k in ("changed", "added", "removed") if s.get(f"{what}_{k}")]
         if counts:
             parts.append(f"{what}: {', '.join(counts)}")
     for k in ("changed", "added", "removed"):
@@ -201,6 +208,16 @@ def markdown(changes: dict, title: str, overrides: list[Override] = (), diff_lin
                 out.append(f"  - {field}: {_value(x)}  \n    now: {_value(y)}")
         out += [f"- **added** `{c['id']}`: {c.get('statement')}" for c in a["added"]]
         out += [f"- **removed** `{c['id']}`: {c.get('statement')}" for c in a["removed"]]
+        out.append("")
+    fl = changes.get("flows", {})
+    if any(fl.values()):
+        out.append("## Flows\n")
+        for c in fl["changed"]:
+            out.append(f"- **changed** `{c['id']}`")
+            for field, (x, y) in c["fields"].items():
+                out.append(f"  - {field}: {_value(x)}  \n    now: {_value(y)}")
+        out += [f"- **added** `{c['id']}`: {c.get('title')} (uses {_value(c.get('uses', []))})" for c in fl["added"]]
+        out += [f"- **removed** `{c['id']}`: {c.get('title')}" for c in fl["removed"]]
         out.append("")
     c = changes["components"]
     if any(c.values()):

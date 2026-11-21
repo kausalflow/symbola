@@ -5,7 +5,9 @@ import pytest
 from typer.testing import CliRunner
 
 from symbola.cli import app
-from symbola.pack import component_name, summary_line, validate_pack
+import tomllib
+
+from symbola.pack import component_name, draft_flows, product_flows, summary_line, validate_pack
 
 from .conftest import REPO
 
@@ -209,8 +211,122 @@ def test_product_pack_needs_shape_surfaces_and_flows(pack):
     (pack / "PRODUCT.md").write_text("# Product\n\n## Shape\n\nA web app.\n\n## Flows\n\n1. Search.\n")
     report = validate_pack(pack)
     assert failed(report)["PRODUCT.md states the shape, surfaces and flows"] == "missing sections: Surfaces"
-    (pack / "PRODUCT.md").write_text("# Product\n\n## Shape\n\n## Surfaces\n\n## Flows\n")
+    (pack / "PRODUCT.md").write_text(PRODUCT)
+    (pack / "flows.toml").write_text(FLOWS)
     report = validate_pack(pack)
     assert report.ok, failed(report)
-    assert report.summary["product"] is True
+    assert report.summary["product"] is True and report.summary["flows"] == 2
     assert summary_line(report.summary).startswith("product pack · ")
+
+
+PRODUCT = """# Product
+
+## Shape
+
+A web app.
+
+## Surfaces
+
+- The search box.
+
+## Flows
+
+1. **Find a paper.** Type in the search box; `search-query` ranks the results.
+2. **Tidy up**: run `tidy` from the side bar. Uses `bibtex-export`, `bibtex-import`, `citation-key`,
+   `library-file`, `library-merge` and `pdf-filing` too.
+
+## Order
+
+1. Not a flow.
+"""
+
+FLOWS = """
+[[flow]]
+id = "find-a-paper"
+title = "Find a paper"
+uses = ["search-query"]
+keeps = ["search.trash"]
+
+[[flow]]
+id = "tidy-up"
+title = "Tidy up"
+uses = ["tidy", "bibtex-export", "bibtex-import", "citation-key", "library-file", "library-merge", "pdf-filing"]
+"""
+
+FLOWS_NAME = "flows.toml ties every flow to its components"
+
+
+@pytest.fixture
+def product(pack):
+    (pack / "PRODUCT.md").write_text(PRODUCT)
+    (pack / "flows.toml").write_text(FLOWS)
+    assert validate_pack(pack).ok, failed(validate_pack(pack))
+    return pack
+
+
+def test_flow_titles_come_from_the_numbered_bold_items_under_flows():
+    assert product_flows(PRODUCT) == (["Find a paper", "Tidy up"], [])
+    titles, problems = product_flows("## Flows\n\n1. Search, then read.\n2. **A.** x\n3. **A.** y\n")
+    assert titles == ["A", "A"]
+    assert problems == ["flow 1 must open with its title in bold, like '1. **Find a paper.** ...'",
+                        "two flows are titled 'A'"]
+
+
+def test_a_product_blueprint_needs_flows_toml_and_a_library_must_not_have_it(pack, product):
+    (pack / "flows.toml").unlink()
+    assert failed(validate_pack(pack))[FLOWS_NAME].startswith("missing flows.toml")
+    (pack / "flows.toml").write_text(FLOWS)
+    (pack / "PRODUCT.md").unlink()
+    assert "a component library has neither" in failed(validate_pack(pack))[FLOWS_NAME]
+
+
+def test_flows_toml_must_match_product_md(product):
+    (product / "flows.toml").write_text(FLOWS.replace('title = "Tidy up"', 'title = "Tidy"'))
+    assert failed(validate_pack(product))[FLOWS_NAME] == (
+        "flows of PRODUCT.md not in flows.toml: 'Tidy up'\nflows of flows.toml not in PRODUCT.md: 'Tidy'")
+    first, second = FLOWS.strip().split("\n\n")
+    (product / "flows.toml").write_text(second + "\n\n" + first + "\n")
+    assert failed(validate_pack(product))[FLOWS_NAME] == "flows are in a different order than in PRODUCT.md"
+
+
+def test_flows_name_real_components_and_decisions_and_leave_no_component_idle(product):
+    (product / "flows.toml").write_text(FLOWS.replace('uses = ["tidy", ', 'uses = ["tidier", ')
+                                        .replace("search.trash", "search.nope"))
+    detail = failed(validate_pack(product))[FLOWS_NAME]
+    assert "find-a-paper: keeps unknown decision 'search.nope'" in detail
+    assert "tidy-up: uses unknown component 'tidier'" in detail
+    assert "no flow uses tidy:" in detail
+    (product / "flows.toml").write_text(FLOWS.replace('id = "tidy-up"', 'id = "find-a-paper"'))
+    assert "two flows have the id 'find-a-paper'" in failed(validate_pack(product))[FLOWS_NAME]
+    (product / "flows.toml").write_text(FLOWS.replace('id = "tidy-up"', 'id = "Tidy Up"'))
+    assert "lowercase letters, digits and hyphens" in failed(validate_pack(product))[FLOWS_NAME]
+
+
+def test_about_ties_a_decision_without_checks_to_its_component(pack):
+    add(pack, id="search.unicode", statement="x", status="decided", unchecked="a fuzz check", about=["search-query"])
+    add(pack, id="search.free", statement="y", status="open", about=["search-query", "tidy"])
+    report = validate_pack(pack)
+    assert report.ok, failed(report)
+    add(pack, id="search.bad", statement="z", status="open", about=["nope"])
+    add(pack, id="search.twice", statement="z", status="decided", checks=["tidy#example:1"], about=["tidy"])
+    detail = failed(validate_pack(pack))["every obligation is checked, open, or explained"]
+    assert "search.bad: is about unknown component 'nope'" in detail
+    assert "search.twice: its checks already tie it to 'tidy'; drop it from `about`" in detail
+
+
+def test_summary_counts_standing(pack):
+    before = validate_pack(pack).summary["standing"]
+    add(pack, id="search.unicode", statement="x", status="decided", unchecked="a fuzz check")
+    add(pack, id="search.free", statement="y", status="open")
+    after = validate_pack(pack).summary["standing"]
+    assert after == {"checked": before["checked"], "unchecked": before["unchecked"] + 1, "open": before["open"] + 1}
+
+
+def test_draft_flows_keeps_what_is_there_and_drafts_the_rest(product):
+    assert tomllib.loads(draft_flows(product)) == tomllib.loads(FLOWS)
+    (product / "PRODUCT.md").write_text(PRODUCT.replace(
+        "2. **Tidy up**", "2. **Find a paper again.** With `tidy` and `nothing`.\n3. **Tidy up**"))
+    flows = tomllib.loads(draft_flows(product))["flow"]
+    assert [f["id"] for f in flows] == ["find-a-paper", "find-a-paper-again", "tidy-up"]
+    assert flows[1] == {"id": "find-a-paper-again", "title": "Find a paper again", "uses": ["tidy"]}
+    assert flows[0]["keeps"] == ["search.trash"]

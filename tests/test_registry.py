@@ -259,8 +259,12 @@ def test_product_pack_is_built_as_the_product(registry, tmp_path):
     v2 = registry / "kausalflow" / "lightkone" / "versions" / "2"
     build_site(registry, tmp_path / "plain", "https://symbola.sh")
     llms = (tmp_path / "plain" / "packs" / "kausalflow" / "lightkone" / "llms.txt").read_text()
-    assert "PRODUCT.md" not in llms and "You are done when attest reports PASSED for every component." in llms
-    (v2 / "PRODUCT.md").write_text("# Lightkone\n\n## Shape\n\nA web app.\n\n## Surfaces\n\n## Flows\n")
+    assert "PRODUCT.md" not in llms and "You are done when `symbola status` says DONE and attest reports PASSED for every component." in llms
+    (v2 / "PRODUCT.md").write_text("# Lightkone\n\n## Shape\n\nA web app.\n\n## Surfaces\n\n## Flows\n\n"
+                                   "1. **Tidy up.** Run it.\n2. **Everything else.** Use it.\n")
+    rest = sorted(p.name for p in (v2 / "components").iterdir() if p.name != "tidy")
+    (v2 / "flows.toml").write_text('[[flow]]\nid = "tidy-up"\ntitle = "Tidy up"\nuses = ["tidy"]\n\n'
+                                   f'[[flow]]\nid = "rest"\ntitle = "Everything else"\nuses = {json.dumps(rest)}\n')
     build_site(registry, tmp_path / "site", "https://symbola.sh")
     site = tmp_path / "site" / "packs" / "kausalflow" / "lightkone"
     llms = (site / "llms.txt").read_text()

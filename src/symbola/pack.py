@@ -29,12 +29,17 @@ BRIEF_FILE = "BRIEF.md"
 # Optional: the whole product a build delivers. A pack with it is a product pack,
 # whose components are the product's core; one without it is a component library.
 PRODUCT_FILE = "PRODUCT.md"
+# The flows of PRODUCT.md as data: which components each one uses and which
+# decisions it carries. Required beside PRODUCT.md, absent without it.
+FLOWS_FILE = "flows.toml"
 ASSUMPTIONS_DIR = "assumptions"
 COMPONENTS_DIR = "components"
 # Each version of a pack or contract lives in versions/<n>/ next to the others.
 VERSIONS_DIR = "versions"
 
 OBLIGATION_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+$")
+FLOW_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+COMPONENT_NAME_RE = FLOW_ID_RE
 ASSUMPTION_ID_RE = re.compile(r"^K-[a-z0-9][a-z0-9-]*$")
 CHECK_RE = re.compile(r"^(?P<component>[a-z0-9][a-z0-9-]*)#(?:example:(?P<line>[1-9][0-9]*)|(?P<prop>test_[A-Za-z0-9_]*))$")
 
@@ -78,6 +83,9 @@ class Obligation(_Strict):
     # Required but not yet checkable: the kind of check that would settle it,
     # such as "a static check over the source tree". Reported as debt.
     unchecked: str = ""
+    # Components the decision is about beyond those its checks name; the only
+    # way a decision without checks says which part of the product it binds.
+    about: list[str] = []
 
     @field_validator("id")
     @classmethod
@@ -86,9 +94,44 @@ class Obligation(_Strict):
             raise ValueError("must look like 'area.name' (lowercase letters, digits, hyphens, dot-separated)")
         return v
 
+    @property
+    def standing(self) -> str:
+        """How settled the decision is: checked, unchecked (required, no check yet) or open."""
+        if self.status == "open":
+            return "open"
+        return "checked" if self.checks else "unchecked"
+
+    @property
+    def components(self) -> list[str]:
+        """The components it binds: those its checks run against, then those in `about`."""
+        names = [ref.split("#", 1)[0] for ref in self.checks] + self.about
+        return list(dict.fromkeys(names))
+
 
 class Obligations(_Strict):
     obligation: list[Obligation] = Field(min_length=1)
+
+
+class Flow(_Strict):
+    """One thing users do, as PRODUCT.md tells it, tied to the parts that carry it."""
+
+    id: str
+    title: str = Field(min_length=1)
+    uses: list[str] = []
+    # Decisions the flow itself must keep, beyond those of the components it uses:
+    # the product-level ones no single component owns.
+    keeps: list[str] = []
+
+    @field_validator("id")
+    @classmethod
+    def _check_id(cls, v: str) -> str:
+        if not FLOW_ID_RE.match(v):
+            raise ValueError("must be lowercase letters, digits and hyphens")
+        return v
+
+
+class Flows(_Strict):
+    flow: list[Flow] = Field(min_length=1)
 
 
 class Assumption(_Strict):
@@ -157,6 +200,163 @@ def _expected(example: dict) -> str:
 
 def _brief_headings(text: str) -> set[str]:
     return {m.group(1).strip().lower() for m in re.finditer(r"^#+\s+(.+?)\s*#*\s*$", text, re.M)}
+
+
+def product_flows(text: str) -> tuple[list[str], list[str]]:
+    """The flow titles of a PRODUCT.md, in order, and what is wrong with its Flows section.
+
+    A flow is a numbered item under the Flows heading that opens with its title in
+    bold: `1. **Join and sync.** Opening a link ...`. The title, without closing
+    punctuation, is what flows.toml refers to.
+    """
+    lines = text.split("\n")
+    start = next((i for i, line in enumerate(lines)
+                  if re.match(r"^#+\s+flows\s*#*\s*$", line.strip(), re.I)), None)
+    if start is None:
+        return [], []
+    titles, problems = [], []
+    for line in lines[start + 1:]:
+        if re.match(r"^#+\s", line):
+            break
+        item = re.match(r"^(\d+)\.\s+(.*)$", line)
+        if not item:
+            continue
+        bold = re.match(r"^\*\*(.+?)\*\*", item.group(2))
+        title = bold.group(1).strip().rstrip(".:").strip() if bold else ""
+        if not title:
+            problems.append(f"flow {item.group(1)} must open with its title in bold, like '1. **Find a paper.** ...'")
+        else:
+            titles.append(title)
+    dupes = [t for t, n in Counter(titles).items() if n > 1]
+    problems += [f"two flows are titled '{t}'" for t in dupes]
+    return titles, problems
+
+
+def _flow_items(text: str) -> list[tuple[str, str]]:
+    """(title, body) of each flow of a PRODUCT.md, the body running to the next flow."""
+    lines = text.split("\n")
+    start = next((i for i, line in enumerate(lines)
+                  if re.match(r"^#+\s+flows\s*#*\s*$", line.strip(), re.I)), None)
+    items: list[tuple[str, list[str]]] = []
+    for line in lines[start + 1:] if start is not None else []:
+        if re.match(r"^#+\s", line):
+            break
+        item = re.match(r"^\d+\.\s+\*\*(.+?)\*\*(.*)$", line)
+        if item:
+            items.append((item.group(1).strip().rstrip(".:").strip(), [item.group(2)]))
+        elif items:
+            items[-1][1].append(line)
+    return [(title, "\n".join(body)) for title, body in items if title]
+
+
+def flow_id(title: str) -> str:
+    """A flow id from its title: 'Join and sync' -> 'join-and-sync'."""
+    return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-") or "flow"
+
+
+def draft_flows(root: Path) -> str:
+    """flows.toml for a Blueprint, in step with its PRODUCT.md.
+
+    Flows already listed keep their id, `uses` and `keeps`, matched by title. A new
+    flow gets an id from its title and, as a first draft for the publisher to
+    correct, the components its text names in backticks.
+    """
+    root = Path(root)
+    components = _component_dirs(root)
+    try:
+        known = {f.title: f for f in load_flows(root)}
+    except Exception:
+        known = {}
+    taken = {f.id for f in known.values()}
+    out = [f"# The flows of {PRODUCT_FILE}, in its order: the components each one uses, and the decisions",
+           "# it keeps itself (product-level ones no component's checks cover). `symbola blueprint flows`",
+           "# keeps this file in step with the titles there; `uses` and `keeps` are yours to maintain.", ""]
+    for title, body in _flow_items((root / PRODUCT_FILE).read_text()):
+        flow = known.get(title)
+        if flow is None:
+            base = fid = flow_id(title)
+            n = 2
+            while fid in taken:
+                fid, n = f"{base}-{n}", n + 1
+            taken.add(fid)
+            named = dict.fromkeys(re.findall(r"`([^`]+)`", body))
+            flow = Flow(id=fid, title=title, uses=[c for c in named if c in components])
+        out += ["[[flow]]", f"id = {json.dumps(flow.id)}", f"title = {json.dumps(flow.title, ensure_ascii=False)}",
+                f"uses = {json.dumps(flow.uses)}"]
+        if flow.keeps:
+            out.append(f"keeps = {json.dumps(flow.keeps)}")
+        out.append("")
+    return "\n".join(out)
+
+
+def load_flows(root: Path) -> list[Flow]:
+    """The flows of a product Blueprint; none for a component library. Raises when malformed."""
+    path = Path(root) / FLOWS_FILE
+    if not path.is_file():
+        return []
+    with path.open("rb") as f:
+        return Flows.model_validate(tomllib.load(f)).flow
+
+
+def load_obligations(root: Path) -> list[Obligation]:
+    with (Path(root) / OBLIGATIONS_FILE).open("rb") as f:
+        return Obligations.model_validate(tomllib.load(f)).obligation
+
+
+def load_assumptions(root: Path) -> dict[str, Assumption]:
+    found = {}
+    for path in sorted((Path(root) / ASSUMPTIONS_DIR).glob("*.toml")):
+        with path.open("rb") as f:
+            a = Assumption.model_validate(tomllib.load(f))
+        found[a.id] = a
+    return found
+
+
+def _check_flows(root: Path, components: dict[str, Path], obligations: list[Obligation]) -> CheckResult | None:
+    """flows.toml says, for each flow PRODUCT.md tells, the components it uses and the decisions it keeps."""
+    product, flows_file = root / PRODUCT_FILE, root / FLOWS_FILE
+    name = f"{FLOWS_FILE} ties every flow to its components"
+    if not product.is_file():
+        if flows_file.is_file():
+            return CheckResult(name, False, f"{FLOWS_FILE} needs a {PRODUCT_FILE} that tells its flows; "
+                                            "a component library has neither")
+        return None
+    if not flows_file.is_file():
+        return CheckResult(name, False, f"missing {FLOWS_FILE}: a product Blueprint lists each flow of "
+                                        f"{PRODUCT_FILE} with the components it uses")
+    try:
+        flows = load_flows(root)
+    except Exception as e:
+        return CheckResult(name, False, _error(e))
+    titles, problems = product_flows(product.read_text())
+    if not titles and not problems:
+        problems.append(f"{PRODUCT_FILE} tells no flows: number them under Flows, each opening with a bold title")
+    problems += [f"two flows have the id '{i}'" for i, n in Counter(f.id for f in flows).items() if n > 1]
+    listed = [f.title for f in flows]
+    if not problems and listed != titles:
+        missing = [t for t in titles if t not in listed]
+        extra = [t for t in listed if t not in titles]
+        if missing:
+            problems.append(f"flows of {PRODUCT_FILE} not in {FLOWS_FILE}: " + ", ".join(f"'{t}'" for t in missing))
+        if extra:
+            problems.append(f"flows of {FLOWS_FILE} not in {PRODUCT_FILE}: " + ", ".join(f"'{t}'" for t in extra))
+        if not missing and not extra:
+            problems.append(f"flows are in a different order than in {PRODUCT_FILE}")
+    ids = {o.id for o in obligations}
+    used = set()
+    for f in flows:
+        used |= set(f.uses)
+        problems += [f"{f.id}: uses unknown component '{c}'" for c in f.uses if c not in components]
+        problems += [f"{f.id}: keeps unknown decision '{k}'" for k in f.keeps if k not in ids]
+        for field_name, values in (("uses", f.uses), ("keeps", f.keeps)):
+            problems += [f"{f.id}: lists '{v}' twice under {field_name}" for v, n in Counter(values).items() if n > 1]
+    idle = sorted(set(components) - used)
+    if idle:
+        problems.append("no flow uses " + ", ".join(idle) + ": add each to the flows that rely on it, "
+                        "or leave the component out of the Blueprint")
+    kept = Counter(k for f in flows for k in f.keeps)
+    return CheckResult(name, not problems, "\n".join(problems) or
+                       f"{len(flows)} flows, {len(used)} components used, {len(kept)} decisions kept by flows")
 
 
 def validate_pack(pack_dir: Path) -> PackReport:
@@ -292,7 +492,16 @@ def validate_pack(pack_dir: Path) -> PackReport:
         for k in o.assumes:
             if k not in assumptions:
                 problems.append(f"{o.id}: assumes unknown {k}")
+        for c in o.about:
+            if c not in components:
+                problems.append(f"{o.id}: is about unknown component '{c}'")
+            elif any(ref.startswith(f"{c}#") for ref in o.checks):
+                problems.append(f"{o.id}: its checks already tie it to '{c}'; drop it from `about`")
     add(CheckResult("every obligation is checked, open, or explained", not problems, "\n".join(problems)))
+
+    flows_check = _check_flows(root, components, obligations)
+    if flows_check is not None:
+        add(flows_check)
 
     bound = [o for o in obligations if o.status != "open"]
     unchecked = [o.id for o in bound if o.unchecked.strip()]
@@ -312,6 +521,11 @@ def validate_pack(pack_dir: Path) -> PackReport:
         "obligations": len(obligations),
         "by_status": {s: status.get(s, 0) for s in ("decided", "default", "open")},
         "unchecked": len(unchecked),
+        # How settled the decisions are: checked by something a build must pass,
+        # required on the builder's word alone, or left to the builder.
+        "standing": {k: sum(o.standing == k for o in obligations) for k in ("checked", "unchecked", "open")},
+        "assumptions_relied_on": len({k for o in obligations for k in o.assumes}),
+        "flows": len(load_flows(root)) if flows_check is not None and flows_check.ok else 0,
         "by_source": dict(Counter(o.source for o in obligations)),
         "statistical_checks": len(statistical),
         "by_exactness": {"exact": sum(o.status != "open" and o.exactness == "exact" for o in obligations),
