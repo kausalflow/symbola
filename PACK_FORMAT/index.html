@@ -1,4 +1,6 @@
 
+
+
 <!doctype html>
 <html lang="en" class="no-js">
   <head>
@@ -14,6 +16,7 @@
       
       
       
+      
         <link rel="prev" href="../ATTESTATION/">
       
       
@@ -24,7 +27,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.74">
+      <meta name="generator" content="zensical-0.1.3">
     
     
       
@@ -35,12 +38,13 @@
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.4ab2de0c.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.e2cf241e.min.css">
       
         
           
         
         <link rel="stylesheet" href="../assets/stylesheets/modern/palette.b60ce83d.min.css">
+      
       
       
 
@@ -763,6 +767,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#flowstoml" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>flows.toml</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#assumptionsnametoml" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -790,6 +805,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Unchecked obligations
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-a-decision-belongs-and-how-settled-it-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where a decision belongs, and how settled it is
       </span>
     </span>
   </a>
@@ -1108,6 +1134,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#flowstoml" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>flows.toml</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#assumptionsnametoml" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1135,6 +1172,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Unchecked obligations
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-a-decision-belongs-and-how-settled-it-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where a decision belongs, and how settled it is
       </span>
     </span>
   </a>
@@ -1278,10 +1326,11 @@ the product; leave codebase-only choices to the codebase's own guidance.</p>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  symbolon-pack.toml    manifest: pack id, version, license, component digests (required)
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  BRIEF.md              purpose, non-goals, priorities, who resolves gaps (required)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  PRODUCT.md            the whole product a build delivers (optional; makes it a product pack)
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  obligations.toml      the decisions a build must keep (required)
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  assumptions/*.toml    what must hold about the world, one file each
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  components/&lt;name&gt;/versions/&lt;version&gt;/   capability contracts
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  AGENTS.md             short guide for coding agents
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  flows.toml            each flow of PRODUCT.md with the components it uses (required beside PRODUCT.md)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  obligations.toml      the decisions a build must keep (required)
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  assumptions/*.toml    what must hold about the world, one file each
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  components/&lt;name&gt;/versions/&lt;version&gt;/   capability contracts
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  AGENTS.md             short guide for coding agents
 </span></code></pre></div>
 <h2 id="selling-listing">Selling: <code>[listing]</code><a class="headerlink" href="#selling-listing" title="Permanent link">&para;</a></h2>
 <p>An optional table in <code>symbolon-pack.toml</code> prices the Blueprint:</p>
@@ -1307,8 +1356,9 @@ people and agents. It must have these headings (any level, any case):</p>
 <li><strong>Shape</strong>: what kind of program it is, where it runs, what it needs, and the
   choices users would notice (a static web app with no server, a CLI, a service).</li>
 <li><strong>Surfaces</strong>: every screen, command, endpoint and file users touch, one line each.</li>
-<li><strong>Flows</strong>: the main things users do, each as steps and the outcome they see,
-  naming the components each step uses.</li>
+<li><strong>Flows</strong>: the main things users do, as a numbered list. Each item opens with
+  its title in bold (<code>1. **Find a paper.** Type in the search box ...</code>), then gives
+  the steps and the outcome users see.</li>
 </ul>
 <p>Optional headings such as <strong>Interfaces</strong> (outside services, plugin or storage
 interfaces) and <strong>Order</strong> (what to build first when a build cannot do it all)
@@ -1319,26 +1369,46 @@ check covers yet can be <code>unchecked</code> obligations.</p>
 components as its core, and it is done when every flow works and every component
 passes. A Blueprint without it is a <strong>component library</strong>: its build is the components.
 <code>symbola replicate</code> always builds the components only, so it costs the same either way.</p>
+<h2 id="flowstoml"><code>flows.toml</code><a class="headerlink" href="#flowstoml" title="Permanent link">&para;</a></h2>
+<p>A product Blueprint lists the flows of <code>PRODUCT.md</code> as data, in the same order:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[[flow]]</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"join-and-sync"</span><span class="w">                 </span><span class="c1"># lowercase words and hyphens</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Join and sync"</span><span class="w">              </span><span class="c1"># the flow's bold title in PRODUCT.md, without the closing dot or colon</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">uses</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"link-crypto"</span><span class="p">,</span><span class="w"> </span><span class="s2">"room"</span><span class="p">]</span><span class="w">       </span><span class="c1"># the components the flow relies on</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">keeps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"app.sync-client"</span><span class="p">]</span><span class="w">          </span><span class="c1"># optional: decisions the flow itself keeps</span>
+</span></code></pre></div>
+<p><code>uses</code> is what joins the product to its parts. It gives builders an order (the
+components the first flows need come first), tells a reader what each component
+is for, and makes a component nobody needs visible: every component must be used
+by at least one flow. <code>keeps</code> places product-level decisions, the ones no single
+component's checks cover, on the flow that must keep them. A flow may use no
+component, when it is all product.</p>
+<p><code>symbola blueprint flows spec --write</code> writes or updates the file from the titles
+in <code>PRODUCT.md</code>: flows already listed keep their <code>uses</code> and <code>keeps</code>, and a new
+flow gets a first draft of <code>uses</code> from the component names its text has in
+backticks, for the publisher to correct. A component library (no <code>PRODUCT.md</code>)
+has no <code>flows.toml</code>.</p>
 <h2 id="assumptionsnametoml"><code>assumptions/&lt;name&gt;.toml</code><a class="headerlink" href="#assumptionsnametoml" title="Permanent link">&para;</a></h2>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"K-single-writer"</span><span class="w">                 </span><span class="c1"># K-&lt;lowercase-name&gt;</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">statement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"At most one client writes a given library at a time."</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">basis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Sync is manual and libraries are personal."</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">monitor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"none"</span><span class="w">                       </span><span class="c1"># how a deployment can watch it, or "none"</span>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"K-single-writer"</span><span class="w">                 </span><span class="c1"># K-&lt;lowercase-name&gt;</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">statement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"At most one client writes a given library at a time."</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">basis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Sync is manual and libraries are personal."</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">monitor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"none"</span><span class="w">                       </span><span class="c1"># how a deployment can watch it, or "none"</span>
 </span></code></pre></div>
 <p>Assumptions tell builders what they need not handle, and they scope the evidence:
 a build that passes the Blueprint is correct under these assumptions.</p>
 <h2 id="obligationstoml"><code>obligations.toml</code><a class="headerlink" href="#obligationstoml" title="Permanent link">&para;</a></h2>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[[obligation]]</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"search.year-last-wins"</span><span class="w">           </span><span class="c1"># dot-separated lowercase words</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">statement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Only the last year: term in a query applies, whatever its form."</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"decided"</span><span class="w">                     </span><span class="c1"># decided | default | open</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"behaviour"</span><span class="w">                     </span><span class="c1"># behaviour | constraint | security | audit (default behaviour)</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"replication"</span><span class="w">                 </span><span class="c1"># extract | oracle | replication | counterexample | publisher</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">reason</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"..."</span><span class="w">                         </span><span class="c1"># required when kind = "constraint"</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">exactness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"exact"</span><span class="w">                    </span><span class="c1"># exact | statistical (default exact)</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">assumes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"K-..."</span><span class="p">]</span><span class="w">                    </span><span class="c1"># optional</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">checks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"search-query#test_only_the_last_year_filter_counts"</span><span class="p">,</span><span class="w"> </span><span class="s2">"search-query#example:40"</span><span class="p">]</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">unchecked</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">""</span><span class="w">                         </span><span class="c1"># see "Unchecked obligations" below</span>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">[[obligation]]</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"search.year-last-wins"</span><span class="w">           </span><span class="c1"># dot-separated lowercase words</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">statement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Only the last year: term in a query applies, whatever its form."</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"decided"</span><span class="w">                     </span><span class="c1"># decided | default | open</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">kind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"behaviour"</span><span class="w">                     </span><span class="c1"># behaviour | constraint | security | audit (default behaviour)</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"replication"</span><span class="w">                 </span><span class="c1"># extract | oracle | replication | counterexample | publisher</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">reason</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"..."</span><span class="w">                         </span><span class="c1"># required when kind = "constraint"</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">exactness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"exact"</span><span class="w">                    </span><span class="c1"># exact | statistical (default exact)</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">assumes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"K-..."</span><span class="p">]</span><span class="w">                    </span><span class="c1"># optional</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="n">checks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"search-query#test_only_the_last_year_filter_counts"</span><span class="p">,</span><span class="w"> </span><span class="s2">"search-query#example:40"</span><span class="p">]</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="n">unchecked</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">""</span><span class="w">                         </span><span class="c1"># see "Unchecked obligations" below</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">about</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"search-query"</span><span class="p">]</span><span class="w">               </span><span class="c1"># optional: components it binds that its checks do not name</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -1372,6 +1442,39 @@ a build that passes the Blueprint is correct under these assumptions.</p>
 such as <code>unchecked = "a session check: run to t1 then t2, compared with one run to t2"</code>.
 Builders treat it as required; <code>blueprint validate</code> counts it as debt and fails above
 <code>[pack] max_unchecked</code> (a share of decided and default obligations, default 0.1).</p>
+<h3 id="where-a-decision-belongs-and-how-settled-it-is">Where a decision belongs, and how settled it is<a class="headerlink" href="#where-a-decision-belongs-and-how-settled-it-is" title="Permanent link">&para;</a></h3>
+<p>A decision binds the components its checks run against, plus any it names in
+<code>about</code>, which is how an unchecked or open decision says what part it is about.
+A decision a flow lists under <code>keeps</code> belongs to that flow. One tied to neither
+binds the product as a whole.</p>
+<p>Every decision has a <strong>standing</strong>, read off its status and checks:</p>
+<table>
+<thead>
+<tr>
+<th>Standing</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>checked</code></td>
+<td>Decided or default, with a check a build must pass</td>
+</tr>
+<tr>
+<td><code>unchecked</code></td>
+<td>Decided or default, required, but only the builder confirms it</td>
+</tr>
+<tr>
+<td><code>open</code></td>
+<td>The builder's to choose</td>
+</tr>
+</tbody>
+</table>
+<p>A component, a flow or the whole Blueprint has the standing of the decisions
+under it and rests on the assumptions those decisions name. <code>symbola blueprint map</code>
+prints all of it with the build order; <code>symbola status</code> asks the same of a build:
+which decisions it keeps, fails, has not built yet, or holds on the builder's
+word.</p>
 <p>A check is <code>&lt;component&gt;#example:&lt;line&gt;</code> (a 1-based line of that component's
 <code>examples.jsonl</code>) or <code>&lt;component&gt;#&lt;test function&gt;</code> (a property in its
 <code>properties.py</code>). Obligation ids are the single id scheme for tracing checks to
@@ -1418,12 +1521,16 @@ on its own.</p>
 <li>Every obligation is well-formed, with a unique id.</li>
 <li>Every <code>decided</code> or <code>default</code> obligation has checks or an <code>unchecked</code> reason (not
    both), every <code>open</code> one has neither, every constraint has a reason, every check
-   exists, and every assumption it names exists.</li>
+   exists, every assumption it names exists, and every component in <code>about</code> exists
+   and is not already named by its checks.</li>
 <li>A <code>statistical</code> obligation is not <code>open</code>, and when it has checks, at least one
    is a statistical property.</li>
+<li>A Blueprint with <code>PRODUCT.md</code> has a <code>flows.toml</code> listing the same flows in the same
+   order, by title; every <code>uses</code> names a component, every <code>keeps</code> a decision, and
+   every component is used by a flow. One without <code>PRODUCT.md</code> has no <code>flows.toml</code>.</li>
 <li>Unchecked obligations are at most <code>max_unchecked</code> of the decided and default ones.</li>
 </ol>
-<p>It then reports obligations by status, source and exactness, assumptions and how many are
+<p>It then reports obligations by status, standing, source and exactness, assumptions and how many are
 monitored, and how many of the components' checks trace to an obligation. It does
 not run contract code; use <code>symbola validate</code> on each component for that.</p>
 
@@ -1536,7 +1643,8 @@ not run contract code; use <code>symbola validate</code> on each component for t
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.action.edit","content.code.annotate","content.code.copy","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"redirect":null,"search":"../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d31f0ffa.min.js"></script>
+      <script src="../assets/javascripts/bundle.9e76c64c.min.js"></script>
+      
       
     
   </body>
